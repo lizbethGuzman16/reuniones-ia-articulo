@@ -1,0 +1,13 @@
+Epic,Tipo,Resumen,Descripción,Criterio de aceptación,Prioridad,Estado sugerido
+DATA,Story,Descargar MRDA,Descargar los tres splits públicos y verificar SHA-256,Los archivos coinciden con hashes y esquema,Alta,Done
+EDA,Story,Realizar EDA,Limpiar y generar estadísticos y figuras,Tablas y cuatro figuras con interpretación,Alta,Done
+ML,Story,Entrenar tres modelos clásicos,MLP-TFIDF CNN-1D y LSTM,Modelos y métricas guardados,Alta,Done
+ML,Story,Entrenar dos modelos híbridos,CNN-BiLSTM y BiLSTM-Attention,Modelos y métricas guardados,Alta,Done
+VAL,Story,Validación cruzada,Ejecutar GroupKFold configurable con cinco folds,Resultados por fold y resumen,Alta,Done
+TUNE,Story,Ajustar hiperparámetros,Probar configuraciones CNN-BiLSTM,Mejor configuración documentada,Media,Done
+STATS,Story,Pruebas estadísticas,Friedman y Wilcoxon con Holm,Resultados e interpretación,Alta,Done
+API,Story,Exponer modelo con FastAPI,Crear health status predict batch metrics reports,Pruebas automáticas aprobadas,Alta,Done
+UI,Story,Integrar dashboard IA,Agregar vistas de predicción EDA modelos validación y reportes,Todas las vistas cargan autenticadas,Alta,Done
+REP,Story,Generar reportes,Crear PDF Word y Excel,Archivos descargables desde dashboard,Alta,Done
+DEVOPS,Story,Preparar despliegue,Configurar Docker Render y landing Vercel,Archivos de despliegue presentes,Media,Done
+SEC,Task,Rotar credenciales,Regenerar claves originales antes de producción,Ninguna clave comprometida se usa,Crítica,To Do

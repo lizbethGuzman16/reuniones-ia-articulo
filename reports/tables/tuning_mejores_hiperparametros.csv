@@ -1,0 +1,2 @@
+trial,embedding_dim,hidden_dim,dropout,learning_rate,accuracy_validacion,f1_macro_validacion,tiempo_seg
+2,32,32,0.2,0.001,0.5494,0.5188710011627329,4.802084857999944

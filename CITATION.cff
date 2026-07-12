@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: "Clasificación automática de actos de diálogo en reuniones mediante redes neuronales clásicas e híbridas"
+message: "Cite este software y las fuentes MRDA/SILICONE cuando utilice la entrega."
+type: software
+authors:
+  - family-names: "Castañeda Flores"
+    given-names: "Carlos Daniel"
+version: 1.0.0
+date-released: 2026-07-12
+repository-code: "COMPLETAR_URL_GITHUB"
+keywords:
+  - dialogue acts
+  - MRDA
+  - neural networks
+  - Streamlit
+  - FastAPI
+references:
+  - type: conference-paper
+    title: "The ICSI Meeting Recorder Dialog Act (MRDA) Corpus"
+    authors:
+      - family-names: "Shriberg"
+        given-names: "Elizabeth"
+    year: 2004
+  - type: conference-paper
+    title: "Hierarchical Pre-training for Sequence Labelling in Spoken Dialog"
+    authors:
+      - family-names: "Chapuis"
+        given-names: "Emile"
+    year: 2020

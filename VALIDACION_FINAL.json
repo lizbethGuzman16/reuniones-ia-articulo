@@ -1,0 +1,68 @@
+{
+  "validated_at": "2026-07-12",
+  "dataset_hashes": [
+    {
+      "file": "data/raw/mrda_train.csv",
+      "expected": "d7a963aac70eb80d315b76b9e71d82a7888532ef8c6752c84487e34dfce3b7eb",
+      "actual": "d7a963aac70eb80d315b76b9e71d82a7888532ef8c6752c84487e34dfce3b7eb",
+      "ok": true,
+      "bytes": 7977039
+    },
+    {
+      "file": "data/raw/mrda_dev.csv",
+      "expected": "dc795c60b3825645a20dbb0700e279271fc52eef4bc297564a0227f608a19619",
+      "actual": "dc795c60b3825645a20dbb0700e279271fc52eef4bc297564a0227f608a19619",
+      "ok": true,
+      "bytes": 903718
+    },
+    {
+      "file": "data/raw/mrda_test.csv",
+      "expected": "8426417d316cb0aa57f13e46e866e8964eed71f719212ab1da1c3cbaa23ea414",
+      "actual": "8426417d316cb0aa57f13e46e866e8964eed71f719212ab1da1c3cbaa23ea414",
+      "ok": true,
+      "bytes": 1425091
+    }
+  ],
+  "required_files": {
+    "models/best_model.h5": 1325076,
+    "models/tfidf_vectorizer.joblib": 93672,
+    "models/best_model_metadata.json": 368,
+    "reports/articulo_cientifico_reuniones_ia.docx": 2521827,
+    "reports/articulo_cientifico_reuniones_ia.pdf": 2633831,
+    "reports/reporte_resultados_modelos.xlsx": 32790,
+    "docs/JIRA_BACKLOG.csv": 1500
+  },
+  "docx_pages": 29,
+  "pdf_pages": 29,
+  "api_tests": 6,
+  "best_model": "MLP-TFIDF",
+  "best_model_artifact": "models/best_model.h5",
+  "test_f1_macro": 0.6219238248176198,
+  "test_accuracy": 0.6426632191338074,
+  "friedman_p_value": 0.001705189737618342,
+  "notes": [
+    "Entrenamiento principal con muestra estratificada de 30000; evaluación con test oficial completo de 15470.",
+    "Despliegue público requiere cuentas del equipo.",
+    "2026-07-12: ronda de endurecimiento de seguridad y reproducibilidad (CORS restringido, RLS de Supabase, saneamiento de JSON de n8n, metadatos de framework del modelo, runner de entrenamiento completo configurable). No se modificaron métricas ni los reportes Word/PDF/Excel; ver docs/AUDITORIA_FINAL.md."
+  ],
+  "final_artifact_sha256": {
+    "reports/articulo_cientifico_reuniones_ia.docx": "afe07f2f0e99c7fb5735368141f67d76c5e7a3c517384a34d18b96e5afae7b48",
+    "reports/articulo_cientifico_reuniones_ia.pdf": "9bc3d479b938d8da76f533a9f323b7bfa541eb1f1a2b460108f251f6cca6ef11",
+    "reports/reporte_resultados_modelos.xlsx": "55dd38bd01d1d89834894315f5c969c15d8058b6bc36376a427c35fa8bc4571c",
+    "models/best_model.h5": "68a5ce88ce54c374b49d6f3f36bcf72d12e9ec31b71595de1fd48896c457e7e6",
+    "docs/AUDITORIA_FINAL.md": "32ca3994d4490183d016cc4975b47aa0fd291b749eab8070c27d19dfd103e216"
+  },
+  "quality_assurance": {
+    "pytest": {
+      "passed": 6,
+      "failed": 0
+    },
+    "docx_pages": 29,
+    "pdf_pages": 29,
+    "pdf_visual_diff_changed_pages": 0,
+    "xlsx_sheets": 15,
+    "xlsx_formula_errors": 0,
+    "secret_scan_active_credentials_found": 0
+  },
+  "audit_file": "docs/AUDITORIA_FINAL.md"
+}

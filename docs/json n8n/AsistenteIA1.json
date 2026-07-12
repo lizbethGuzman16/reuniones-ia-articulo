@@ -1,0 +1,614 @@
+{
+  "name": "AsistenteIA1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crear-reunion-chat",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": "={\n  \"creador_id\": \"UUID-de-usuarios.id\",\n  \"mensaje\": \"Programa una reunión mañana a las 11am por 60 minutos con asunto Ventas Q4 e invita a pro o superior y a ana@empresa.com\"\n}\n"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -608,
+        -160
+      ],
+      "id": "695d0ce1-1954-4fc5-aff6-8caa362fb1e8",
+      "name": "Webhook",
+      "webhookId": "REEMPLAZAR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Eres un asistente que convierte solicitudes de reuniones en JSON estricto.\n\nDevuelve SOLO JSON válido, sin texto adicional.\n\nFormato esperado:\n{\n \"asunto\": string,\n \"fecha_iso\": string (formato ISO 8601, zona America/Lima),\n \"duracion_minutos\": number,\n \"correos\": string[],\n \"nivel_minimo\": \"basico\" | \"pro\" | \"enterprise\" | null,\n \"solo_este_nivel\": true\n}\n\nReglas:\n- Si no hay fecha, asume mañana 11:00 America/Lima.\n- Si no hay duración, usa 60.\n- Si no indica correos, devuelve [].\n- Si menciona nivel tipo \"basico\", “pro”, “enterprise”, úsalo; si no hay, null.\n- Si el usuario dice palabras como \"solo\", \"únicamente\", \"exclusivamente\" junto con un nivel,\nentonces \"nivel_minimo\" es ese nivel y \"solo_este_nivel\" = true.\nSi no, \"solo_este_nivel\" = false.\n- NUNCA añadas explicaciones fuera del JSON.",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.body.mensaje }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -384,
+        -64
+      ],
+      "id": "1397d94c-449f-4b05-a961-1e75becc70ae",
+      "name": "Message a model"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst creador = $('Webhook').first().json.body.creador_id;\nconst parsed = $input.first().json.message.content; // the AI already returned JSON\n\nif (!creador) throw new Error(\"Falta creador_id\");\n\nreturn [{\n  json: {\n    creador_id: creador,\n    asunto: parsed.asunto,\n    fecha_iso: parsed.fecha_iso,\n    duracion_minutos: parsed.duracion_minutos,\n    correos: parsed.correos,\n    nivel_minimo: parsed.nivel_minimo\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -144
+      ],
+      "id": "b83662bc-de26-45d1-83c8-9a17b5bab4ba",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"meeting\": {\n    \"tema\": \"{{ $('Insertar reunión en Supabase').item.json.tema }}\",\n    \"fecha\": \"{{ $('Insertar reunión en Supabase').item.json.fecha_inicio }}\",\n    \"join_url\": \"{{ $('Create a meeting').item.json.join_url }}\"\n  },\n  \"destinatarios\": \"{{ $('Code in JavaScript1').item.json.invitados_finales }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1792,
+        -112
+      ],
+      "id": "fc0d1bb3-b0f6-4540-b449-715d94aebab0",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "15150fcc-f6a0-4089-9f84-984e83f893ec",
+              "leftValue": "={{ $json.nivel_minimo }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        -80
+      ],
+      "id": "498e4c1c-0db0-4fca-ba1c-a085366bd4ef",
+      "name": "Hay nivel minimo?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c6cbe059-99db-49dd-b994-7ad919f60cb0",
+              "leftValue": "={{ $('Message a model').item.json.message.content.solo_este_nivel }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        -240
+      ],
+      "id": "cb5d6773-15b0-40f2-88d4-4d59b68b46ed",
+      "name": "Solo ese nivel?"
+    },
+    {
+      "parameters": {
+        "url": "https://TU-PROYECTO.supabase.co/rest/v1/usuarios",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "=id,correo,nivel_suscripcion"
+            },
+            {
+              "name": "nivel_suscripcion",
+              "value": "=eq.{{ $json.nivel_minimo }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "SUPABASE_ANON_KEY"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer SUPABASE_ANON_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        -320
+      ],
+      "id": "851104d9-b72c-4571-8d91-b3eef7d50f9a",
+      "name": "Supabase query EQ nivel exacto"
+    },
+    {
+      "parameters": {
+        "url": "https://TU-PROYECTO.supabase.co/rest/v1/usuarios",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "=id,correo,nivel_suscripcion"
+            },
+            {
+              "name": "nivel_suscripcion",
+              "value": "=in.({{$json.nivel_minimo}},enterprise)"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "SUPABASE_ANON_KEY"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer SUPABASE_ANON_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        -80
+      ],
+      "id": "9304e694-62d9-4f79-9eee-5e72064cd4ba",
+      "name": "Supabase query IN niveles superiores"
+    },
+    {
+      "parameters": {
+        "url": "https://TU-PROYECTO.supabase.co/rest/v1/usuarios",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "=id,correo,nivel_suscripcion"
+            },
+            {
+              "name": "correo",
+              "value": "=in.({{ $('Message a model').item.json.message.content.correos }})"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "SUPABASE_ANON_KEY"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer SUPABASE_ANON_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        144,
+        160
+      ],
+      "id": "6ac7cd34-1338-444c-b3b7-7bd27a1ca46c",
+      "name": "Supabase por correos mencionados"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        624,
+        48
+      ],
+      "id": "44246740-7fb9-42b5-9c3b-2ebaf3dac169",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all().flatMap(i => i.json);\n\n// Convertir todo a lista de {correo, usuario_id}\nconst inviteList = data\n  .filter(i => i?.correo)\n  .map(i => ({\n    correo: i.correo.trim().toLowerCase(),\n    usuario_id: i.id || null   // <-- IMPORTANTE: aquí tomamos el ID si existe\n  }));\n\n// Eliminar duplicados por correo\nconst unique = [];\nconst seen = new Set();\n\nfor (const item of inviteList) {\n  if (!seen.has(item.correo)) {\n    seen.add(item.correo);\n    unique.push(item);\n  }\n}\n\n// Salida final en UN solo item\nreturn [{\n  json: {\n    invitados_finales: unique\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        -112
+      ],
+      "id": "4fb4aa22-2571-4dc2-912e-908206b32e80",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "topic": "={{$node[\"Code in JavaScript\"].json.asunto}}\n",
+        "additionalFields": {
+          "duration": 60,
+          "startTime": "={{$node[\"Code in JavaScript\"].json.fecha_iso}}\n"
+        }
+      },
+      "type": "n8n-nodes-base.zoom",
+      "typeVersion": 1,
+      "position": [
+        848,
+        144
+      ],
+      "id": "23e9ed9d-fc9b-4227-83f7-aef751c84765",
+      "name": "Create a meeting"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://TU-PROYECTO.supabase.co/rest/v1/reuniones",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "SUPABASE_ANON_KEY"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer SUPABASE_ANON_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "=application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "=return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"creador_id\": \"{{$node['Code in JavaScript'].json.creador_id}}\",\n  \"tema\": \"{{$node['Code in JavaScript'].json.asunto}}\",\n  \"fecha_inicio\": \"{{ new Date($node['Code in JavaScript'].json.fecha_iso).toISOString() }}\",\n  \"duracion_minutos\": {{$node['Code in JavaScript'].json.duracion_minutos}},\n  \n  \"proveedor\": \"zoom\",\n  \"id_externo\": \"{{$node['Create a meeting'].json.id}}\",\n  \"join_url\": \"{{$node['Create a meeting'].json.join_url}}\",\n  \"start_url\": \"{{$node['Create a meeting'].json.start_url}}\",\n  \"estado\": \"programada\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1024,
+        -16
+      ],
+      "id": "d156d3aa-f52d-4e1b-b279-805501884087",
+      "name": "Insertar reunión en Supabase"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://TU-PROYECTO.supabase.co/rest/v1/participantes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "SUPABASE_ANON_KEY"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer SUPABASE_ANON_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "=application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "=return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"reunion_id\": \"{{ $('Insertar reunión en Supabase').item.json.id }}\",\n  \"correo\": \"{{$json.correo}}\",\n  \"usuario_id\": \"{{$json.usuario_id}}\",\n  \"rol\": \"participante\",\n  \"estado_invitacion\": \"enviado\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1376,
+        -80
+      ],
+      "id": "cb554ec9-6a0b-4317-9cca-f5f87e1c86e8",
+      "name": "Insertar Participantes"
+    },
+    {
+      "parameters": {
+        "jsCode": "const invitados = $('Code in JavaScript1').first().json.invitados_finales;\n\nif (!Array.isArray(invitados)) {\n  throw new Error(\"No se encontró invitados_finales o no es un array\");\n}\n\nreturn invitados.map(inv => ({\n  json: {\n    correo: inv.correo || inv, // soporta ambos formatos\n    usuario_id: inv.usuario_id || null\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        176
+      ],
+      "id": "f4849834-2914-4d96-811b-17fadeb860b9",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json.correo}}",
+        "subject": "=Invitación a reunión",
+        "emailType": "text",
+        "message": "=Hola,\n\nHas sido invitado a una reunión:\n\n📌 Tema: {{ $('Create a meeting').item.json.topic }}\n📅 Fecha: {{ $('Create a meeting').item.json.start_time }}\n⏱ Duración: {{ $('Create a meeting').item.json.duration }} minutos\n🔗 Link: {{ $('Create a meeting').item.json.join_url }}\n\nPor favor confirma tu asistencia.\n\nSaludos!\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1600,
+        144
+      ],
+      "id": "00201c3a-efd7-404e-b05d-baf3b444a8e8",
+      "name": "Send a message",
+      "webhookId": "REEMPLAZAR_WEBHOOK_ID"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Supabase por correos mencionados",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Hay nivel minimo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hay nivel minimo?": {
+      "main": [
+        [
+          {
+            "node": "Solo ese nivel?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Solo ese nivel?": {
+      "main": [
+        [
+          {
+            "node": "Supabase query EQ nivel exacto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Supabase query IN niveles superiores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase query IN niveles superiores": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase query EQ nivel exacto": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase por correos mencionados": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Create a meeting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a meeting": {
+      "main": [
+        [
+          {
+            "node": "Insertar reunión en Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insertar reunión en Supabase": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insertar Participantes": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Insertar Participantes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "REEMPLAZAR_VERSIONID",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "REEMPLAZAR_ID",
+  "tags": []
+}

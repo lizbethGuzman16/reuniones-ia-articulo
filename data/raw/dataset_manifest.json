@@ -1,0 +1,21 @@
+{
+  "dataset": "ICSI MRDA mediante SILICONE benchmark",
+  "license": "CC BY-NC-SA 4.0 según la ficha pública de SILICONE",
+  "files": {
+    "mrda_train.csv": {
+      "url": "https://raw.githubusercontent.com/eusip/SILICONE-benchmark/main/mrda/train.csv",
+      "rows": 83943,
+      "sha256": "d7a963aac70eb80d315b76b9e71d82a7888532ef8c6752c84487e34dfce3b7eb"
+    },
+    "mrda_dev.csv": {
+      "url": "https://raw.githubusercontent.com/eusip/SILICONE-benchmark/main/mrda/dev.csv",
+      "rows": 9815,
+      "sha256": "dc795c60b3825645a20dbb0700e279271fc52eef4bc297564a0227f608a19619"
+    },
+    "mrda_test.csv": {
+      "url": "https://raw.githubusercontent.com/eusip/SILICONE-benchmark/main/mrda/test.csv",
+      "rows": 15470,
+      "sha256": "8426417d316cb0aa57f13e46e866e8964eed71f719212ab1da1c3cbaa23ea414"
+    }
+  }
+}

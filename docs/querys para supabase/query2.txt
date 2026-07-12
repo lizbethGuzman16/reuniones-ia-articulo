@@ -1,0 +1,3 @@
+ALTER TABLE participantes
+ADD CONSTRAINT no_duplicate_invitations
+UNIQUE (reunion_id, correo);

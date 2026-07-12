@@ -1,0 +1,65 @@
+-- UUIDs
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ========== USUARIOS ==========
+CREATE TABLE IF NOT EXISTS usuarios (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre TEXT NOT NULL,
+  correo VARCHAR(255) UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  nivel_suscripcion VARCHAR(20) NOT NULL DEFAULT 'basico',    -- 'basico'|'pro'|'enterprise'
+  estado_suscripcion VARCHAR(20) NOT NULL DEFAULT 'activo',   -- 'activo'|'pendiente'|'cancelado'
+  fecha_creacion TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ========== REUNIONES ==========
+CREATE TABLE IF NOT EXISTS reuniones (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  creador_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+  tema TEXT NOT NULL,
+  fecha_inicio TIMESTAMPTZ NOT NULL,
+  duracion_minutos INTEGER NOT NULL CHECK (duracion_minutos > 0),
+
+  proveedor VARCHAR(20) NOT NULL DEFAULT 'zoom', -- 'zoom'
+  id_externo VARCHAR(255) UNIQUE,                -- id de Zoom
+  join_url TEXT,                                 -- participante
+  start_url TEXT,                                -- anfitrión
+  estado VARCHAR(20) NOT NULL DEFAULT 'programada', -- 'programada'|'completada'|'cancelada'
+
+  fecha_creacion TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ========== PARTICIPANTES ==========
+CREATE TABLE IF NOT EXISTS participantes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reunion_id UUID NOT NULL REFERENCES reuniones(id) ON DELETE CASCADE,
+  usuario_id UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+  correo VARCHAR(255) NOT NULL,                  -- si no está registrado, igual invitamos por correo
+  rol VARCHAR(20) NOT NULL DEFAULT 'participante',
+  estado_invitacion VARCHAR(20) NOT NULL DEFAULT 'enviado', -- 'enviado'|'aceptado'|'rechazado'
+  fecha_creacion TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ========== TAREAS ==========
+CREATE TABLE IF NOT EXISTS tareas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reunion_id UUID NOT NULL REFERENCES reuniones(id) ON DELETE CASCADE,
+  descripcion TEXT NOT NULL,
+  asignado_a_correo VARCHAR(255),                -- simple: por correo
+  estado VARCHAR(20) NOT NULL DEFAULT 'pendiente', -- 'pendiente'|'completada'
+  fecha_vencimiento TIMESTAMPTZ,
+  fecha_creacion TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ========== RESUMEN (1:1 por reunión, opcional) ==========
+CREATE TABLE IF NOT EXISTS resumenes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reunion_id UUID NOT NULL UNIQUE REFERENCES reuniones(id) ON DELETE CASCADE,
+  resumen TEXT,
+  fecha_creacion TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Índices básicos
+CREATE INDEX IF NOT EXISTS idx_reuniones_creador ON reuniones (creador_id);
+CREATE INDEX IF NOT EXISTS idx_reuniones_fecha ON reuniones (fecha_inicio DESC);
+CREATE INDEX IF NOT EXISTS idx_participantes_reunion ON participantes (reunion_id);

@@ -1,0 +1,5 @@
+{
+  "version": 2,
+  "builds": [{"src": "vercel_landing/**", "use": "@vercel/static"}],
+  "routes": [{"src": "/(.*)", "dest": "/vercel_landing/$1"}, {"src": "/", "dest": "/vercel_landing/index.html"}]
+}

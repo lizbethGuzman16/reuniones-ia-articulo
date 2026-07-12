@@ -1,0 +1,158 @@
+-- Politicas RLS recomendadas para produccion.
+-- Requieren Supabase Auth: auth.uid() debe coincidir con usuarios.id.
+-- No usar service_role desde Streamlit ni desde el navegador.
+
+ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reuniones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE participantes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tareas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE resumenes ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS full_access ON usuarios;
+
+CREATE POLICY usuarios_select_own
+ON usuarios
+FOR SELECT
+TO authenticated
+USING (id = auth.uid());
+
+CREATE POLICY usuarios_update_own
+ON usuarios
+FOR UPDATE
+TO authenticated
+USING (id = auth.uid())
+WITH CHECK (id = auth.uid());
+
+CREATE POLICY reuniones_owner_select
+ON reuniones
+FOR SELECT
+TO authenticated
+USING (
+  creador_id = auth.uid()
+  OR EXISTS (
+    SELECT 1
+    FROM participantes p
+    WHERE p.reunion_id = reuniones.id
+      AND p.usuario_id = auth.uid()
+  )
+);
+
+CREATE POLICY reuniones_owner_insert
+ON reuniones
+FOR INSERT
+TO authenticated
+WITH CHECK (creador_id = auth.uid());
+
+CREATE POLICY reuniones_owner_update
+ON reuniones
+FOR UPDATE
+TO authenticated
+USING (creador_id = auth.uid())
+WITH CHECK (creador_id = auth.uid());
+
+CREATE POLICY participantes_visible_by_meeting_member
+ON participantes
+FOR SELECT
+TO authenticated
+USING (
+  usuario_id = auth.uid()
+  OR EXISTS (
+    SELECT 1
+    FROM reuniones r
+    WHERE r.id = participantes.reunion_id
+      AND r.creador_id = auth.uid()
+  )
+);
+
+CREATE POLICY participantes_owner_insert
+ON participantes
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1
+    FROM reuniones r
+    WHERE r.id = participantes.reunion_id
+      AND r.creador_id = auth.uid()
+  )
+);
+
+CREATE POLICY tareas_visible_by_meeting_member
+ON tareas
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM reuniones r
+    WHERE r.id = tareas.reunion_id
+      AND r.creador_id = auth.uid()
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM participantes p
+    WHERE p.reunion_id = tareas.reunion_id
+      AND p.usuario_id = auth.uid()
+  )
+);
+
+CREATE POLICY tareas_owner_write
+ON tareas
+FOR ALL
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM reuniones r
+    WHERE r.id = tareas.reunion_id
+      AND r.creador_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1
+    FROM reuniones r
+    WHERE r.id = tareas.reunion_id
+      AND r.creador_id = auth.uid()
+  )
+);
+
+CREATE POLICY resumenes_visible_by_meeting_member
+ON resumenes
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM reuniones r
+    WHERE r.id = resumenes.reunion_id
+      AND r.creador_id = auth.uid()
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM participantes p
+    WHERE p.reunion_id = resumenes.reunion_id
+      AND p.usuario_id = auth.uid()
+  )
+);
+
+CREATE POLICY resumenes_owner_write
+ON resumenes
+FOR ALL
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM reuniones r
+    WHERE r.id = resumenes.reunion_id
+      AND r.creador_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1
+    FROM reuniones r
+    WHERE r.id = resumenes.reunion_id
+      AND r.creador_id = auth.uid()
+  )
+);

@@ -1,0 +1,2 @@
+prueba,metrica,estadistico,p_value,alpha,diferencia_significativa,n_folds,n_modelos
+Friedman,F1 macro,17.28,0.001705189737618342,0.05,True,5,5

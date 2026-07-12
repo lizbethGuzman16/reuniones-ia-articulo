@@ -1,0 +1,7 @@
+INSERT INTO usuarios (nombre, correo, password_hash, nivel_suscripcion, estado_suscripcion)
+VALUES 
+('Jesus Mecola Bernedo', 'jmecolab@unitru.edu.pe', 'HASH_BCRYPT_REEMPLAZAR', 'basico', 'activo'),
+('Ana Torres Villalta', 'albedodark@gmail.com', 'HASH_BCRYPT_REEMPLAZAR', 'pro', 'activo'),
+('Christopher Mecola Bernedo', 'mecber_11@hotmail.com', 'HASH_BCRYPT_REEMPLAZAR', 'enterprise', 'activo'),
+('Jesus Ganoza', 'raimg134@gmail.com', 'HASH_BCRYPT_REEMPLAZAR', 'pro', 'activo'),
+('Wimper Zoe Chavez', 'puercoarana119@gmail.com', 'HASH_BCRYPT_REEMPLAZAR', 'basico', 'activo');

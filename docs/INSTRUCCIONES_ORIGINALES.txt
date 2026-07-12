@@ -1,0 +1,6 @@
+1. Copiar el Json n8n en n8n cloud (poner credenciales)
+2. crear la base de datos en supabase
+3. ejecutar las querys
+4. en visual studio code arrastrar la carpeta zoom2 y cambiar los env por las url pedidas.
+5. ejecutar en powershell los comandos del txt del mismo nombre en orden
+6. correr streamlit y activar el workflow para la prueba  

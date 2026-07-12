@@ -1,0 +1,27 @@
+ENTREGA FINAL - ARTÍCULO CIENTÍFICO Y SISTEMA REUNIONES IA
+
+Archivos para entregar primero:
+1. reports/articulo_cientifico_reuniones_ia.docx
+2. reports/articulo_cientifico_reuniones_ia.pdf
+3. reports/reporte_resultados_modelos.xlsx
+
+Demostración:
+- Iniciar FastAPI con: uvicorn backend.main:app --port 8000
+- Iniciar Streamlit con: streamlit run frontend/app.py
+- Para prueba local sin Supabase, activar DEMO_MODE=true.
+
+Resultado principal:
+- Dataset MRDA/SILICONE: 109 228 registros públicos.
+- Mejor modelo test: MLP-TFIDF.
+- Accuracy: 0,6427.
+- F1 macro: 0,6219.
+- Artefacto usado por FastAPI: models/best_model.h5.
+- Validación cruzada: 5 folds.
+- Pruebas: Friedman y Wilcoxon-Holm.
+- API: 6 pruebas automáticas aprobadas.
+
+Transparencia:
+- El corpus y la validación científica están en inglés.
+- El entrenamiento principal utilizó 30 000 registros estratificados y el test oficial completo de 15 470.
+- Las URLs públicas de GitHub/Render/Vercel/Jira deben crearse con las cuentas del equipo; no se incluyen URLs inventadas.
+- Agregar los nombres de los demás integrantes si el docente exige autores individuales.

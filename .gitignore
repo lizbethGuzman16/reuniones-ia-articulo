@@ -1,0 +1,28 @@
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+__pycache__/
+*.py[cod]
+.venv/
+.venv_check/
+venv/
+tmp/
+.pytest_cache/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Artefactos intermedios: se conserva el mejor modelo H5 y los reportes finales.
+models/*.pt
+models/cnn_1d.h5
+models/lstm.h5
+models/cnn_bilstm.h5
+models/bilstm_atencion.h5
+models/mlp_tfidf.h5
+
+# Los datos pueden reconstruirse con ml.download_mrda; se incluyen en el ZIP docente,
+# pero pueden omitirse del repositorio público para mantenerlo ligero.
+data/raw/mrda_*.csv
+data/processed/mrda_clean.csv

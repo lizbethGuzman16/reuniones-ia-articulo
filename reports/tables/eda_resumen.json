@@ -1,0 +1,33 @@
+{
+  "dataset": "ICSI Meeting Recorder Dialogue Act (MRDA) dentro de SILICONE",
+  "total_registros": 109228,
+  "registros_por_split": {
+    "train": 83943,
+    "dev": 9815,
+    "test": 15470
+  },
+  "reuniones_unicas": 73,
+  "hablantes_unicos": 52,
+  "duplicados_utterance_id": 0,
+  "textos_vacios": 0,
+  "nulos": {
+    "Utterance_ID": 0,
+    "Dialogue_Act": 0,
+    "Channel_ID": 0,
+    "Speaker": 0,
+    "Dialogue_ID": 0,
+    "Utterance": 0,
+    "split": 0,
+    "num_caracteres": 0,
+    "num_palabras": 0
+  },
+  "clases": {
+    "Declaración": 65691,
+    "Pregunta declarativa": 15009,
+    "Retroalimentación breve": 14275,
+    "Continuación / seguimiento": 7701,
+    "Pregunta": 6552
+  },
+  "palabras_promedio": 6.8926191086534585,
+  "palabras_mediana": 4.0
+}

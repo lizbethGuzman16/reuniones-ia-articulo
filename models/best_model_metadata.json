@@ -1,0 +1,17 @@
+{
+  "model_name": "MLP-TFIDF",
+  "type": "tfidf",
+  "framework": "PyTorch",
+  "serialization": "state_dict almacenado en HDF5 mediante h5py; no es un modelo Keras",
+  "vectorizer_library": "scikit-learn TfidfVectorizer serializado con joblib",
+  "input_dim": 2500,
+  "vocab_size": null,
+  "seq_len": 40,
+  "labels": [
+    "s",
+    "d",
+    "b",
+    "f",
+    "q"
+  ]
+}
