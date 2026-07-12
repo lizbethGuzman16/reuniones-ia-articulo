@@ -148,6 +148,16 @@ Las pruebas verifican salud, carga directa del H5, inferencia, métricas y desca
 
 ## Despliegue
 
-La solución queda preparada para Render y una landing estática en Vercel. Streamlit requiere un proceso persistente con WebSockets, por lo que el frontend funcional debe ejecutarse en Render o Streamlit Community Cloud; Vercel aloja la landing que enlaza a la aplicación. La creación de URLs públicas requiere acceso a las cuentas del equipo y no se presenta como realizada mientras no exista esa autorización.
+Streamlit requiere un proceso persistente con WebSockets, por lo que el frontend funcional se ejecuta en Render; Vercel aloja la landing estática que enlaza a la aplicación.
+
+URLs públicas (desplegadas el 2026-07-12):
+
+- Repositorio GitHub: https://github.com/lizbethGuzman16/reuniones-ia-articulo
+- Release v1.0.0 (Word/PDF/Excel adjuntos): https://github.com/lizbethGuzman16/reuniones-ia-articulo/releases/tag/v1.0.0
+- API FastAPI (Render): https://reuniones-ia-api.onrender.com — salud en `/health`, documentación en `/docs`
+- Frontend Streamlit (Render): https://reuniones-ia-frontend.onrender.com
+- Landing (Vercel): https://reuniones-ia-articulo.vercel.app
+
+Nota: los servicios usan el plan gratuito de Render; tras un periodo de inactividad la primera petición puede tardar ~1 minuto mientras la instancia despierta.
 
 Consulte `docs/GUIA_DESPLIEGUE.md` y `docs/ENTREGA_DOCENTE.md`.

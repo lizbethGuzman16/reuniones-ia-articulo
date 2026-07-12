@@ -17,7 +17,8 @@
 | Interpretación de tablas/figuras | Cumplido | Artículo y dashboard |
 | Dashboard autenticado | Cumplido | Módulo IA posterior al login; demo identificada |
 | Python + Streamlit + FastAPI | Cumplido | `frontend/` y `backend/` |
-| GitHub | Preparado | CI, gitignore y documentación; falta cuenta/URL |
+| GitHub | Cumplido | https://github.com/lizbethGuzman16/reuniones-ia-articulo — CI en verde, release v1.0.0 |
 | Jira | Preparado | `JIRA_BACKLOG.csv`; falta cuenta/URL |
-| Render | Preparado | Blueprint de backend y frontend; falta cuenta/URL |
-| Vercel | Preparado | Landing estática; falta cuenta/URL |
+| Render | Cumplido | API: https://reuniones-ia-api.onrender.com · Frontend: https://reuniones-ia-frontend.onrender.com |
+| Vercel | Cumplido | https://reuniones-ia-articulo.vercel.app |
+| Supabase | Cumplido | Proyecto real con tablas y RLS (query1, query2, query4, query5); `DEMO_MODE=false` en producción |

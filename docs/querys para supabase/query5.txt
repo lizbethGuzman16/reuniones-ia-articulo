@@ -1,0 +1,45 @@
+-- Query 5: ajustes para el despliegue real (2026-07-12).
+--
+-- Contexto: la aplicacion Streamlit usa autenticacion propia (bcrypt sobre la
+-- tabla usuarios) y consulta PostgREST con la ANON KEY desde el servidor de
+-- Render. No usa Supabase Auth, por lo que las politicas de query4
+-- (TO authenticated / auth.uid()) no aplican al flujo real de la app.
+--
+-- Estas politicas conceden acceso al rol anon SOLO porque la clave anon vive
+-- unicamente en variables de entorno del servidor (Render); nunca se envia al
+-- navegador. Si en el futuro la app migra a Supabase Auth, eliminar las
+-- politicas anon_app_* y conservar las de query4.
+
+-- Tabla de metricas usada por el modulo "Metricas y Estadisticas".
+CREATE TABLE IF NOT EXISTS metricas_n8n (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  endpoint TEXT NOT NULL,
+  tiempo_respuesta DOUBLE PRECISION,
+  estado TEXT,
+  fecha TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  codigo_estado INTEGER,
+  reunion_id UUID,
+  tamano_respuesta INTEGER,
+  detalles TEXT
+);
+
+ALTER TABLE metricas_n8n ENABLE ROW LEVEL SECURITY;
+
+-- Acceso de la aplicacion (rol anon, clave solo en el servidor).
+CREATE POLICY anon_app_usuarios ON usuarios
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+
+CREATE POLICY anon_app_reuniones ON reuniones
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+
+CREATE POLICY anon_app_participantes ON participantes
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+
+CREATE POLICY anon_app_tareas ON tareas
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+
+CREATE POLICY anon_app_resumenes ON resumenes
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+
+CREATE POLICY anon_app_metricas ON metricas_n8n
+  FOR ALL TO anon USING (true) WITH CHECK (true);

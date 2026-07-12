@@ -1,8 +1,16 @@
 # Guía de despliegue
 
-## Alcance honesto
+## Estado del despliegue (2026-07-12)
 
-Los archivos de despliegue están listos. Las URLs públicas no pueden crearse sin autorizar las cuentas GitHub, Render, Vercel, Supabase y, cuando corresponda, Streamlit Cloud. No se debe colocar una URL inventada en el artículo.
+El despliegue fue ejecutado con las cuentas del equipo. URLs reales:
+
+- GitHub: https://github.com/lizbethGuzman16/reuniones-ia-articulo (CI en verde, release v1.0.0 con Word/PDF/Excel)
+- FastAPI Render: https://reuniones-ia-api.onrender.com
+- Streamlit Render: https://reuniones-ia-frontend.onrender.com
+- Landing Vercel: https://reuniones-ia-articulo.vercel.app
+- Supabase: proyecto `reuniones-ia-articulo` (us-east-1) con tablas y políticas RLS aplicadas (query1, query2, query4, query5)
+
+Los pasos siguientes documentan cómo se realizó y cómo reproducirlo.
 
 ## 1. Publicar en GitHub
 
@@ -87,16 +95,17 @@ Conecte el repositorio a Vercel. `vercel.json` sirve la landing. Esta página no
 - Restringir Row Level Security por usuario/rol.
 - No dejar políticas de acceso total.
 - Aplicar `docs/querys para supabase/query4.txt` solo después de migrar el login a Supabase Auth o de adaptar `auth.uid()` al modelo de usuarios.
+- En el despliegue actual la app usa autenticación propia (bcrypt) con la anon key desde el servidor de Render; por eso se aplicó también `query5.txt` (tabla `metricas_n8n` + políticas para el rol `anon`). La anon key vive solo en variables de entorno del servidor; ver el comentario de `query5.txt` para la migración futura a Supabase Auth.
 - Restringir CORS en producción.
 
 ## 6. Evidencias para la exposición
 
-Guardar estas URLs una vez creadas:
+URLs registradas:
 
-- GitHub: ______________________________
-- FastAPI Render: ______________________
-- Streamlit Render/Cloud: ______________
-- Landing Vercel: ______________________
-- Proyecto Jira: _______________________
+- GitHub: https://github.com/lizbethGuzman16/reuniones-ia-articulo
+- FastAPI Render: https://reuniones-ia-api.onrender.com
+- Streamlit Render/Cloud: https://reuniones-ia-frontend.onrender.com
+- Landing Vercel: https://reuniones-ia-articulo.vercel.app
+- Proyecto Jira: _______________________ (pendiente)
 
 Capturar `/health`, `/docs`, pantalla autenticada, predicción y descarga de reportes.
