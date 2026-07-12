@@ -157,6 +157,7 @@ URLs públicas (desplegadas el 2026-07-12):
 - API FastAPI (Render): https://reuniones-ia-api.onrender.com — salud en `/health`, documentación en `/docs`
 - Frontend Streamlit (Render): https://reuniones-ia-frontend.onrender.com
 - Landing (Vercel): https://reuniones-ia-articulo.vercel.app
+- Jira (gestión del proyecto): https://unitru-team-lpdtf21r.atlassian.net/jira/software/c/projects/RIA/boards
 
 Nota: los servicios usan el plan gratuito de Render; tras un periodo de inactividad la primera petición puede tardar ~1 minuto mientras la instancia despierta.
 

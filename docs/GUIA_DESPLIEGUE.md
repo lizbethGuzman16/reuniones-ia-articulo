@@ -9,6 +9,7 @@ El despliegue fue ejecutado con las cuentas del equipo. URLs reales:
 - Streamlit Render: https://reuniones-ia-frontend.onrender.com
 - Landing Vercel: https://reuniones-ia-articulo.vercel.app
 - Supabase: proyecto `reuniones-ia-articulo` (us-east-1) con tablas y políticas RLS aplicadas (query1, query2, query4, query5)
+- Jira: https://unitru-team-lpdtf21r.atlassian.net/jira/software/c/projects/RIA/boards — proyecto RIA con las 12 historias del backlog (11 Done, 1 To Do: rotar credenciales)
 
 Los pasos siguientes documentan cómo se realizó y cómo reproducirlo.
 
@@ -106,6 +107,6 @@ URLs registradas:
 - FastAPI Render: https://reuniones-ia-api.onrender.com
 - Streamlit Render/Cloud: https://reuniones-ia-frontend.onrender.com
 - Landing Vercel: https://reuniones-ia-articulo.vercel.app
-- Proyecto Jira: _______________________ (pendiente)
+- Proyecto Jira: https://unitru-team-lpdtf21r.atlassian.net/jira/software/c/projects/RIA/boards
 
 Capturar `/health`, `/docs`, pantalla autenticada, predicción y descarga de reportes.
