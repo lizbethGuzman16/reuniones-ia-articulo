@@ -56,7 +56,7 @@ a5f75af83f1f1dc3dedd6bd0303c7bc601768b187bc0b0d131d524112422adb8  ./docs/querys 
 7cb5db6ba7ad17e343e9e33522275769e2a27e058ac3f6b9379edbb1edccb7e5  ./docs/querys para supabase/query4.txt
 c8ff88f5418f68f843b692088f34e9f6285a39e590746725ce6ca81b1680b2af  ./docs/querys para supabase/query5.txt
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./frontend/__init__.py
-f9c61d78dbc5772bf2a21c94e6931cdc357477c20f6b1f3417e0b75395f40cc6  ./frontend/app.py
+812422ef8ad00a2530d460d4687fcd0467ddfed2d005be0ac8c055c9cca50de2  ./frontend/app.py
 f82ba07a9dcf0586002c1fc1de7421b9568ebcaea93339c02e8bfae090a6ca9f  ./frontend/demo_backend.py
 5135502ae6a04228197f109066ae21ab26a6a3a6772278ea4483cdda387e14de  ./ml/README.md
 80a2bc6da063472f31f6d1f1a6120601e3ab70d58ed7a44fb67619b5789f0ec2  ./ml/__init__.py

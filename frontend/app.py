@@ -679,6 +679,13 @@ def view_register():
             st.error(str(e))
 
 # -------- Chat Reuniones --------
+@st.cache_data(show_spinner=False)
+def leer_csv_cacheado(ruta: str):
+    """Los CSV de resultados son artefactos inmutables del entrenamiento;
+    cachearlos evita releerlos del disco en cada rerun de Streamlit."""
+    return pd.read_csv(ruta)
+
+
 def parece_espanol(texto):
     """Heurística ligera para detectar texto en español antes de traducirlo
     al inglés (el modelo fue entrenado con MRDA, un corpus en inglés)."""
@@ -2736,27 +2743,32 @@ def view_inteligencia_artificial():
     # El plan gratuito de Render duerme la API tras inactividad. Durante el
     # arranque en frío el proxy responde 502 de inmediato (no retiene la
     # conexión), por lo que hay que reintentar en bucle hasta que despierte
-    # (~1-2 minutos por la carga de torch).
-    model_status = None
+    # (~1-2 minutos por la carga de torch). El resultado exitoso se guarda en
+    # la sesión: Streamlit rerenderiza en cada interacción y sin caché cada
+    # clic dentro del módulo volvía a consultar la API.
+    model_status = st.session_state.get("modelo_status_ok")
     ultimo_error = None
-    try:
-        status = requests.get(f"{FASTAPI_URL}/model/status", timeout=8)
-        status.raise_for_status()
-        model_status = status.json()
-    except Exception as exc:
-        ultimo_error = exc
-        with st.spinner("Despertando la API de predicción (arranque en frío, puede tardar 2-3 minutos)..."):
-            limite = time.time() + 180
-            while time.time() < limite:
-                time.sleep(8)
-                try:
-                    status = requests.get(f"{FASTAPI_URL}/model/status", timeout=15)
-                    status.raise_for_status()
-                    model_status = status.json()
-                    ultimo_error = None
-                    break
-                except Exception as exc2:
-                    ultimo_error = exc2
+    if model_status is None:
+        try:
+            status = requests.get(f"{FASTAPI_URL}/model/status", timeout=8)
+            status.raise_for_status()
+            model_status = status.json()
+        except Exception as exc:
+            ultimo_error = exc
+            with st.spinner("Despertando la API de predicción (arranque en frío, puede tardar 2-3 minutos)..."):
+                limite = time.time() + 180
+                while time.time() < limite:
+                    time.sleep(8)
+                    try:
+                        status = requests.get(f"{FASTAPI_URL}/model/status", timeout=15)
+                        status.raise_for_status()
+                        model_status = status.json()
+                        ultimo_error = None
+                        break
+                    except Exception as exc2:
+                        ultimo_error = exc2
+        if model_status is not None:
+            st.session_state["modelo_status_ok"] = model_status
 
     if model_status is not None:
         if model_status.get("available"):
@@ -2839,7 +2851,7 @@ def view_inteligencia_artificial():
     with tab_models:
         path = PROJECT_ROOT / "reports" / "tables" / "comparacion_modelos.csv"
         if path.exists():
-            frame = pd.read_csv(path)
+            frame = leer_csv_cacheado(str(path))
             st.dataframe(frame, use_container_width=True, hide_index=True)
             st.bar_chart(frame.set_index("modelo")[["f1_macro", "accuracy"]])
             best = frame.iloc[0]
@@ -2872,13 +2884,13 @@ def view_inteligencia_artificial():
         wilcoxon_path = PROJECT_ROOT / "reports" / "tables" / "wilcoxon_holm.csv"
         if cv_path.exists():
             st.subheader("Validación cruzada de 5 folds")
-            st.dataframe(pd.read_csv(cv_path), use_container_width=True, hide_index=True)
+            st.dataframe(leer_csv_cacheado(str(cv_path)), use_container_width=True, hide_index=True)
         if friedman_path.exists():
             st.subheader("Prueba de Friedman")
-            st.dataframe(pd.read_csv(friedman_path), use_container_width=True, hide_index=True)
+            st.dataframe(leer_csv_cacheado(str(friedman_path)), use_container_width=True, hide_index=True)
         if wilcoxon_path.exists():
             st.subheader("Comparaciones Wilcoxon con corrección de Holm")
-            st.dataframe(pd.read_csv(wilcoxon_path), use_container_width=True, hide_index=True)
+            st.dataframe(leer_csv_cacheado(str(wilcoxon_path)), use_container_width=True, hide_index=True)
 
     with tab_reports:
         report_dir = PROJECT_ROOT / "reports"
