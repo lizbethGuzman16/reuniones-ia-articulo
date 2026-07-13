@@ -470,6 +470,146 @@ def view_register():
             st.error(str(e))
 
 # -------- Chat Reuniones --------
+DIAS_SEMANA = {
+    "lunes": 0, "martes": 1, "miercoles": 2, "miércoles": 2,
+    "jueves": 3, "viernes": 4, "sabado": 5, "sábado": 5, "domingo": 6,
+}
+MESES = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
+    "julio": 7, "agosto": 8, "septiembre": 9, "setiembre": 9, "octubre": 10,
+    "noviembre": 11, "diciembre": 12,
+}
+
+
+def interpretar_solicitud_reunion(texto):
+    """Extrae tema, fecha, hora, duración, tipo, dirección e invitados de una
+    solicitud en lenguaje natural. Permite crear reuniones desde el chat sin el
+    flujo n8n (que requiere credenciales externas de OpenAI/Zoom/Gmail)."""
+    t = texto.strip()
+    bajo = t.lower()
+    ahora = datetime.now()
+
+    invitados = re.findall(r"[\w.+-]+@[\w.-]+\.\w+", t)
+
+    tipo = "virtual"
+    if "presencial" in bajo:
+        tipo = "presencial"
+    if "mixta" in bajo or "híbrida" in bajo or "hibrida" in bajo:
+        tipo = "mixta"
+
+    direccion = None
+    m = re.search(r"direcci[oó]n\s+(?:es\s+)?(.+?)(?:,\s*y\s|[;\n]|\.\s*$|$)", t, re.IGNORECASE)
+    if m:
+        direccion = m.group(1).strip().rstrip(",.") or None
+    if tipo == "virtual":
+        direccion = None
+
+    fecha = None
+    if "pasado mañana" in bajo or "pasado manana" in bajo:
+        fecha = (ahora + timedelta(days=2)).date()
+    elif "mañana" in bajo or "manana" in bajo:
+        fecha = (ahora + timedelta(days=1)).date()
+    elif re.search(r"\bhoy\b", bajo):
+        fecha = ahora.date()
+    if fecha is None:
+        m = re.search(r"(\d{4})-(\d{1,2})-(\d{1,2})", bajo)
+        if m:
+            try:
+                fecha = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3))).date()
+            except ValueError:
+                fecha = None
+    if fecha is None:
+        m = re.search(r"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b", bajo)
+        if m:
+            anio = int(m.group(3)) if m.group(3) else ahora.year
+            if anio < 100:
+                anio += 2000
+            try:
+                fecha = datetime(anio, int(m.group(2)), int(m.group(1))).date()
+            except ValueError:
+                fecha = None
+    if fecha is None:
+        m = re.search(r"\b(\d{1,2})\s+de\s+(" + "|".join(MESES) + r")(?:\s+(?:de|del)\s+(\d{4}))?", bajo)
+        if m:
+            anio = int(m.group(3)) if m.group(3) else ahora.year
+            try:
+                fecha = datetime(anio, MESES[m.group(2)], int(m.group(1))).date()
+                if fecha < ahora.date() and not m.group(3):
+                    fecha = datetime(anio + 1, MESES[m.group(2)], int(m.group(1))).date()
+            except ValueError:
+                fecha = None
+    if fecha is None:
+        for nombre, idx in DIAS_SEMANA.items():
+            if re.search(r"\b" + nombre + r"\b", bajo):
+                delta = (idx - ahora.weekday()) % 7
+                fecha = (ahora + timedelta(days=delta or 7)).date()
+                break
+    if fecha is None:
+        fecha = (ahora + timedelta(days=1)).date()
+
+    hora, minuto = 9, 0
+    m = re.search(r"\b(\d{1,2}):(\d{2})\s*(am|pm|a\.m\.|p\.m\.)?", bajo)
+    if m:
+        hora, minuto = int(m.group(1)), int(m.group(2))
+        if (m.group(3) or "").startswith("p") and hora < 12:
+            hora += 12
+    else:
+        m = re.search(r"a\s+las?\s+(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)?", bajo)
+        if m:
+            hora = int(m.group(1))
+            suf = m.group(2) or ""
+            if suf.startswith("p") and hora < 12:
+                hora += 12
+            elif not suf and 1 <= hora <= 7:
+                hora += 12  # "a las 3" se interpreta como horario laboral (15:00)
+    if not (0 <= hora <= 23):
+        hora = 9
+    if not (0 <= minuto <= 59):
+        minuto = 0
+
+    duracion = 60
+    m = re.search(r"(\d+)\s*(?:min\b|minutos)", bajo)
+    if m:
+        duracion = int(m.group(1))
+    elif "hora y media" in bajo:
+        duracion = 90
+    elif "media hora" in bajo:
+        duracion = 30
+    else:
+        m = re.search(r"(?:de|dura|durante)\s+(\d+)\s*horas?\b", bajo)
+        if m:
+            duracion = int(m.group(1)) * 60
+    duracion = max(5, min(duracion, 480))
+
+    corte = re.compile(
+        r"\b(?:mañana|manana|hoy|pasado\s+mañana|a\s+las?\b|el\s+\d|\d{1,2}[:/]"
+        r"|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo"
+        r"|de\s+\d+\s*(?:min|hora)|dura|por\s+favor|invita|la\s+reuni[oó]n\s+es|direcci[oó]n)",
+        re.IGNORECASE,
+    )
+    tema = None
+    m = re.search(r"(?:sobre|acerca de|para hablar de|tema[:\s])\s*(.+)", t, re.IGNORECASE)
+    if not m:
+        m = re.search(r"reuni[oó]n\s+(?:de\s+|con\s+|para\s+)?(.+)", t, re.IGNORECASE)
+    if m:
+        tema = corte.split(m.group(1))[0]
+        # quitar conectores colgando al final ("... para", "... el")
+        tema = re.sub(r"(?:\s+(?:para|de|del|el|la|los|las|en|con|y|a|que))+\s*$", "", tema, flags=re.IGNORECASE)
+    if not tema or not tema.strip(" .,;:"):
+        tema = "Reunión creada por chat"
+    tema = re.sub(r"\s+", " ", tema).strip(" .,;:")
+    tema = tema[0].upper() + tema[1:] if tema else "Reunión creada por chat"
+
+    return {
+        "tema": tema[:200],
+        "fecha_inicio": f"{fecha.isoformat()}T{hora:02d}:{minuto:02d}:00",
+        "duracion_minutos": duracion,
+        "tipo": tipo,
+        "direccion": direccion,
+        "invitados": list(dict.fromkeys(invitados)),
+    }
+
+
 def view_chat():
     st.title("💬 Crear reunión por chat")
     st.caption("Escribe algo como: *“Programa una reunión mañana 11 am por 45 min con asunto Ventas Q4 e invita a enterprise y a ana@empresa.com”*")
@@ -521,11 +661,84 @@ def view_chat():
         with st.chat_message("user"):
             st.markdown(final_prompt)
 
-        # Llamar a n8n
+        # Sin webhook n8n configurado: interpretar la solicitud y crear la
+        # reunión directamente en Supabase (sin Zoom/correo automáticos).
         if not N8N_URL:
-            with st.chat_message("assistant"):
-                st.error("Configura N8N_CREATE_MEETING_WEBHOOK_URL en .env")
-            # Señalar limpieza segura antes de recrear widgets
+            inicio = time.time()
+            try:
+                datos = interpretar_solicitud_reunion(final_prompt)
+                fila = {
+                    "creador_id": st.session_state.session["id"],
+                    "tema": datos["tema"],
+                    "fecha_inicio": datos["fecha_inicio"],
+                    "duracion_minutos": datos["duracion_minutos"],
+                    "proveedor": "manual",
+                    "estado": "programada",
+                    "tipo": datos["tipo"],
+                    "direccion": datos["direccion"],
+                }
+                creada = requests.post(
+                    f"{SUPABASE_URL}/rest/v1/reuniones",
+                    headers={**HEADERS, "Prefer": "return=representation"},
+                    data=json.dumps([fila]),
+                    timeout=30,
+                )
+                creada.raise_for_status()
+                reunion_id = creada.json()[0]["id"]
+
+                invitados_ok = []
+                if datos["invitados"]:
+                    try:
+                        sb_insert("participantes", [
+                            {
+                                "reunion_id": reunion_id,
+                                "correo": c,
+                                "rol": "participante",
+                                "estado_invitacion": "enviado",
+                            }
+                            for c in datos["invitados"]
+                        ])
+                        invitados_ok = datos["invitados"]
+                    except Exception:
+                        pass
+
+                registrar_metrica_n8n(
+                    endpoint="crear_reunion_chat_local",
+                    tiempo_respuesta=time.time() - inicio,
+                    estado="éxito",
+                    codigo_estado=200,
+                    reunion_id=reunion_id,
+                    detalles="Creación local sin flujo n8n",
+                )
+
+                lineas = [
+                    f"✅ Reunión creada: **{datos['tema']}**",
+                    f"- Fecha/hora: {datos['fecha_inicio'].replace('T', ' ')}",
+                    f"- Duración: {datos['duracion_minutos']} minutos",
+                    f"- Tipo: {datos['tipo']}",
+                ]
+                if datos["direccion"]:
+                    lineas.append(f"- Dirección: {datos['direccion']}")
+                if invitados_ok:
+                    lineas.append(f"- Invitados registrados: {', '.join(invitados_ok)}")
+                if datos["tipo"] != "presencial":
+                    lineas.append("- Enlace de videollamada: pendiente (la integración n8n/Zoom no está activa)")
+                lineas.append("\nPuede verla en la pestaña **Reuniones**.")
+                resumen = "\n".join(lineas)
+                st.session_state.chat.append(("assistant", resumen))
+                with st.chat_message("assistant"):
+                    st.markdown(resumen)
+            except Exception as e:
+                registrar_metrica_n8n(
+                    endpoint="crear_reunion_chat_local",
+                    tiempo_respuesta=time.time() - inicio,
+                    estado="error",
+                    detalles=str(e)[:200],
+                )
+                err = f"No pude crear la reunión: {e}"
+                st.session_state.chat.append(("assistant", err))
+                with st.chat_message("assistant"):
+                    st.error(err)
             st.session_state["chat_reset_pending"] = True
             st.rerun()
             return
@@ -2297,17 +2510,34 @@ def view_inteligencia_artificial():
     st.title("🧠 Inteligencia artificial para reuniones")
     st.caption("Clasificación de actos de diálogo entrenada con el dataset público MRDA.")
 
+    # El plan gratuito de Render duerme la API tras inactividad; la primera
+    # petición puede tardar ~1 minuto. Se intenta rápido y, si falla, se
+    # reintenta una vez con margen para el arranque en frío.
+    model_status = None
+    ultimo_error = None
     try:
         status = requests.get(f"{FASTAPI_URL}/model/status", timeout=8)
         status.raise_for_status()
         model_status = status.json()
+    except Exception as exc:
+        ultimo_error = exc
+        with st.spinner("Despertando la API de predicción (arranque en frío, hasta 1 minuto)..."):
+            try:
+                status = requests.get(f"{FASTAPI_URL}/model/status", timeout=90)
+                status.raise_for_status()
+                model_status = status.json()
+                ultimo_error = None
+            except Exception as exc2:
+                ultimo_error = exc2
+
+    if model_status is not None:
         if model_status.get("available"):
             metadata = model_status.get("metadata") or {}
             st.success(f"Modelo disponible: {metadata.get('model_name', 'sin nombre')} · artefacto HDF5 activo: {'sí' if model_status.get('h5_available') else 'no'}")
         else:
             st.warning(model_status.get("message", "Modelo no disponible"))
-    except Exception as exc:
-        st.info(f"La API no está accesible en {FASTAPI_URL}. Inicie FastAPI para realizar predicciones. Detalle: {exc}")
+    else:
+        st.info(f"La API no está accesible en {FASTAPI_URL}. Inicie FastAPI para realizar predicciones. Detalle: {ultimo_error}")
 
     tab_pred, tab_models, tab_eda, tab_cv, tab_reports = st.tabs([
         "Predicción", "Comparación de modelos", "EDA", "Validación y estadística", "Reportes"
