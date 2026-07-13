@@ -1323,7 +1323,7 @@ def view_resumen_reuniones():
     try:
         reuniones = sb_select(
             "reuniones",
-            {"select": "id,tema,fecha_inicio,estado,tipo,direccion"}
+            {"select": "id,tema,fecha_inicio,estado,tipo,direccion,duracion_minutos,join_url"}
         )
     except Exception as e:
         st.error(f"Error cargando reuniones: {e}")
@@ -1402,7 +1402,7 @@ def view_resumen_reuniones():
                   det = {
                       "ID": fila.get("id"),
                       "Tema": fila.get("tema"),
-                      "Fecha": (fila.get("fecha_inicio") or "").replace("T"," ").replace("Z",""),
+                      "Fecha": (fila.get("fecha_inicio") or "").replace("T"," ").replace("Z","").replace("+00:00",""),
                       "Duración (min)": fila.get("duracion_minutos"),
                       "Tipo": fila.get("tipo"),
                       "Estado": fila.get("estado"),

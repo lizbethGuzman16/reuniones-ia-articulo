@@ -9,6 +9,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: TZ
+        value: America/Lima
       - key: CORS_ORIGINS
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
@@ -23,6 +25,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: TZ
+        value: America/Lima
       - key: FASTAPI_URL
         sync: false
       - key: DEMO_MODE
