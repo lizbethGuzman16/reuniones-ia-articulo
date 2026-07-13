@@ -2730,9 +2730,9 @@ def view_inteligencia_artificial():
         model_status = status.json()
     except Exception as exc:
         ultimo_error = exc
-        with st.spinner("Despertando la API de predicción (arranque en frío, hasta 1 minuto)..."):
+        with st.spinner("Despertando la API de predicción (arranque en frío, puede tardar hasta 2-3 minutos)..."):
             try:
-                status = requests.get(f"{FASTAPI_URL}/model/status", timeout=90)
+                status = requests.get(f"{FASTAPI_URL}/model/status", timeout=200)
                 status.raise_for_status()
                 model_status = status.json()
                 ultimo_error = None
