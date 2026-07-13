@@ -15,3 +15,6 @@ altair>=5.4,<6.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.2.0
 reportlab>=4.2,<6.0
+# Traduccion ES->EN previa a la prediccion (el modelo fue entrenado con MRDA,
+# corpus en ingles). Usa el endpoint gratuito de Google Translate.
+deep-translator>=1.11,<2.0

@@ -679,6 +679,20 @@ def view_register():
             st.error(str(e))
 
 # -------- Chat Reuniones --------
+def parece_espanol(texto):
+    """Heurística ligera para detectar texto en español antes de traducirlo
+    al inglés (el modelo fue entrenado con MRDA, un corpus en inglés)."""
+    t = f" {texto.lower()} "
+    if re.search(r"[ñ¿¡áéíóúü]", t):
+        return True
+    palabras = (
+        " el ", " la ", " los ", " las ", " un ", " una ", " que ", " de ",
+        " para ", " por ", " con ", " del ", " esta ", " este ", " puedes ",
+        " podemos ", " necesito ", " enviar ", " informe ", " reunion ",
+    )
+    return sum(1 for p in palabras if p in t) >= 2
+
+
 DIAS_SEMANA = {
     "lunes": 0, "martes": 1, "miercoles": 2, "miércoles": 2,
     "jueves": 3, "viernes": 4, "sabado": 5, "sábado": 5, "domingo": 6,
@@ -2755,15 +2769,30 @@ def view_inteligencia_artificial():
     with tab_pred:
         text = st.text_area(
             "Intervención de una reunión",
-            value="Can you send the final report tomorrow?",
+            value="¿Puedes enviar el informe final mañana?",
             height=120,
-            help="El corpus utilizado está en inglés; la interfaz traduce los nombres de las clases al español.",
+            help="El modelo fue entrenado con MRDA (reuniones en inglés). Puede escribir en español: el texto se traduce automáticamente al inglés antes de clasificar.",
         )
+        st.caption("💡 Puede escribir en español o inglés. El corpus MRDA es en inglés, por lo que el texto en español se traduce automáticamente antes de la predicción.")
         if st.button("Clasificar intervención", type="primary"):
             try:
-                response = requests.post(f"{FASTAPI_URL}/predict", json={"text": text}, timeout=20)
+                texto_modelo = text
+                traducido = False
+                if parece_espanol(text):
+                    try:
+                        from deep_translator import GoogleTranslator
+                        texto_modelo = GoogleTranslator(source="auto", target="en").translate(text) or text
+                        traducido = texto_modelo != text
+                    except Exception:
+                        st.warning(
+                            "No se pudo traducir automáticamente; se clasificará el texto original. "
+                            "El modelo fue entrenado en inglés, por lo que la predicción puede ser poco fiable."
+                        )
+                response = requests.post(f"{FASTAPI_URL}/predict", json={"text": texto_modelo}, timeout=20)
                 response.raise_for_status()
                 result = response.json()
+                if traducido:
+                    st.caption(f"Traducción enviada al modelo (corpus MRDA en inglés): “{texto_modelo}”")
                 colores_clase = {
                     "Declaración": ("rgba(94,168,255,0.20)", "#5EA8FF"),
                     "Pregunta": ("rgba(139,124,255,0.22)", "#8B7CFF"),

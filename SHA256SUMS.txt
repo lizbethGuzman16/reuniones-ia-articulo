@@ -56,7 +56,7 @@ a5f75af83f1f1dc3dedd6bd0303c7bc601768b187bc0b0d131d524112422adb8  ./docs/querys 
 7cb5db6ba7ad17e343e9e33522275769e2a27e058ac3f6b9379edbb1edccb7e5  ./docs/querys para supabase/query4.txt
 c8ff88f5418f68f843b692088f34e9f6285a39e590746725ce6ca81b1680b2af  ./docs/querys para supabase/query5.txt
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./frontend/__init__.py
-054aeadb6968c0a77703a0574c9fe18bf4b25bdcee152c72b325afb83a3d6385  ./frontend/app.py
+f0b01d1d5a94815a38a1b3c734110879b8a9bc4b1c1a51f93c33dac5b71a0442  ./frontend/app.py
 f82ba07a9dcf0586002c1fc1de7421b9568ebcaea93339c02e8bfae090a6ca9f  ./frontend/demo_backend.py
 5135502ae6a04228197f109066ae21ab26a6a3a6772278ea4483cdda387e14de  ./ml/README.md
 80a2bc6da063472f31f6d1f1a6120601e3ab70d58ed7a44fb67619b5789f0ec2  ./ml/__init__.py
@@ -151,7 +151,7 @@ de3d10d91cc907bc449a0031d16a1ea18749cc698bc25f1c835cbf6a23754234  ./reports/tabl
 c10771e75b0ca099a1b2e50b7767dbfcdfc0cd2da7b333b70b025ffa5faffcea  ./reports/tables/validacion_cruzada_5_folds.csv
 41bec486a4affa4d3d4c759ab9a6256284f39c542b6b0205572f1545ffb6e2d4  ./reports/tables/validacion_cruzada_resumen.csv
 5829b4a02ddff70b9b9b67b5512dd630266c3b960d892b571db46a9658e82542  ./reports/tables/wilcoxon_holm.csv
-87957867f8418b67d1194571ec842635126c179c402a6f5f2c8a367c64c1de36  ./requirements-frontend.txt
+1c6f17144003ff00952203c67047666e0b960531456485a504a68eeed5053253  ./requirements-frontend.txt
 72383888e76edd439ac2eb8f930bc85fce577248e5537f6e8d83d1ed4037cca7  ./requirements.txt
 cf7dccd78a9bdef7b67befe324b4f51376c830210e458bd1528dbd9f9ad5401a  ./run_api.ps1
 d7246166dfb77f356457b6422e6d54c53000b7c19aad46389ba19f3c5a89e8be  ./run_demo.ps1
