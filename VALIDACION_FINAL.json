@@ -27,8 +27,8 @@
     "models/best_model.h5": 1325076,
     "models/tfidf_vectorizer.joblib": 93672,
     "models/best_model_metadata.json": 368,
-    "reports/articulo_cientifico_reuniones_ia.docx": 2521827,
-    "reports/articulo_cientifico_reuniones_ia.pdf": 2633831,
+    "reports/articulo_cientifico_reuniones_ia.docx": 2576408,
+    "reports/articulo_cientifico_reuniones_ia.pdf": 2758571,
     "reports/reporte_resultados_modelos.xlsx": 32790,
     "docs/JIRA_BACKLOG.csv": 1500
   },
@@ -43,11 +43,12 @@
   "notes": [
     "Entrenamiento principal con muestra estratificada de 30000; evaluación con test oficial completo de 15470.",
     "Despliegue público requiere cuentas del equipo.",
-    "2026-07-12: ronda de endurecimiento de seguridad y reproducibilidad (CORS restringido, RLS de Supabase, saneamiento de JSON de n8n, metadatos de framework del modelo, runner de entrenamiento completo configurable). No se modificaron métricas ni los reportes Word/PDF/Excel; ver docs/AUDITORIA_FINAL.md."
+    "2026-07-12: ronda de endurecimiento de seguridad y reproducibilidad (CORS restringido, RLS de Supabase, saneamiento de JSON de n8n, metadatos de framework del modelo, runner de entrenamiento completo configurable). No se modificaron métricas; ver docs/AUDITORIA_FINAL.md.",
+    "2026-07-13: artículo Word/PDF actualizado (29 páginas): portada con integrantes, docente y curso; sección 7 con la capa de traducción ES→EN y las URLs del despliegue real; Anexo F con las URLs públicas verificables. Las métricas y resultados no cambiaron."
   ],
   "final_artifact_sha256": {
-    "reports/articulo_cientifico_reuniones_ia.docx": "afe07f2f0e99c7fb5735368141f67d76c5e7a3c517384a34d18b96e5afae7b48",
-    "reports/articulo_cientifico_reuniones_ia.pdf": "9bc3d479b938d8da76f533a9f323b7bfa541eb1f1a2b460108f251f6cca6ef11",
+    "reports/articulo_cientifico_reuniones_ia.docx": "64937fa7f95adb55e31b8e46637822e876eb9e6f2a1ee4cc9cfd83667981dfbd",
+    "reports/articulo_cientifico_reuniones_ia.pdf": "139f73f2acd5da1c23a78d8c5a55e2502c2d8d349571452f2f3d3756047fbb25",
     "reports/reporte_resultados_modelos.xlsx": "55dd38bd01d1d89834894315f5c969c15d8058b6bc36376a427c35fa8bc4571c",
     "models/best_model.h5": "68a5ce88ce54c374b49d6f3f36bcf72d12e9ec31b71595de1fd48896c457e7e6",
     "docs/AUDITORIA_FINAL.md": "32ca3994d4490183d016cc4975b47aa0fd291b749eab8070c27d19dfd103e216"
