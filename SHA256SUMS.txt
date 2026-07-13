@@ -48,7 +48,7 @@ c0f55e9a28ea7d8d3417991c32fc49d0556fd2fca4496b36e676e08b437a9fbc  ./docs/REVISIO
 e502930b1cadba9514a1ccf7f7376c2ed276eb222c4d5754b385519061e61c0a  ./docs/VALIDACION_EJECUCION.md
 1784582b4d1c7e7d8616d0b3b1577d41a6a0cbfb2fc339a5f69d8e94a5801fd4  ./docs/json n8n/AsistenteIA1.json
 c4254b3882317be3de3e98e3dac410fbcdc355d6f834c1a6354221883ef05b21  ./docs/querys para supabase/insert_sample_tasks.sql
-aed0899e703946d3eac87015cfd3ce18ad56d8b01dcad3e1da8834f52ff98518  ./docs/querys para supabase/query1.txt
+c130e4790fdf9fb61f824e138059d208fcbd51ae84973bf14891cbac2904f2f3  ./docs/querys para supabase/query1.txt
 a5f75af83f1f1dc3dedd6bd0303c7bc601768b187bc0b0d131d524112422adb8  ./docs/querys para supabase/query2.txt
 542e108b899c4fc1ca3fec4ee535209b7de77698653f21383eaad9545bb30ab5  ./docs/querys para supabase/query3.txt
 7cb5db6ba7ad17e343e9e33522275769e2a27e058ac3f6b9379edbb1edccb7e5  ./docs/querys para supabase/query4.txt

@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS reuniones (
   start_url TEXT,                                -- anfitrión
   estado VARCHAR(20) NOT NULL DEFAULT 'programada', -- 'programada'|'completada'|'cancelada'
 
+  tipo TEXT NOT NULL DEFAULT 'virtual',          -- 'virtual'|'presencial'|'mixta'
+  direccion TEXT,                                -- solo presencial/mixta
+
   fecha_creacion TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
