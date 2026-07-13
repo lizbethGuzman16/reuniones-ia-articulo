@@ -49,6 +49,215 @@ HEADERS = {
 
 st.set_page_config(page_title="Asistente de Reuniones", page_icon="💬", layout="wide")
 
+# -------- Estilos globales --------
+ESTILOS_GLOBALES = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+html, body, [class*="css"], [data-testid="stAppViewContainer"] * {
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+}
+
+/* Fondo con brillos sutiles */
+[data-testid="stAppViewContainer"] {
+    background:
+        radial-gradient(900px 420px at 85% -10%, rgba(139,124,255,0.16), transparent 60%),
+        radial-gradient(700px 380px at -10% 110%, rgba(34,211,238,0.10), transparent 55%),
+        #0B1120;
+}
+[data-testid="stHeader"] { background: transparent; }
+#MainMenu, footer { visibility: hidden; }
+
+/* Titulares */
+h1 {
+    font-weight: 800 !important;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #E7ECF5 20%, #8B7CFF 65%, #22D3EE 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+h2, h3 { font-weight: 700 !important; letter-spacing: -0.3px; }
+
+/* Botones */
+.stButton > button, [data-testid="stFormSubmitButton"] button, .stDownloadButton > button {
+    border-radius: 12px;
+    border: 1px solid rgba(139,124,255,0.35);
+    background: linear-gradient(135deg, rgba(139,124,255,0.18), rgba(34,211,238,0.10));
+    color: #E7ECF5;
+    font-weight: 600;
+    padding: 0.55rem 1.1rem;
+    transition: all .18s ease;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+    transform: translateY(-1px);
+    border-color: #8B7CFF;
+    box-shadow: 0 8px 22px rgba(139,124,255,0.28);
+}
+.stButton > button[kind="primary"], button[data-testid="stBaseButton-primary"] {
+    background: linear-gradient(135deg, #8B7CFF, #5EA8FF 60%, #22D3EE);
+    border: none;
+    color: #0B1120;
+    font-weight: 700;
+}
+
+/* Entradas */
+.stTextInput input, .stTextArea textarea, .stNumberInput input, .stDateInput input, .stTimeInput input {
+    border-radius: 12px !important;
+    background: #121A2E !important;
+    border: 1px solid #26304C !important;
+}
+.stTextInput input:focus, .stTextArea textarea:focus {
+    border-color: #8B7CFF !important;
+    box-shadow: 0 0 0 3px rgba(139,124,255,0.25) !important;
+}
+[data-baseweb="select"] > div {
+    border-radius: 12px !important;
+    background: #121A2E !important;
+    border-color: #26304C !important;
+}
+
+/* Pestañas */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 6px;
+    background: #121A2E;
+    padding: 6px;
+    border-radius: 14px;
+    border: 1px solid #1E2A45;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-weight: 600;
+}
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, rgba(139,124,255,0.30), rgba(34,211,238,0.18)) !important;
+}
+
+/* Métricas como tarjetas */
+[data-testid="stMetric"] {
+    background: linear-gradient(160deg, #141D33, #101828);
+    border: 1px solid #223055;
+    border-radius: 16px;
+    padding: 14px 18px;
+    box-shadow: 0 10px 26px rgba(3,7,18,0.45);
+}
+[data-testid="stMetricValue"] { font-weight: 800; }
+
+/* Tablas y dataframes */
+[data-testid="stDataFrame"], [data-testid="stDataEditor"] {
+    border: 1px solid #223055;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+/* Chat */
+[data-testid="stChatMessage"] {
+    background: #141D33;
+    border: 1px solid #223055;
+    border-radius: 16px;
+    margin-bottom: 6px;
+}
+[data-testid="stChatInput"] textarea { border-radius: 14px !important; }
+
+/* Alertas */
+[data-testid="stAlert"] { border-radius: 12px; }
+
+/* JSON viewer */
+[data-testid="stJson"] {
+    background: #101828;
+    border: 1px solid #223055;
+    border-radius: 12px;
+    padding: 8px;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0D1526 0%, #0B1120 100%);
+    border-right: 1px solid #1E2A45;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] > label { display: none; }
+[data-testid="stSidebar"] [data-testid="stRadio"] label {
+    display: flex;
+    align-items: center;
+    padding: 9px 14px;
+    margin: 2px 0;
+    border-radius: 11px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .15s ease;
+    width: 100%;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+    background: rgba(139,124,255,0.10);
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
+    background: linear-gradient(135deg, rgba(139,124,255,0.28), rgba(34,211,238,0.14));
+    border-color: rgba(139,124,255,0.45);
+    font-weight: 700;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label > div:first-child { display: none; }
+
+/* Marca del sistema en el sidebar */
+.brand-box {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 12px; margin-bottom: 10px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(139,124,255,0.16), rgba(34,211,238,0.08));
+    border: 1px solid rgba(139,124,255,0.30);
+}
+.brand-logo {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    background: linear-gradient(135deg, #8B7CFF, #22D3EE);
+    box-shadow: 0 6px 16px rgba(139,124,255,0.40);
+}
+.brand-name { font-weight: 800; font-size: 15px; line-height: 1.15; color: #E7ECF5; }
+.brand-sub  { font-size: 11px; color: #93A3C4; }
+
+/* Chip de usuario */
+.user-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; margin: 4px 0 14px 0;
+    border-radius: 12px;
+    background: #141D33; border: 1px solid #223055;
+}
+.user-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px; color: #0B1120;
+    background: linear-gradient(135deg, #22D3EE, #8B7CFF);
+}
+.user-name  { font-weight: 700; font-size: 13px; color: #E7ECF5; line-height: 1.2; }
+.user-level { font-size: 11px; color: #93A3C4; text-transform: capitalize; }
+
+/* Hero del login */
+.login-hero { text-align: center; padding: 26px 0 10px 0; }
+.login-logo {
+    width: 74px; height: 74px; margin: 0 auto 16px auto;
+    border-radius: 22px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    background: linear-gradient(135deg, #8B7CFF, #22D3EE);
+    box-shadow: 0 16px 44px rgba(139,124,255,0.45);
+}
+.login-title { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; color: #E7ECF5; }
+.login-sub   { font-size: 14px; color: #93A3C4; margin-top: 6px; }
+
+/* Badge de clase predicha */
+.pred-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.2px;
+}
+</style>
+"""
+st.markdown(ESTILOS_GLOBALES, unsafe_allow_html=True)
+
 if DEMO_MODE:
     st.warning(
         "🧪 MODO DEMOSTRACIÓN LOCAL: los usuarios y textos de tareas proceden de "
@@ -2555,12 +2764,24 @@ def view_inteligencia_artificial():
                 response = requests.post(f"{FASTAPI_URL}/predict", json={"text": text}, timeout=20)
                 response.raise_for_status()
                 result = response.json()
-                col1, col2 = st.columns(2)
-                col1.metric("Clase predicha", result["label"])
-                col2.metric("Confianza", f"{result['confidence']:.2%}")
+                colores_clase = {
+                    "Declaración": ("rgba(94,168,255,0.20)", "#5EA8FF"),
+                    "Pregunta": ("rgba(139,124,255,0.22)", "#8B7CFF"),
+                    "Pregunta declarativa": ("rgba(34,211,238,0.20)", "#22D3EE"),
+                    "Retroalimentación breve": ("rgba(74,222,128,0.20)", "#4ADE80"),
+                    "Continuación / seguimiento": ("rgba(251,191,36,0.20)", "#FBBF24"),
+                }
+                fondo, borde = colores_clase.get(result["label"], ("rgba(139,124,255,0.22)", "#8B7CFF"))
+                st.markdown(
+                    f"""<div style="margin:10px 0 4px 0;">
+                    <span class="pred-badge" style="background:{fondo}; border:1.5px solid {borde}; color:{borde};">{result['label']}</span>
+                    <span style="margin-left:12px; color:#93A3C4; font-weight:600;">confianza {result['confidence']:.1%}</span>
+                    </div>""",
+                    unsafe_allow_html=True,
+                )
                 probs = pd.DataFrame({"Clase": list(result["probabilities"].keys()), "Probabilidad": list(result["probabilities"].values())})
-                st.bar_chart(probs.set_index("Clase"))
-                st.caption(f"Modelo empleado: {result['model']}")
+                st.bar_chart(probs.set_index("Clase"), color="#8B7CFF")
+                st.caption(f"Modelo empleado: {result['model']} · artefacto {result.get('artifact_file', 'best_model.h5')}")
             except Exception as exc:
                 st.error(f"No se pudo ejecutar la predicción: {exc}")
 
@@ -2619,17 +2840,50 @@ def view_inteligencia_artificial():
 
 # -------- Router --------
 if st.session_state.session is None:
-    t1, t2 = st.tabs(["Iniciar sesión", "Registrarse"])
-    with t1: view_login()
-    with t2: view_register()
+    _izq, _centro, _der = st.columns([1, 1.15, 1])
+    with _centro:
+        st.markdown(
+            """
+            <div class="login-hero">
+                <div class="login-logo">💬</div>
+                <div class="login-title">Asistente de Reuniones</div>
+                <div class="login-sub">Gestión inteligente de reuniones con clasificación de actos de diálogo (MRDA)</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        t1, t2 = st.tabs(["Iniciar sesión", "Registrarse"])
+        with t1: view_login()
+        with t2: view_register()
 else:
     admin = is_admin()
-    badge = " — Admin" if admin else ""
-    st.sidebar.success(f"{st.session_state.session['nombre']} ({st.session_state.session['nivel']}){badge}")
-    opciones_menu = ["Chat", "Reuniones", "Tareas", "Resumen de reuniones", "Participantes", "Inteligencia artificial", "Métricas", "Cerrar sesión"]
+    nombre_usuario = st.session_state.session["nombre"]
+    iniciales = "".join(p[0] for p in nombre_usuario.split()[:2]).upper() or "U"
+    nivel_txt = st.session_state.session["nivel"] + (" · Admin" if admin else "")
+    st.sidebar.markdown(
+        f"""
+        <div class="brand-box">
+            <div class="brand-logo">💬</div>
+            <div>
+                <div class="brand-name">Asistente de<br>Reuniones</div>
+                <div class="brand-sub">IA · dataset MRDA</div>
+            </div>
+        </div>
+        <div class="user-chip">
+            <div class="user-avatar">{iniciales}</div>
+            <div>
+                <div class="user-name">{nombre_usuario}</div>
+                <div class="user-level">{nivel_txt}</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    opciones_menu = ["💬 Chat", "📅 Reuniones", "✅ Tareas", "📝 Resumen de reuniones", "👥 Participantes", "🧠 Inteligencia artificial", "📊 Métricas", "🚪 Cerrar sesión"]
     if admin:
-        opciones_menu.insert(1, "Usuarios")
+        opciones_menu.insert(1, "🧑‍💼 Usuarios")
     page = st.sidebar.radio("Navegación", opciones_menu)
+    page = page.split(" ", 1)[1]  # quitar el emoji para el enrutado
     if page == "Chat":
         view_chat()
     elif page == "Usuarios":
