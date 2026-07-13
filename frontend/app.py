@@ -2050,7 +2050,7 @@ def view_tareas():
         return
     
     if not tareas:
-        st.info("No hay tareas registradas. Ejecuta el script SQL para insertar datos de ejemplo.")
+        st.info("No hay tareas registradas todavía. Cree la primera con el formulario de abajo (administradores) o desde los acuerdos de una reunión.")
         if admin:
             st.divider()
             st.subheader("➕ Crear nueva tarea")
@@ -2733,9 +2733,10 @@ def view_inteligencia_artificial():
     st.title("🧠 Inteligencia artificial para reuniones")
     st.caption("Clasificación de actos de diálogo entrenada con el dataset público MRDA.")
 
-    # El plan gratuito de Render duerme la API tras inactividad; la primera
-    # petición puede tardar ~1 minuto. Se intenta rápido y, si falla, se
-    # reintenta una vez con margen para el arranque en frío.
+    # El plan gratuito de Render duerme la API tras inactividad. Durante el
+    # arranque en frío el proxy responde 502 de inmediato (no retiene la
+    # conexión), por lo que hay que reintentar en bucle hasta que despierte
+    # (~1-2 minutos por la carga de torch).
     model_status = None
     ultimo_error = None
     try:
@@ -2744,14 +2745,18 @@ def view_inteligencia_artificial():
         model_status = status.json()
     except Exception as exc:
         ultimo_error = exc
-        with st.spinner("Despertando la API de predicción (arranque en frío, puede tardar hasta 2-3 minutos)..."):
-            try:
-                status = requests.get(f"{FASTAPI_URL}/model/status", timeout=200)
-                status.raise_for_status()
-                model_status = status.json()
-                ultimo_error = None
-            except Exception as exc2:
-                ultimo_error = exc2
+        with st.spinner("Despertando la API de predicción (arranque en frío, puede tardar 2-3 minutos)..."):
+            limite = time.time() + 180
+            while time.time() < limite:
+                time.sleep(8)
+                try:
+                    status = requests.get(f"{FASTAPI_URL}/model/status", timeout=15)
+                    status.raise_for_status()
+                    model_status = status.json()
+                    ultimo_error = None
+                    break
+                except Exception as exc2:
+                    ultimo_error = exc2
 
     if model_status is not None:
         if model_status.get("available"):
@@ -2788,8 +2793,25 @@ def view_inteligencia_artificial():
                             "No se pudo traducir automáticamente; se clasificará el texto original. "
                             "El modelo fue entrenado en inglés, por lo que la predicción puede ser poco fiable."
                         )
-                response = requests.post(f"{FASTAPI_URL}/predict", json={"text": texto_modelo}, timeout=20)
-                response.raise_for_status()
+                try:
+                    response = requests.post(f"{FASTAPI_URL}/predict", json={"text": texto_modelo}, timeout=20)
+                    response.raise_for_status()
+                except Exception:
+                    # La API pudo dormirse mientras la página estaba abierta:
+                    # reintentar en bucle mientras despierta.
+                    with st.spinner("La API estaba dormida; despertándola (hasta 3 minutos)..."):
+                        limite = time.time() + 180
+                        response = None
+                        while time.time() < limite:
+                            time.sleep(8)
+                            try:
+                                response = requests.post(f"{FASTAPI_URL}/predict", json={"text": texto_modelo}, timeout=20)
+                                response.raise_for_status()
+                                break
+                            except Exception:
+                                response = None
+                    if response is None:
+                        raise RuntimeError("La API no respondió tras el arranque en frío. Intente nuevamente en un minuto.")
                 result = response.json()
                 if traducido:
                     st.caption(f"Traducción enviada al modelo (corpus MRDA en inglés): “{texto_modelo}”")

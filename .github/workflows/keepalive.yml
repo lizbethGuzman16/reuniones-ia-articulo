@@ -1,11 +1,11 @@
 name: Keep API awake
 # El plan gratuito de Render duerme el servicio tras ~15 min sin tráfico y el
 # arranque en frío (carga de torch) tarda ~2 minutos. Este ping cada 10 minutos
-# mantiene la API despierta de 07:00 a 24:00 hora de Perú (12:00-05:00 UTC),
+# mantiene la API despierta de 06:00 a 24:00 hora de Perú (11:00-05:00 UTC),
 # dejándola dormir de madrugada para no agotar las horas gratuitas del mes.
 on:
   schedule:
-    - cron: "*/10 12-23 * * *"
+    - cron: "*/10 11-23 * * *"
     - cron: "*/10 0-4 * * *"
   workflow_dispatch:
 
