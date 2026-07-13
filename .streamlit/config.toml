@@ -8,3 +8,10 @@ font = "sans serif"
 
 [browser]
 gatherUsageStats = false
+
+[server]
+# Sin recarga automática por cambios de archivo: ahorra CPU en producción.
+fileWatcherType = "none"
+
+[client]
+toolbarMode = "minimal"

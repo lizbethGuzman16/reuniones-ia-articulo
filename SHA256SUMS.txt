@@ -2,7 +2,7 @@
 cd807e8a9f0896ab17898c149e04024977606a2f51b1b6b93fa3059df7b14e96  ./.github/workflows/ci.yml
 70e901b46a9e767f1e385b906085b1bf1a94099aeb832b71a34db02cbf2f0e54  ./.github/workflows/keepalive.yml
 cbd35e9414b96e8cabd0c6f2aa2869c180ec342e25726dcf68a2ab737ba8c7a9  ./.gitignore
-762d5c22804875c67a3f76452d510c61fa6fb7f43c1f6e74ecfe17fa750ad910  ./.streamlit/config.toml
+d0f6ad7c9b0d305eddeb3de837343fb7300942812e6001c990ccb7e91d3f27cc  ./.streamlit/config.toml
 d967ec5b6fb9844aeb767f88d469b1bed59978e806b844f0cafc32e93452d914  ./CITATION.cff
 57c797551a24f879abec0cab468c7e4950339d7a9b678d141ffb42d84bd56361  ./Dockerfile
 c09829fa86a338e0d5bfbf49c469ba9535c7f76fe3d979b83484d2cf63e44afc  ./Dockerfile.frontend
