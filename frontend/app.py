@@ -679,6 +679,9 @@ def view_usuarios():
 
     users_df = pd.DataFrame(users)
 
+    if users_df.empty:
+        users_df = pd.DataFrame(columns=["id","nombre","correo","nivel_suscripcion","estado_suscripcion","fecha_creacion"])
+
     # -------- APLICAR FILTROS --------
     if filtro_texto:
         mask = users_df["nombre"].str.contains(filtro_texto, case=False, na=False) | \
@@ -874,6 +877,10 @@ def view_reuniones():
         r["fecha_inicio"] = r["fecha_inicio"].replace("T", " ").replace("Z", "") if r["fecha_inicio"] else r["fecha_inicio"]
 
     df = pd.DataFrame(reuniones)
+
+    if df.empty:
+        st.info("No hay reuniones registradas todavía. Cree la primera desde el formulario de abajo.")
+        df = pd.DataFrame(columns=["id","tema","fecha_inicio","duracion_minutos","proveedor","id_externo","join_url","start_url","estado","creador_id","tipo","direccion"])
 
     # ---- Aplicar filtros ----
     if filtro_texto:
