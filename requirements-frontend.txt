@@ -1,0 +1,17 @@
+# Dependencias del frontend Streamlit (servicio reuniones-ia-frontend en Render).
+# No incluye torch/scikit-learn/h5py: el frontend consume el modelo via FastAPI
+# y no carga artefactos de ML. Esto reduce el build de ~5 GB a ~300 MB.
+streamlit==1.59.1
+# pyarrow lo usa Streamlit para serializar tablas (st.dataframe/st.data_editor).
+# Se fija una version madura: pyarrow 25 (resuelto por defecto) provoco caidas
+# del proceso (SIGSEGV, exit 139) al renderizar tablas en Render.
+pyarrow==20.0.0
+requests==2.32.3
+python-dotenv==1.0.1
+pandas>=2.2,<3.0
+numpy>=1.26,<3.0
+plotly>=5.24,<7.0
+altair>=5.4,<6.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.2.0
+reportlab>=4.2,<6.0
