@@ -435,6 +435,8 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 [data-testid="stSidebarContent"] {
     padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 [data-testid="stSidebarUserContent"] {
     padding: 20px 20px 16px !important;
@@ -526,6 +528,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     border-radius: 9px;
     color: #182640;
     font-size: 13.5px;
+    gap: 12px;
 }
 [data-testid="stSidebar"] .stRadio > label,
 [data-testid="stSidebar"] [data-testid="stRadio"] > label:first-child {
@@ -695,6 +698,12 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) > div 
     border: 1px solid #CFD7E5;
     border-radius: 10px;
     overflow: hidden;
+}
+.st-key-tipo_reunion {
+    width: 100% !important;
+}
+.st-key-tipo_reunion [data-testid="stRadioGroup"] {
+    width: 100% !important;
 }
 .st-key-tipo_reunion [role="radiogroup"] > label {
     display: flex;
