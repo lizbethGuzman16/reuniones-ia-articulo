@@ -20,9 +20,11 @@ PANTALLAS = [
 
 
 def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
-    radio = page.get_by_role("radio", name=opcion, exact=True)
-    radio.wait_for(state="attached", timeout=30_000)
-    radio.check()
+    etiqueta = page.locator('label[data-testid="stRadioOption"]').filter(
+        has_text=opcion
+    )
+    etiqueta.wait_for(state="visible", timeout=30_000)
+    etiqueta.click()
 
     heading = page.get_by_role("heading", name=titulo, exact=True)
     heading.wait_for(state="visible", timeout=45_000)
