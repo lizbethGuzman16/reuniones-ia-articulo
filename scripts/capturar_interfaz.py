@@ -44,7 +44,7 @@ def main() -> None:
         context = browser.new_context(
             viewport={"width": 1440, "height": 1000},
             device_scale_factor=1,
-            color_scheme="dark",
+            color_scheme="light",
         )
         page = context.new_page()
         page.goto(BASE_URL, wait_until="domcontentloaded", timeout=90_000)
