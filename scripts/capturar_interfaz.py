@@ -37,6 +37,19 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
     )
 
 
+def capturar_login(page: Page) -> None:
+    page.goto(f"{BASE_URL}?mostrar_login=1", wait_until="domcontentloaded", timeout=90_000)
+    page.get_by_role(
+        "heading", name="Bienvenido de nuevo", exact=True
+    ).wait_for(state="visible", timeout=90_000)
+    page.wait_for_timeout(1_200)
+    page.screenshot(
+        path=str(OUTPUT_DIR / "00-login.png"),
+        full_page=False,
+        animations="disabled",
+    )
+
+
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -48,6 +61,7 @@ def main() -> None:
             color_scheme="light",
         )
         page = context.new_page()
+        capturar_login(page)
         page.goto(BASE_URL, wait_until="domcontentloaded", timeout=90_000)
         page.get_by_role(
             "heading", name="Crear reunión por chat", exact=True

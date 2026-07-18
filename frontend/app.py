@@ -35,6 +35,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ICON_DIR = PROJECT_ROOT / "frontend" / "assets" / "icons"
 BRAND_DIR = PROJECT_ROOT / "frontend" / "assets" / "branding"
 LOGO_PATH = BRAND_DIR / "vincora-logo.png"
+LOGIN_REFERENCE_PATH = BRAND_DIR / "vincora-login-reference.jpg"
+GOOGLE_ICON_PATH = BRAND_DIR / "google-g.svg"
 
 ICON_FILES = {
     "chat": "message-circle.svg",
@@ -62,6 +64,9 @@ ICON_FILES = {
     "lista": "list-details.svg",
     "actividad": "activity.svg",
     "datos": "database.svg",
+    "correo": "mail.svg",
+    "candado": "lock.svg",
+    "ver": "eye.svg",
 }
 
 
@@ -75,6 +80,8 @@ def icono_data_uri(nombre: str, color: str = "#2563EB") -> str:
 
 ICONOS_AZULES = {nombre: icono_data_uri(nombre) for nombre in ICON_FILES}
 LOGO_DATA_URI = "data:image/png;base64," + base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+LOGIN_REFERENCE_DATA_URI = "data:image/jpeg;base64," + base64.b64encode(LOGIN_REFERENCE_PATH.read_bytes()).decode("ascii")
+GOOGLE_ICON_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(GOOGLE_ICON_PATH.read_bytes()).decode("ascii")
 
 if DEMO_MODE:
     from demo_backend import install_demo_backend
@@ -410,20 +417,210 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .user-name  { font-weight: 700; font-size: 13px; color: var(--ink); line-height: 1.2; }
 .user-level { font-size: 11px; color: var(--muted); text-transform: capitalize; }
 
-/* Hero del login */
-.login-hero { text-align: center; padding: 30px 0 12px 0; }
-.login-logo {
-    width: 112px; height: 104px; margin: 0 auto 18px auto;
-    border-radius: 25px;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
+/* Acceso VINCORA: composición exacta en dos paneles */
+.auth-page-marker, .auth-panel-marker { height: 0; overflow: hidden; }
+[data-testid="stAppViewContainer"]:has(.auth-page-marker) {
     background: #FFFFFF;
-    border: 1px solid var(--line);
-    box-shadow: 0 16px 38px rgba(37, 99, 235, 0.14);
 }
-.login-logo img { width: 104px; height: 97px; object-fit: cover; }
-.login-title { font-size: 32px; font-weight: 700; letter-spacing: -0.7px; color: var(--ink); }
-.login-sub   { font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 7px; }
+[data-testid="stAppViewContainer"]:has(.auth-page-marker) [data-testid="stHeader"] {
+    display: none;
+}
+[data-testid="stAppViewContainer"]:has(.auth-page-marker) .block-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+[data-testid="stHorizontalBlock"]:has(.auth-visual-panel) {
+    gap: 0 !important;
+    min-height: 100vh;
+    align-items: stretch;
+}
+[data-testid="stColumn"]:has(.auth-visual-panel),
+[data-testid="column"]:has(.auth-visual-panel) {
+    padding: 0 !important;
+    min-height: 100vh;
+}
+.auth-visual-panel {
+    width: 100%;
+    height: 100vh;
+    min-height: 760px;
+    background-repeat: no-repeat;
+    background-position: left top;
+    background-size: 160.75% 100%;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker),
+[data-testid="column"]:has(.auth-panel-marker) {
+    min-height: 100vh;
+    padding: 62px clamp(44px, 4.6vw, 76px) 32px !important;
+    background: #FFFFFF;
+    overflow-y: auto;
+}
+.auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 40px;
+}
+.auth-brand img {
+    width: 84px;
+    height: 78px;
+    object-fit: cover;
+    flex: 0 0 84px;
+}
+.auth-wordmark {
+    color: #071644;
+    font-size: clamp(34px, 3vw, 48px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: 5px;
+}
+.auth-tagline {
+    margin-top: 12px;
+    color: #5F687D;
+    font-size: clamp(15px, 1.4vw, 20px);
+    white-space: nowrap;
+}
+.auth-heading {
+    margin: 0 !important;
+    color: #071644 !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-size: clamp(34px, 3vw, 44px) !important;
+    font-weight: 800 !important;
+    letter-spacing: -1.2px !important;
+    -webkit-text-fill-color: #071644 !important;
+}
+.auth-description {
+    margin: 7px 0 28px 0;
+    color: #697287;
+    font-size: 19px;
+    text-align: center;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) [data-testid="stForm"],
+[data-testid="column"]:has(.auth-panel-marker) [data-testid="stForm"] {
+    padding: 0;
+    background: transparent;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) .stTextInput label,
+[data-testid="column"]:has(.auth-panel-marker) .stTextInput label {
+    color: #17254A;
+    font-size: 15px;
+    font-weight: 500;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) .stTextInput input,
+[data-testid="column"]:has(.auth-panel-marker) .stTextInput input {
+    height: 56px;
+    padding-left: 50px !important;
+    color: #17254A !important;
+    border: 1px solid #CBD3E2 !important;
+    border-radius: 11px !important;
+    background-color: #FFFFFF !important;
+    background-repeat: no-repeat !important;
+    background-position: 16px center !important;
+    background-size: 20px 20px !important;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) input[aria-label="Correo electrónico"],
+[data-testid="column"]:has(.auth-panel-marker) input[aria-label="Correo electrónico"] {
+    background-image: url("__ICON_CORREO__") !important;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) input[aria-label="Contraseña"],
+[data-testid="column"]:has(.auth-panel-marker) input[aria-label="Contraseña"] {
+    background-image: url("__ICON_CANDADO__") !important;
+}
+.auth-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 0 22px 0;
+    color: #5E687E;
+    font-size: 14px;
+}
+.auth-forgot, .auth-register-prompt a, .auth-back-link {
+    color: #175CFF !important;
+    text-decoration: none;
+    font-weight: 500;
+}
+.auth-forgot:hover, .auth-register-prompt a:hover, .auth-back-link:hover {
+    text-decoration: underline;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) [data-testid="stFormSubmitButton"] button,
+[data-testid="column"]:has(.auth-panel-marker) [data-testid="stFormSubmitButton"] button {
+    height: 58px;
+    border: 0 !important;
+    border-radius: 10px;
+    color: #FFFFFF !important;
+    background: linear-gradient(100deg, #2563F4 0%, #4B62FF 50%, #9846F5 100%) !important;
+    box-shadow: 0 10px 25px rgba(76, 89, 255, 0.24);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    margin: 27px 0 19px 0;
+    color: #5F687C;
+    font-size: 14px;
+    white-space: nowrap;
+}
+.auth-divider::before, .auth-divider::after {
+    content: "";
+    height: 1px;
+    flex: 1 1 auto;
+    background: #D5DAE5;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) .stButton > button,
+[data-testid="column"]:has(.auth-panel-marker) .stButton > button {
+    position: relative;
+    height: 56px;
+    color: #253453;
+    background: #FFFFFF;
+    border: 1px solid #C8D0DF;
+    border-radius: 10px;
+    box-shadow: none;
+    font-size: 16px;
+    font-weight: 500;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) .stButton > button::before,
+[data-testid="column"]:has(.auth-panel-marker) .stButton > button::before {
+    content: "";
+    width: 25px;
+    height: 25px;
+    margin-right: 12px;
+    background: url("__GOOGLE_ICON__") center / contain no-repeat;
+}
+.auth-register-prompt {
+    margin-top: 22px;
+    color: #243252;
+    font-size: 16px;
+    text-align: center;
+}
+.auth-register-title {
+    margin: 0 0 8px 0 !important;
+    color: #071644 !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-size: 34px !important;
+    font-weight: 800 !important;
+    -webkit-text-fill-color: #071644 !important;
+}
+.auth-register-description { margin-bottom: 24px; color: #697287; }
+
+@media (max-width: 900px) {
+    [data-testid="stColumn"]:has(.auth-visual-panel),
+    [data-testid="column"]:has(.auth-visual-panel) { display: none !important; }
+    [data-testid="stColumn"]:has(.auth-panel-marker),
+    [data-testid="column"]:has(.auth-panel-marker) {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        padding: 36px 28px !important;
+    }
+    .auth-brand { justify-content: center; margin-bottom: 32px; }
+    .auth-wordmark { font-size: 34px; }
+    .auth-tagline { font-size: 15px; }
+}
 
 /* Badge de clase predicha */
 .pred-badge {
@@ -438,11 +635,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 """
 for _nombre_icono in (
     "chat", "administracion", "reuniones", "tareas", "resumen",
-    "usuarios", "ia", "metricas", "salir",
+    "usuarios", "ia", "metricas", "salir", "correo", "candado",
 ):
     ESTILOS_GLOBALES = ESTILOS_GLOBALES.replace(
         f"__ICON_{_nombre_icono.upper()}__", ICONOS_AZULES[_nombre_icono]
     )
+ESTILOS_GLOBALES = ESTILOS_GLOBALES.replace("__GOOGLE_ICON__", GOOGLE_ICON_DATA_URI)
 st.markdown(ESTILOS_GLOBALES, unsafe_allow_html=True)
 
 
@@ -831,7 +1029,9 @@ if "session" not in st.session_state:
 if "chat" not in st.session_state:
     st.session_state.chat = []
 
-if DEMO_MODE and st.session_state.session is None:
+mostrar_login_captura = str(st.query_params.get("mostrar_login", "0")) == "1"
+
+if DEMO_MODE and st.session_state.session is None and not mostrar_login_captura:
     st.session_state.session = {
         "id": "00000000-0000-4000-8000-000000000001",
         "correo": "demo_admin@example.com",
@@ -841,11 +1041,36 @@ if DEMO_MODE and st.session_state.session is None:
     }
 
 # -------- Auth Views --------
-def view_login():
-    st.subheader("Iniciar sesión")
-    email = st.text_input("Correo", key="login_email")
-    pw = st.text_input("Contraseña", type="password", key="login_pw")
-    if st.button("Ingresar", use_container_width=True):
+def view_login(mostrar_titulo: bool = True):
+    if mostrar_titulo:
+        st.subheader("Iniciar sesión")
+    with st.form("vincora_login_form"):
+        email = st.text_input(
+            "Correo electrónico",
+            key="login_email",
+            placeholder="Correo electrónico",
+        )
+        pw = st.text_input(
+            "Contraseña",
+            type="password",
+            key="login_pw",
+            placeholder="Contraseña",
+        )
+        st.markdown(
+            """
+            <div class="auth-options">
+                <label><input type="checkbox">&nbsp;&nbsp;Recordarme</label>
+                <a class="auth-forgot" href="#">¿Olvidaste tu contraseña?</a>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        ingresar = st.form_submit_button(
+            "INICIAR SESIÓN",
+            type="primary",
+            use_container_width=True,
+        )
+    if ingresar:
         try:
             data = sb_select("usuarios", {"select":"id,correo,nombre,password_hash,nivel_suscripcion,estado_suscripcion", "correo": f"eq.{email}"})
             if not data: st.error("Usuario no encontrado"); return
@@ -860,12 +1085,19 @@ def view_login():
         except Exception as e:
             st.error(str(e))
 
-def view_register():
-    st.subheader("Registrarse")
-    nombre = st.text_input("Nombre", key="reg_nombre")
-    correo = st.text_input("Correo", key="reg_correo")
-    pw = st.text_input("Contraseña", type="password", key="reg_pw")
-    if st.button("Crear cuenta", use_container_width=True):
+def view_register(mostrar_titulo: bool = True):
+    if mostrar_titulo:
+        st.subheader("Registrarse")
+    with st.form("vincora_register_form"):
+        nombre = st.text_input("Nombre", key="reg_nombre", placeholder="Nombre completo")
+        correo = st.text_input("Correo electrónico", key="reg_correo", placeholder="Correo electrónico")
+        pw = st.text_input("Contraseña", type="password", key="reg_pw", placeholder="Contraseña")
+        crear_cuenta = st.form_submit_button(
+            "CREAR CUENTA",
+            type="primary",
+            use_container_width=True,
+        )
+    if crear_cuenta:
         if not (nombre and correo and pw): st.warning("Completa todo"); return
         try:
             sb_insert("usuarios", [{
@@ -3107,21 +3339,60 @@ def view_inteligencia_artificial():
 
 # -------- Router --------
 if st.session_state.session is None:
-    _izq, _centro, _der = st.columns([1, 1.15, 1])
-    with _centro:
+    st.markdown('<div class="auth-page-marker"></div>', unsafe_allow_html=True)
+    panel_visual, panel_acceso = st.columns([1.66, 1], gap=None)
+    with panel_visual:
         st.markdown(
             f"""
-            <div class="login-hero">
-                <div class="login-logo"><img src="{LOGO_DATA_URI}" alt="Logo de VINCORA Meet"></div>
-                <div class="login-title">VINCORA Meet</div>
-                <div class="login-sub">Conecta. Reúnete. Avanza.</div>
+            <div class="auth-visual-panel" style="background-image:url('{LOGIN_REFERENCE_DATA_URI}');"></div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with panel_acceso:
+        st.markdown('<div class="auth-panel-marker"></div>', unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class="auth-brand">
+                <img src="{LOGO_DATA_URI}" alt="Logo de VINCORA Meet">
+                <div>
+                    <div class="auth-wordmark">VINCORA</div>
+                    <div class="auth-tagline">Conecta. Reúnete. Avanza.</div>
+                </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-        t1, t2 = st.tabs(["Iniciar sesión", "Registrarse"])
-        with t1: view_login()
-        with t2: view_register()
+
+        modo_registro = str(st.query_params.get("auth", "login")) == "register"
+        if modo_registro:
+            st.markdown(
+                """
+                <h1 class="auth-register-title">Crea tu cuenta</h1>
+                <div class="auth-register-description">Regístrate para comenzar a reunirte con tu equipo.</div>
+                """,
+                unsafe_allow_html=True,
+            )
+            view_register(mostrar_titulo=False)
+            st.markdown(
+                '<div class="auth-register-prompt">¿Ya tienes una cuenta? <a href="?" target="_self">Inicia sesión</a></div>',
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                """
+                <h1 class="auth-heading">Bienvenido de nuevo</h1>
+                <div class="auth-description">Ingresa a tu cuenta para continuar</div>
+                """,
+                unsafe_allow_html=True,
+            )
+            view_login(mostrar_titulo=False)
+            st.markdown('<div class="auth-divider">O continúa con</div>', unsafe_allow_html=True)
+            if st.button("Continuar con Google", key="google_login", use_container_width=True):
+                st.info("El inicio con Google se habilitará cuando se configure OAuth.")
+            st.markdown(
+                '<div class="auth-register-prompt">¿No tienes una cuenta? <a href="?auth=register" target="_self">Regístrate</a></div>',
+                unsafe_allow_html=True,
+            )
 else:
     admin = is_admin()
     nombre_usuario = st.session_state.session["nombre"]
