@@ -917,8 +917,11 @@ def view_chat():
         with st.chat_message(role):
             st.markdown(text)
 
-    # Opciones de reunión (en un expander, sobre el input fijo)
-    with st.expander("Opciones de reunión", expanded=True):
+    # Opciones de reunión en una tarjeta visible sobre el input fijo.
+    # Evita depender del icono Material del expander, que algunos navegadores
+    # muestran como texto cuando la fuente todavía no se ha cargado.
+    with st.container(border=True):
+        st.markdown("**Opciones de reunión**")
         col_tipo, col_inv = st.columns([2,3])
         with col_tipo:
             st.radio("Tipo de reunión", ["Virtual","Presencial","Mixta"], horizontal=True, key="tipo_reunion")
