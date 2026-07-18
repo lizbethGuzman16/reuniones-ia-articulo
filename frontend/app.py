@@ -52,198 +52,259 @@ st.set_page_config(page_title="Asistente de Reuniones", page_icon="💬", layout
 # -------- Estilos globales --------
 ESTILOS_GLOBALES = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* Tema editorial claro aprobado: marfil, blanco cálido, azul y tipografía clásica. */
+:root {
+    --canvas: #FBF8F2;
+    --surface: #FFFFFF;
+    --surface-soft: #F7F2E9;
+    --line: #E7DCCF;
+    --ink: #171717;
+    --muted: #667085;
+    --blue: #2563EB;
+    --blue-soft: #EEF4FF;
+    --shadow: 0 10px 28px rgba(77, 58, 34, 0.08);
+}
 
 html, body, [class*="css"], [data-testid="stAppViewContainer"] * {
-    font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
-/* Fondo con brillos sutiles */
 [data-testid="stAppViewContainer"] {
+    color: var(--ink);
     background:
-        radial-gradient(900px 420px at 85% -10%, rgba(139,124,255,0.16), transparent 60%),
-        radial-gradient(700px 380px at -10% 110%, rgba(34,211,238,0.10), transparent 55%),
-        #0B1120;
+        radial-gradient(900px 480px at 86% -15%, rgba(255,255,255,0.94), transparent 64%),
+        linear-gradient(135deg, #FCFAF6 0%, var(--canvas) 58%, #F8F3EB 100%);
 }
-[data-testid="stHeader"] { background: transparent; }
-#MainMenu, footer { visibility: hidden; }
+[data-testid="stHeader"] {
+    background: rgba(251, 248, 242, 0.92);
+    backdrop-filter: blur(10px);
+}
+#MainMenu, footer,
+[data-testid="stSidebarCollapseButton"],
+[data-testid="collapsedControl"] { display: none !important; }
+[data-testid="stToolbar"] { visibility: hidden; }
+.block-container { padding-top: 2rem; padding-bottom: 3rem; }
 
-/* Titulares */
-h1 {
-    font-weight: 800 !important;
-    letter-spacing: -0.5px;
-    background: linear-gradient(90deg, #E7ECF5 20%, #8B7CFF 65%, #22D3EE 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+/* Titulares editoriales */
+h1, h2, h3, .login-title {
+    font-family: Georgia, "Times New Roman", serif !important;
+    color: var(--ink) !important;
 }
-h2, h3 { font-weight: 700 !important; letter-spacing: -0.3px; }
+h1 {
+    font-weight: 700 !important;
+    letter-spacing: -1px;
+    line-height: 1.08;
+    background: none !important;
+    -webkit-text-fill-color: var(--ink) !important;
+}
+h2, h3 { font-weight: 700 !important; letter-spacing: -0.35px; }
+p, label, [data-testid="stMarkdownContainer"] { color: var(--ink); }
 
 /* Botones */
 .stButton > button, [data-testid="stFormSubmitButton"] button, .stDownloadButton > button {
+    min-height: 2.65rem;
     border-radius: 12px;
-    border: 1px solid rgba(139,124,255,0.35);
-    background: linear-gradient(135deg, rgba(139,124,255,0.18), rgba(34,211,238,0.10));
-    color: #E7ECF5;
-    font-weight: 600;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 650;
     padding: 0.55rem 1.1rem;
-    transition: all .18s ease;
+    box-shadow: 0 4px 14px rgba(77, 58, 34, 0.05);
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
-.stButton > button:hover, .stDownloadButton > button:hover {
+.stButton > button:hover, [data-testid="stFormSubmitButton"] button:hover,
+.stDownloadButton > button:hover {
     transform: translateY(-1px);
-    border-color: #8B7CFF;
-    box-shadow: 0 8px 22px rgba(139,124,255,0.28);
+    border-color: var(--blue);
+    color: var(--blue);
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.13);
 }
-.stButton > button[kind="primary"], button[data-testid="stBaseButton-primary"] {
-    background: linear-gradient(135deg, #8B7CFF, #5EA8FF 60%, #22D3EE);
-    border: none;
-    color: #0B1120;
+.stButton > button[kind="primary"], button[data-testid="stBaseButton-primary"],
+[data-testid="stFormSubmitButton"] button[kind="primary"] {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #FFFFFF;
     font-weight: 700;
 }
 
-/* Entradas */
-.stTextInput input, .stTextArea textarea, .stNumberInput input, .stDateInput input, .stTimeInput input {
+/* Entradas y selectores */
+.stTextInput input, .stTextArea textarea, .stNumberInput input,
+.stDateInput input, .stTimeInput input {
+    color: var(--ink) !important;
     border-radius: 12px !important;
-    background: #121A2E !important;
-    border: 1px solid #26304C !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--line) !important;
 }
-.stTextInput input:focus, .stTextArea textarea:focus {
-    border-color: #8B7CFF !important;
-    box-shadow: 0 0 0 3px rgba(139,124,255,0.25) !important;
+.stTextInput input:focus, .stTextArea textarea:focus,
+.stNumberInput input:focus, .stDateInput input:focus, .stTimeInput input:focus {
+    border-color: var(--blue) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13) !important;
 }
 [data-baseweb="select"] > div {
+    color: var(--ink) !important;
     border-radius: 12px !important;
-    background: #121A2E !important;
-    border-color: #26304C !important;
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
 }
+[data-baseweb="popover"], [role="listbox"] { background: var(--surface) !important; }
 
 /* Pestañas */
 .stTabs [data-baseweb="tab-list"] {
     gap: 6px;
-    background: #121A2E;
+    background: var(--surface-soft);
     padding: 6px;
     border-radius: 14px;
-    border: 1px solid #1E2A45;
+    border: 1px solid var(--line);
 }
 .stTabs [data-baseweb="tab"] {
     border-radius: 10px;
     padding: 8px 18px;
-    font-weight: 600;
+    color: var(--muted);
+    font-weight: 650;
 }
 .stTabs [aria-selected="true"] {
-    background: linear-gradient(135deg, rgba(139,124,255,0.30), rgba(34,211,238,0.18)) !important;
+    color: var(--blue) !important;
+    background: var(--surface) !important;
+    box-shadow: 0 3px 10px rgba(77, 58, 34, 0.08);
 }
 
-/* Métricas como tarjetas */
+/* Tarjetas, métricas y formularios */
 [data-testid="stMetric"] {
-    background: linear-gradient(160deg, #141D33, #101828);
-    border: 1px solid #223055;
+    min-height: 132px;
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: 16px;
-    padding: 14px 18px;
-    box-shadow: 0 10px 26px rgba(3,7,18,0.45);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
 }
-[data-testid="stMetricValue"] { font-weight: 800; }
+[data-testid="stMetricLabel"] { color: var(--muted); }
+[data-testid="stMetricValue"] {
+    color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif !important;
+    font-weight: 700;
+}
+[data-testid="stForm"], [data-testid="stExpander"],
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: rgba(255, 255, 255, 0.84);
+    border-color: var(--line) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--shadow);
+}
 
 /* Tablas y dataframes */
 [data-testid="stDataFrame"], [data-testid="stDataEditor"] {
-    border: 1px solid #223055;
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: 14px;
     overflow: hidden;
+    box-shadow: var(--shadow);
 }
 
 /* Chat */
 [data-testid="stChatMessage"] {
-    background: #141D33;
-    border: 1px solid #223055;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--line);
     border-radius: 16px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    box-shadow: 0 5px 18px rgba(77, 58, 34, 0.05);
 }
-[data-testid="stChatInput"] textarea { border-radius: 14px !important; }
+[data-testid="stChatInput"] > div {
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
+    border-radius: 14px !important;
+    box-shadow: var(--shadow);
+}
 
-/* Alertas */
-[data-testid="stAlert"] { border-radius: 12px; }
-
-/* JSON viewer */
+/* Alertas y datos estructurados */
+[data-testid="stAlert"] {
+    border: 1px solid #E3D3C0;
+    border-radius: 13px;
+    box-shadow: 0 5px 18px rgba(77, 58, 34, 0.05);
+}
 [data-testid="stJson"] {
-    background: #101828;
-    border: 1px solid #223055;
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: 12px;
     padding: 8px;
 }
 
-/* Sidebar */
+/* Navegación lateral */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0D1526 0%, #0B1120 100%);
-    border-right: 1px solid #1E2A45;
+    background: linear-gradient(180deg, #FBF7F0 0%, #F6F0E7 100%);
+    border-right: 1px solid var(--line);
 }
 [data-testid="stSidebar"] [data-testid="stRadio"] > label { display: none; }
 [data-testid="stSidebar"] [data-testid="stRadio"] label {
     display: flex;
     align-items: center;
-    padding: 9px 14px;
-    margin: 2px 0;
-    border-radius: 11px;
+    padding: 10px 14px;
+    margin: 3px 0;
+    border-radius: 12px;
     border: 1px solid transparent;
+    color: var(--ink);
     cursor: pointer;
     transition: all .15s ease;
     width: 100%;
 }
 [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
-    background: rgba(139,124,255,0.10);
+    background: rgba(255,255,255,0.72);
+    border-color: var(--line);
 }
 [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
-    background: linear-gradient(135deg, rgba(139,124,255,0.28), rgba(34,211,238,0.14));
-    border-color: rgba(139,124,255,0.45);
+    background: var(--blue-soft);
+    border-color: #7AA2FF;
+    color: #1D4ED8;
     font-weight: 700;
+    box-shadow: 0 5px 16px rgba(37, 99, 235, 0.10);
 }
-[data-testid="stSidebar"] [data-testid="stRadio"] label > div:first-child { display: none; }
 
 /* Marca del sistema en el sidebar */
 .brand-box {
     display: flex; align-items: center; gap: 12px;
     padding: 14px 12px; margin-bottom: 10px;
     border-radius: 14px;
-    background: linear-gradient(135deg, rgba(139,124,255,0.16), rgba(34,211,238,0.08));
-    border: 1px solid rgba(139,124,255,0.30);
+    background: rgba(255,255,255,0.84);
+    border: 1px solid var(--line);
+    box-shadow: 0 6px 20px rgba(77, 58, 34, 0.05);
 }
 .brand-logo {
     width: 40px; height: 40px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     font-size: 20px;
-    background: linear-gradient(135deg, #8B7CFF, #22D3EE);
-    box-shadow: 0 6px 16px rgba(139,124,255,0.40);
+    background: linear-gradient(145deg, #1D4ED8, #3B82F6);
+    box-shadow: 0 7px 18px rgba(37, 99, 235, 0.25);
 }
-.brand-name { font-weight: 800; font-size: 15px; line-height: 1.15; color: #E7ECF5; }
-.brand-sub  { font-size: 11px; color: #93A3C4; }
+.brand-name { font-weight: 800; font-size: 15px; line-height: 1.15; color: var(--ink); }
+.brand-sub  { font-size: 11px; color: var(--muted); }
 
-/* Chip de usuario */
+/* Perfil del usuario */
 .user-chip {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 12px; margin: 4px 0 14px 0;
     border-radius: 12px;
-    background: #141D33; border: 1px solid #223055;
+    background: rgba(255,255,255,0.84); border: 1px solid var(--line);
 }
 .user-avatar {
     width: 34px; height: 34px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 13px; color: #0B1120;
-    background: linear-gradient(135deg, #22D3EE, #8B7CFF);
+    font-weight: 800; font-size: 13px; color: #1E3A8A;
+    background: #CFE0FF;
 }
-.user-name  { font-weight: 700; font-size: 13px; color: #E7ECF5; line-height: 1.2; }
-.user-level { font-size: 11px; color: #93A3C4; text-transform: capitalize; }
+.user-name  { font-weight: 700; font-size: 13px; color: var(--ink); line-height: 1.2; }
+.user-level { font-size: 11px; color: var(--muted); text-transform: capitalize; }
 
 /* Hero del login */
-.login-hero { text-align: center; padding: 26px 0 10px 0; }
+.login-hero { text-align: center; padding: 30px 0 12px 0; }
 .login-logo {
-    width: 74px; height: 74px; margin: 0 auto 16px auto;
+    width: 74px; height: 74px; margin: 0 auto 18px auto;
     border-radius: 22px;
     display: flex; align-items: center; justify-content: center;
     font-size: 36px;
-    background: linear-gradient(135deg, #8B7CFF, #22D3EE);
-    box-shadow: 0 16px 44px rgba(139,124,255,0.45);
+    background: linear-gradient(145deg, #1D4ED8, #3B82F6);
+    box-shadow: 0 16px 38px rgba(37, 99, 235, 0.24);
 }
-.login-title { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; color: #E7ECF5; }
-.login-sub   { font-size: 14px; color: #93A3C4; margin-top: 6px; }
+.login-title { font-size: 32px; font-weight: 700; letter-spacing: -0.7px; color: var(--ink); }
+.login-sub   { font-size: 14px; color: var(--muted); margin-top: 7px; }
 
 /* Badge de clase predicha */
 .pred-badge {
@@ -2828,22 +2889,22 @@ def view_inteligencia_artificial():
                 if traducido:
                     st.caption(f"Traducción enviada al modelo (corpus MRDA en inglés): “{texto_modelo}”")
                 colores_clase = {
-                    "Declaración": ("rgba(94,168,255,0.20)", "#5EA8FF"),
-                    "Pregunta": ("rgba(139,124,255,0.22)", "#8B7CFF"),
-                    "Pregunta declarativa": ("rgba(34,211,238,0.20)", "#22D3EE"),
+                    "Declaración": ("rgba(59,130,246,0.14)", "#2563EB"),
+                    "Pregunta": ("rgba(245,158,11,0.16)", "#D97706"),
+                    "Pregunta declarativa": ("rgba(16,185,129,0.15)", "#059669"),
                     "Retroalimentación breve": ("rgba(74,222,128,0.20)", "#4ADE80"),
                     "Continuación / seguimiento": ("rgba(251,191,36,0.20)", "#FBBF24"),
                 }
-                fondo, borde = colores_clase.get(result["label"], ("rgba(139,124,255,0.22)", "#8B7CFF"))
+                fondo, borde = colores_clase.get(result["label"], ("rgba(37,99,235,0.14)", "#2563EB"))
                 st.markdown(
                     f"""<div style="margin:10px 0 4px 0;">
                     <span class="pred-badge" style="background:{fondo}; border:1.5px solid {borde}; color:{borde};">{result['label']}</span>
-                    <span style="margin-left:12px; color:#93A3C4; font-weight:600;">confianza {result['confidence']:.1%}</span>
+                    <span style="margin-left:12px; color:#667085; font-weight:600;">confianza {result['confidence']:.1%}</span>
                     </div>""",
                     unsafe_allow_html=True,
                 )
                 probs = pd.DataFrame({"Clase": list(result["probabilities"].keys()), "Probabilidad": list(result["probabilities"].values())})
-                st.bar_chart(probs.set_index("Clase"), color="#8B7CFF")
+                st.bar_chart(probs.set_index("Clase"), color="#2563EB")
                 st.caption(f"Modelo empleado: {result['model']} · artefacto {result.get('artifact_file', 'best_model.h5')}")
             except Exception as exc:
                 st.error(f"No se pudo ejecutar la predicción: {exc}")
