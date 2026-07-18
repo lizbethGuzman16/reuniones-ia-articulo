@@ -624,6 +624,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 [data-testid="stAppViewContainer"]:has(.home-page-marker) [data-testid="stAlert"] {
     display: none !important;
 }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) [data-testid="stElementContainer"]:has([data-testid="stAlert"]) {
+    display: none !important;
+}
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .block-container {
     max-width: 100% !important;
     padding: 34px 38px 28px !important;
@@ -770,6 +773,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     color: #FFFFFF;
     border: 0;
     background: linear-gradient(130deg, #176BF7 0%, #3667F5 48%, #8B3FF3 100%);
+}
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button p {
+    color: #FFFFFF !important;
 }
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button::before {
     border: 2px solid rgba(255,255,255,.62);
