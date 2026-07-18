@@ -1,5 +1,6 @@
 """Genera capturas reales del frontend Streamlit ejecutado en modo demo."""
 
+import re
 from pathlib import Path
 
 from playwright.sync_api import Page, sync_playwright
@@ -21,7 +22,7 @@ PANTALLAS = [
 
 def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
     etiqueta = page.locator('label[data-testid="stRadioOption"]').filter(
-        has_text=opcion
+        has_text=re.compile(rf"^{re.escape(opcion)}$")
     )
     etiqueta.wait_for(state="visible", timeout=30_000)
     etiqueta.click()
