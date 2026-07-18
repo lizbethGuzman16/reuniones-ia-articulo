@@ -1,0 +1,68 @@
+name: Capturas reales del sistema
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - "frontend/**"
+      - "scripts/capturar_interfaz.py"
+      - ".github/workflows/capturas-reales.yml"
+      - "requirements-frontend.txt"
+
+permissions:
+  contents: read
+
+jobs:
+  capturar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Descargar el proyecto
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-frontend.txt playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Iniciar la aplicación real en modo demostración
+        env:
+          DEMO_MODE: "true"
+          FASTAPI_URL: "http://127.0.0.1:8000"
+        run: |
+          streamlit run frontend/app.py \
+            --server.headless true \
+            --server.address 127.0.0.1 \
+            --server.port 8501 \
+            > streamlit.log 2>&1 &
+          for intento in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8501/_stcore/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat streamlit.log
+          exit 1
+
+      - name: Tomar capturas reales
+        run: python scripts/capturar_interfaz.py
+
+      - name: Guardar capturas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-reales-reuniones-ia
+          path: |
+            capturas-reales/*.png
+            streamlit.log
+          if-no-files-found: warn
+          retention-days: 30
