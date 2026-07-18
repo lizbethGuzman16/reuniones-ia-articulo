@@ -636,7 +636,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    min-height: 112px;
+    min-height: 128px;
     padding: 4px 4px 0 8px;
 }
 .home-header h1 {
@@ -651,6 +651,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     margin: 8px 0 0;
     color: #687795;
     font-size: 14.5px;
+    transform: translateY(-16px);
 }
 .home-profile {
     display: flex;
@@ -795,7 +796,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     display: grid;
     grid-template-columns: minmax(0, 1.7fr) minmax(310px, 1fr);
     gap: 18px;
-    margin-top: 18px;
+    margin-top: 9px;
 }
 .home-panel {
     min-width: 0;
