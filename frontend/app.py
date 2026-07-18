@@ -881,15 +881,42 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-composer-marker),
     box-shadow: none !important;
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInput"] > div {
+    position: relative;
     min-height: 76px;
     background: #FFFFFF !important;
     border: 1px solid #D2DAE8 !important;
     border-radius: 16px !important;
     box-shadow: 0 10px 28px rgba(30, 64, 175, .11) !important;
 }
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInput"] > div::before,
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInput"] > div::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    z-index: 5;
+    width: 27px;
+    height: 27px;
+    pointer-events: none;
+    transform: translateY(-50%);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInput"] > div::before {
+    left: 22px;
+    background-image: url("__ICON_ADJUNTAR__");
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInput"] > div::after {
+    right: 72px;
+    width: 25px;
+    height: 25px;
+    background-image: url("__ICON_MICROFONO__");
+}
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInput"] textarea {
     color: #253453 !important;
     font-size: 15px;
+    padding-left: 58px !important;
+    padding-right: 114px !important;
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputSubmitButton"] {
     width: 54px;
@@ -903,7 +930,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-composer-marker),
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputFileUploadButton"] button {
     color: transparent !important;
-    background: transparent url("__ICON_ADJUNTAR__") center / 27px 27px no-repeat !important;
+    background: transparent !important;
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputFileUploadButton"] button svg,
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputMicButton"] svg,
@@ -912,7 +939,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-composer-marker),
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputMicButton"] {
     color: transparent !important;
-    background: transparent url("__ICON_MICROFONO__") center / 25px 25px no-repeat !important;
+    background: transparent !important;
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputSubmitButton"] {
     background-image: url("__ICON_ENVIAR__"), linear-gradient(145deg, #20A5F5 0%, #3E6AF8 52%, #9A3EF3 100%) !important;
@@ -1968,11 +1995,10 @@ def view_chat():
         submission = st.chat_input(
             "Escribe tu solicitud...",
             key="vincora_chat_prompt",
-            accept_file="multiple",
+            accept_file=True,
             file_type=["pdf", "doc", "docx", "txt", "png", "jpg", "jpeg"],
             accept_audio=True,
             audio_sample_rate=16000,
-            submit_mode="disable",
             height="content",
         )
     st.markdown(
