@@ -425,6 +425,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 [data-testid="stAppViewContainer"]:has(.auth-page-marker) [data-testid="stHeader"] {
     display: none;
 }
+[data-testid="stAppViewContainer"]:has(.auth-page-marker) [data-testid="stAlert"] {
+    display: none !important;
+}
 [data-testid="stAppViewContainer"]:has(.auth-page-marker) .block-container {
     max-width: 100% !important;
     padding: 0 !important;
@@ -484,7 +487,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     margin: 0 !important;
     color: #071644 !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
-    font-size: clamp(34px, 3vw, 44px) !important;
+    font-size: clamp(32px, 2.5vw, 42px) !important;
     font-weight: 800 !important;
     letter-spacing: -1.2px !important;
     -webkit-text-fill-color: #071644 !important;
@@ -521,6 +524,20 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     background-position: 16px center !important;
     background-size: 20px 20px !important;
 }
+[data-testid="stColumn"]:has(.auth-panel-marker) .stTextInput div[data-baseweb="input"],
+[data-testid="column"]:has(.auth-panel-marker) .stTextInput div[data-baseweb="input"] {
+    min-height: 56px;
+    overflow: hidden;
+    border: 1px solid #CBD3E2 !important;
+    border-radius: 11px !important;
+    background: #FFFFFF !important;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) .stTextInput div[data-baseweb="input"] input,
+[data-testid="column"]:has(.auth-panel-marker) .stTextInput div[data-baseweb="input"] input {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
 [data-testid="stColumn"]:has(.auth-panel-marker) input[aria-label="Correo electrónico"],
 [data-testid="column"]:has(.auth-panel-marker) input[aria-label="Correo electrónico"] {
     background-image: url("__ICON_CORREO__") !important;
@@ -528,6 +545,22 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 [data-testid="stColumn"]:has(.auth-panel-marker) input[aria-label="Contraseña"],
 [data-testid="column"]:has(.auth-panel-marker) input[aria-label="Contraseña"] {
     background-image: url("__ICON_CANDADO__") !important;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) .stTextInput button,
+[data-testid="column"]:has(.auth-panel-marker) .stTextInput button {
+    width: 48px;
+    min-width: 48px;
+    height: 54px;
+    padding: 0 !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    background: #FFFFFF url("__ICON_VER__") center / 21px 21px no-repeat !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+[data-testid="stColumn"]:has(.auth-panel-marker) .stTextInput button span,
+[data-testid="column"]:has(.auth-panel-marker) .stTextInput button span {
+    display: none !important;
 }
 .auth-options {
     display: flex;
@@ -635,7 +668,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 """
 for _nombre_icono in (
     "chat", "administracion", "reuniones", "tareas", "resumen",
-    "usuarios", "ia", "metricas", "salir", "correo", "candado",
+    "usuarios", "ia", "metricas", "salir", "correo", "candado", "ver",
 ):
     ESTILOS_GLOBALES = ESTILOS_GLOBALES.replace(
         f"__ICON_{_nombre_icono.upper()}__", ICONOS_AZULES[_nombre_icono]
