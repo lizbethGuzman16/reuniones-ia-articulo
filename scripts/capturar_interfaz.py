@@ -9,13 +9,13 @@ BASE_URL = "http://127.0.0.1:8501"
 OUTPUT_DIR = Path("capturas-reales")
 
 PANTALLAS = [
-    ("💬 Chat", "Crear reunión por chat", "01-chat.png"),
-    ("🧑‍💼 Usuarios", "Gestión de Usuarios", "02-usuarios.png"),
-    ("📅 Reuniones", "Reuniones", "03-reuniones.png"),
-    ("✅ Tareas", "Gestión de Tareas", "04-tareas.png"),
-    ("📝 Resumen de reuniones", "Resumen de reuniones", "05-resumenes.png"),
-    ("👥 Participantes", "Participantes de Reuniones", "06-participantes.png"),
-    ("📊 Métricas", "Métricas y Estadísticas", "07-metricas.png"),
+    ("💬 Chat", "💬 Crear reunión por chat", "01-chat.png"),
+    ("🧑‍💼 Usuarios", "👥 Gestión de Usuarios", "02-usuarios.png"),
+    ("📅 Reuniones", "📅 Reuniones", "03-reuniones.png"),
+    ("✅ Tareas", "📋 Gestión de Tareas", "04-tareas.png"),
+    ("📝 Resumen de reuniones", "📝 Resumen de reuniones", "05-resumenes.png"),
+    ("👥 Participantes", "👥 Participantes de Reuniones", "06-participantes.png"),
+    ("📊 Métricas", "📊 Métricas y Estadísticas", "07-metricas.png"),
 ]
 
 
@@ -47,7 +47,7 @@ def main() -> None:
         page = context.new_page()
         page.goto(BASE_URL, wait_until="domcontentloaded", timeout=90_000)
         page.get_by_role(
-            "heading", name="Crear reunión por chat", exact=True
+            "heading", name="💬 Crear reunión por chat", exact=True
         ).wait_for(state="visible", timeout=90_000)
 
         for opcion, titulo, archivo in PANTALLAS:
