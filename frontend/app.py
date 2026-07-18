@@ -629,14 +629,14 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .block-container {
     max-width: 100% !important;
-    padding: 34px 38px 28px !important;
+    padding: 6px 38px 28px !important;
 }
 [data-testid="stElementContainer"]:has(.home-page-marker) { display: none !important; }
 .home-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    min-height: 96px;
+    min-height: 112px;
     padding: 4px 4px 0 8px;
 }
 .home-header h1 {
@@ -656,7 +656,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     display: flex;
     align-items: center;
     gap: 27px;
-    padding-top: 2px;
+    padding-top: 16px;
 }
 .home-notification {
     position: relative;
