@@ -10,13 +10,14 @@ BASE_URL = "http://127.0.0.1:8501"
 OUTPUT_DIR = Path("capturas-reales")
 
 PANTALLAS = [
-    ("Chat", "Crear reunión por chat", "01-chat.png"),
-    ("Usuarios", "Gestión de Usuarios", "02-usuarios.png"),
-    ("Reuniones", "Reuniones", "03-reuniones.png"),
-    ("Tareas", "Gestión de Tareas", "04-tareas.png"),
-    ("Resumen de reuniones", "Resumen de reuniones", "05-resumenes.png"),
-    ("Participantes", "Participantes de Reuniones", "06-participantes.png"),
-    ("Métricas", "Métricas y Estadísticas", "07-metricas.png"),
+    ("Inicio", "Buenos días", "01-inicio.png"),
+    ("Chat", "Crear reunión por chat", "02-chat.png"),
+    ("Usuarios", "Gestión de Usuarios", "03-usuarios.png"),
+    ("Reuniones", "Reuniones", "04-reuniones.png"),
+    ("Tareas", "Gestión de Tareas", "05-tareas.png"),
+    ("Resumen de reuniones", "Resumen de reuniones", "06-resumenes.png"),
+    ("Participantes", "Participantes de Reuniones", "07-participantes.png"),
+    ("Métricas", "Métricas y Estadísticas", "08-metricas.png"),
 ]
 
 
@@ -27,7 +28,11 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
     etiqueta.wait_for(state="visible", timeout=30_000)
     etiqueta.click()
 
-    heading = page.get_by_role("heading", name=titulo, exact=True)
+    heading = (
+        page.get_by_role("heading", name=re.compile(r"^Buenos días"))
+        if opcion == "Inicio"
+        else page.get_by_role("heading", name=titulo, exact=True)
+    )
     heading.wait_for(state="visible", timeout=45_000)
     page.wait_for_timeout(1_200)
     page.evaluate("window.scrollTo(0, 0)")
@@ -41,7 +46,19 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
         animations="disabled",
     )
 
-    if opcion == "Chat":
+    if opcion == "Inicio":
+        expect(page.get_by_text("Próximas reuniones", exact=True)).to_be_visible()
+        expect(page.get_by_text("Resumen de esta semana", exact=True)).to_be_visible()
+        expect(page.get_by_text("Informes recientes", exact=True)).to_be_visible()
+        expect(page.get_by_text("Mis tareas", exact=True)).to_be_visible()
+        page.get_by_role("button", name="Programar reunión", exact=True).click()
+        page.get_by_role("heading", name="Crear reunión por chat", exact=True).wait_for(
+            state="visible", timeout=30_000
+        )
+        expect(page.locator('[data-testid="stChatInput"] textarea')).to_have_value(
+            "Programa una reunión.", timeout=15_000
+        )
+    elif opcion == "Chat":
         page.get_by_role("button", name="Programar reunión para mañana", exact=True).click()
         entrada = page.locator('[data-testid="stChatInput"] textarea')
         expect(entrada).to_have_value(re.compile(r"Programa una reunión mañana"), timeout=15_000)
@@ -76,7 +93,7 @@ def main() -> None:
         capturar_login(page)
         page.goto(BASE_URL, wait_until="domcontentloaded", timeout=90_000)
         page.get_by_role(
-            "heading", name="Crear reunión por chat", exact=True
+            "heading", name=re.compile(r"^Buenos días")
         ).wait_for(state="visible", timeout=90_000)
 
         for opcion, titulo, archivo in PANTALLAS:

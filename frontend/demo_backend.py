@@ -7,18 +7,13 @@ forma determinista para poder ejecutar la interfaz sin conexión a Supabase.
 from __future__ import annotations
 
 import json
-import re
 import uuid
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 DEMO_ADMIN_ID = "00000000-0000-4000-8000-000000000001"
-DEMO_ADMIN_EMAIL = "juanaureliodelacruzgamarra@gmail.com"
-
-
 def _iso(dt: datetime) -> str:
     return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
@@ -27,25 +22,26 @@ def _fixed_uuid(index: int) -> str:
     return f"00000000-0000-4000-8000-{index:012d}"
 
 
-def _load_users_from_original_sql() -> list[dict[str, Any]]:
-    root = Path(__file__).resolve().parents[1]
-    sql_path = root / "docs" / "querys para supabase" / "query3.txt"
-    text = sql_path.read_text(encoding="utf-8", errors="ignore")
-    pattern = re.compile(
-        r"\('([^']+)',\s*'([^']+)',\s*'([^']+)',\s*'([^']+)',\s*'([^']+)'\)"
-    )
+def _build_demo_users() -> list[dict[str, Any]]:
+    """Usuarios ficticios seguros; producción siempre consulta Supabase."""
     now = datetime(2026, 7, 1, 14, 0, tzinfo=timezone.utc)
+    demo_people = [
+        ("Carlos Mendoza", "carlos@example.com"),
+        ("Laura Méndez", "laura@example.com"),
+        ("Diego Ramírez", "diego@example.com"),
+        ("María Gómez", "maria@example.com"),
+        ("Ana Torres", "ana@example.com"),
+    ]
     users: list[dict[str, Any]] = []
-    for i, match in enumerate(pattern.finditer(text), start=10):
-        nombre, correo, password_hash, nivel, estado = match.groups()
+    for i, (nombre, correo) in enumerate(demo_people, start=10):
         users.append(
             {
                 "id": _fixed_uuid(i),
                 "nombre": nombre,
                 "correo": correo,
-                "password_hash": password_hash,
-                "nivel_suscripcion": nivel,
-                "estado_suscripcion": estado,
+                "password_hash": "demo-only-not-for-authentication",
+                "nivel_suscripcion": "enterprise" if i == 10 else "basico",
+                "estado_suscripcion": "activo",
                 "fecha_creacion": _iso(now + timedelta(days=i - 10)),
             }
         )
@@ -53,6 +49,9 @@ def _load_users_from_original_sql() -> list[dict[str, Any]]:
 
 
 def _load_task_descriptions() -> list[str]:
+    import re
+    from pathlib import Path
+
     root = Path(__file__).resolve().parents[1]
     sql_path = root / "docs" / "querys para supabase" / "insert_sample_tasks.sql"
     text = sql_path.read_text(encoding="utf-8", errors="ignore")
@@ -61,8 +60,10 @@ def _load_task_descriptions() -> list[str]:
 
 
 def build_demo_data() -> dict[str, list[dict[str, Any]]]:
-    users = _load_users_from_original_sql()
-    now = datetime(2026, 7, 12, 15, 0, tzinfo=timezone.utc)
+    users = _build_demo_users()
+    # Mantener la demostración útil en cualquier fecha: el Inicio siempre
+    # presenta reuniones y vencimientos relativos al día de ejecución.
+    now = datetime.now(timezone.utc).replace(hour=15, minute=0, second=0, microsecond=0)
 
     # Temas derivados de ejemplos y textos ya presentes en el proyecto original.
     meetings = [
@@ -70,7 +71,7 @@ def build_demo_data() -> dict[str, list[dict[str, Any]]]:
             "id": _fixed_uuid(101),
             "creador_id": users[0]["id"],
             "tema": "Ventas Q4",
-            "fecha_inicio": _iso(now + timedelta(days=1, hours=1)),
+            "fecha_inicio": _iso(now + timedelta(hours=2)),
             "duracion_minutos": 60,
             "proveedor": "zoom",
             "id_externo": "demo-zoom-001",
@@ -100,7 +101,7 @@ def build_demo_data() -> dict[str, list[dict[str, Any]]]:
             "id": _fixed_uuid(103),
             "creador_id": users[2]["id"],
             "tema": "Seguimiento con stakeholders",
-            "fecha_inicio": _iso(now + timedelta(days=4, hours=2)),
+            "fecha_inicio": _iso(now + timedelta(days=1, hours=2)),
             "duracion_minutos": 50,
             "proveedor": "zoom",
             "id_externo": "demo-zoom-003",
@@ -346,7 +347,13 @@ class DemoRequestsAdapter:
         return DemoResponse(matches, 200)
 
 
+_DEMO_ADAPTER: DemoRequestsAdapter | None = None
+
+
 def install_demo_backend(requests_module: Any) -> DemoRequestsAdapter:
-    # Devuelve un adaptador local sin modificar el módulo global requests.
-    # Esto evita interferir con Streamlit durante cada rerun.
-    return DemoRequestsAdapter(requests_module)
+    # Conservar el adaptador durante los reruns de Streamlit permite que crear
+    # reuniones y completar tareas sea funcional también en la demostración.
+    global _DEMO_ADAPTER
+    if _DEMO_ADAPTER is None:
+        _DEMO_ADAPTER = DemoRequestsAdapter(requests_module)
+    return _DEMO_ADAPTER

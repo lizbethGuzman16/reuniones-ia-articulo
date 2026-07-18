@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 from html import escape
 from pathlib import Path
+from urllib.parse import quote
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
@@ -39,6 +40,7 @@ LOGIN_REFERENCE_PATH = BRAND_DIR / "vincora-login-reference.jpg"
 GOOGLE_ICON_PATH = BRAND_DIR / "google-g.svg"
 
 ICON_FILES = {
+    "inicio": "home.svg",
     "chat": "message-circle.svg",
     "chat_sonrisa": "chat-smile.svg",
     "usuarios": "users-group.svg",
@@ -79,6 +81,15 @@ ICON_FILES = {
     "enviar": "arrow-up.svg",
     "calendario": "calendar.svg",
     "destellos": "sparkles.svg",
+    "aplicaciones": "layout-grid.svg",
+    "compartir": "screen-share.svg",
+    "notificacion": "bell.svg",
+    "mas": "dots-vertical.svg",
+    "siguiente": "chevron-right.svg",
+    "acuerdos": "heart-handshake.svg",
+    "reporte_teal": "file-description.svg",
+    "reporte_morado": "file-description.svg",
+    "tarea_naranja": "clipboard-check.svg",
 }
 
 
@@ -358,37 +369,40 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     display: none !important;
 }
 [data-testid="stSidebar"] [role="radiogroup"] > label:nth-child(1)::before {
+    background-image: url("__ICON_INICIO__");
+}
+[data-testid="stSidebar"] [role="radiogroup"] > label:nth-child(2)::before {
     background-image: url("__ICON_CHAT__");
 }
-[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(2)::before {
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(10)) > label:nth-child(3)::before {
     background-image: url("__ICON_ADMINISTRACION__");
 }
-[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(3)::before,
-[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(2)::before {
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(10)) > label:nth-child(4)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(10))) > label:nth-child(3)::before {
     background-image: url("__ICON_REUNIONES__");
 }
-[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(4)::before,
-[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(3)::before {
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(10)) > label:nth-child(5)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(10))) > label:nth-child(4)::before {
     background-image: url("__ICON_TAREAS__");
 }
-[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(5)::before,
-[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(4)::before {
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(10)) > label:nth-child(6)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(10))) > label:nth-child(5)::before {
     background-image: url("__ICON_RESUMEN__");
 }
-[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(6)::before,
-[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(5)::before {
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(10)) > label:nth-child(7)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(10))) > label:nth-child(6)::before {
     background-image: url("__ICON_PARTICIPANTES__");
 }
-[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(7)::before,
-[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(6)::before {
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(10)) > label:nth-child(8)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(10))) > label:nth-child(7)::before {
     background-image: url("__ICON_IA__");
 }
-[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(8)::before,
-[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(7)::before {
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(10)) > label:nth-child(9)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(10))) > label:nth-child(8)::before {
     background-image: url("__ICON_METRICAS__");
 }
-[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(9)::before,
-[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(8)::before {
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(10)) > label:nth-child(10)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(10))) > label:nth-child(9)::before {
     background-image: url("__ICON_SALIR__");
 }
 
@@ -589,13 +603,368 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     height: 22px;
     flex-basis: 22px;
 }
-[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(9),
-[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(8) {
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(10)) > label:nth-child(10),
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(10))) > label:nth-child(9) {
     margin-top: 70px;
     border-top: 1px solid #DFE5EF;
     border-radius: 0;
     padding-top: 25px;
     min-height: 72px;
+}
+
+/* Inicio VINCORA: réplica funcional del panel aprobado */
+.home-page-marker { height: 0; overflow: hidden; }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) {
+    color: #0B183A;
+    background:
+        radial-gradient(720px 460px at 55% 36%, rgba(224, 237, 255, .48), transparent 72%),
+        #FBFDFF;
+}
+[data-testid="stAppViewContainer"]:has(.home-page-marker) [data-testid="stHeader"],
+[data-testid="stAppViewContainer"]:has(.home-page-marker) [data-testid="stAlert"] {
+    display: none !important;
+}
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .block-container {
+    max-width: 100% !important;
+    padding: 34px 38px 28px !important;
+}
+[data-testid="stElementContainer"]:has(.home-page-marker) { display: none !important; }
+.home-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    min-height: 96px;
+    padding: 4px 4px 0 8px;
+}
+.home-header h1 {
+    margin: 0 !important;
+    color: #0A183D !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-size: 39px !important;
+    font-weight: 800 !important;
+    letter-spacing: -1.4px !important;
+}
+.home-header p {
+    margin: 8px 0 0;
+    color: #687795;
+    font-size: 14.5px;
+}
+.home-profile {
+    display: flex;
+    align-items: center;
+    gap: 27px;
+    padding-top: 2px;
+}
+.home-notification {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    background: url("__ICON_NOTIFICACION__") center / 25px 25px no-repeat;
+}
+.home-notification::after {
+    content: "";
+    position: absolute;
+    right: 2px;
+    top: 0;
+    width: 9px;
+    height: 9px;
+    border: 2px solid #FBFDFF;
+    border-radius: 50%;
+    background: #1261F5;
+}
+.home-avatar, .home-mini-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%;
+    color: #FFFFFF;
+    font-weight: 750;
+    background: linear-gradient(145deg, #5F93EE, #7559E9);
+}
+.home-avatar {
+    width: 50px;
+    height: 50px;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 5px 16px rgba(29, 58, 120, .14);
+    font-size: 15px;
+}
+.home-mini-avatar {
+    width: 25px;
+    height: 25px;
+    border: 2px solid #FFFFFF;
+    margin-left: -7px;
+    font-size: 8px;
+    box-shadow: 0 2px 5px rgba(10,24,61,.13);
+}
+.home-mini-avatar:first-child { margin-left: 0; }
+.home-avatar-more {
+    color: #5F6F8D;
+    background: #EDF1F8;
+}
+
+/* Cuatro acciones superiores */
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_join button,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_schedule button,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_share button {
+    position: relative;
+    width: 100%;
+    min-height: 131px;
+    justify-content: flex-start;
+    padding: 20px 48px 20px 95px;
+    overflow: hidden;
+    color: #0B183A;
+    background: rgba(255,255,255,.95);
+    border: 1px solid #DEE5F0;
+    border-radius: 14px;
+    box-shadow: 0 6px 17px rgba(23, 52, 104, .08);
+    text-align: left;
+}
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button p,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_join button p,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_schedule button p,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_share button p {
+    color: inherit;
+    font-size: 16px;
+    font-weight: 750;
+}
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button::before,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_join button::before,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_schedule button::before,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_share button::before {
+    content: "";
+    position: absolute;
+    left: 22px;
+    top: 23px;
+    width: 53px;
+    height: 53px;
+    border: 1px solid #DCE5F4;
+    border-radius: 13px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 28px 28px;
+}
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button::after,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_join button::after,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_schedule button::after,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_share button::after {
+    position: absolute;
+    left: 95px;
+    top: 63px;
+    max-width: 125px;
+    color: #71809B;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.35;
+    white-space: normal;
+}
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button {
+    color: #FFFFFF;
+    border: 0;
+    background: linear-gradient(130deg, #176BF7 0%, #3667F5 48%, #8B3FF3 100%);
+}
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button::before {
+    border: 2px solid rgba(255,255,255,.62);
+    background-image: url("__ICON_VIRTUAL__");
+    filter: brightness(0) invert(1);
+}
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_join button::before { background-image: url("__ICON_APLICACIONES__"); }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_schedule button::before { background-image: url("__ICON_CALENDARIO__"); }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_share button::before { background-image: url("__ICON_COMPARTIR__"); }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button::after { content: "Inicia una reunión\\A al instante"; color: rgba(255,255,255,.94); white-space: pre; }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_join button::after { content: "Únete a una reunión\\A con un código"; white-space: pre; }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_schedule button::after { content: "Planifica y organiza\\A con anticipación"; white-space: pre; }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_share button::after { content: "Presenta tu pantalla\\A en la reunión"; white-space: pre; }
+
+/* Paneles de datos reales */
+.home-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(310px, 1fr);
+    gap: 18px;
+    margin-top: 18px;
+}
+.home-panel {
+    min-width: 0;
+    background: rgba(255,255,255,.96);
+    border: 1px solid #DEE5F0;
+    border-radius: 14px;
+    box-shadow: 0 6px 17px rgba(23, 52, 104, .08);
+}
+.home-panel-padding { padding: 24px 25px 17px; }
+.home-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+.home-panel-title {
+    color: #101D40;
+    font-size: 17px;
+    font-weight: 800;
+}
+.home-link {
+    color: #075DF4 !important;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none !important;
+}
+.home-link::after {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 6px;
+    vertical-align: -3px;
+    background: url("__ICON_SIGUIENTE__") center / contain no-repeat;
+}
+.home-no-arrow::after { display: none; }
+.home-meeting-row {
+    position: relative;
+    min-height: 113px;
+    margin-left: 10px;
+    padding: 5px 8px 14px 88px;
+    border-bottom: 1px solid #E2E8F1;
+}
+.home-meeting-row::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: -19px;
+    bottom: -1px;
+    width: 1px;
+    background: #DCE4F0;
+}
+.home-meeting-dot {
+    position: absolute;
+    left: -2px;
+    top: 27px;
+    width: 13px;
+    height: 13px;
+    border: 3px solid #FFFFFF;
+    border-radius: 50%;
+    background: #2C6CF6;
+    box-shadow: 0 0 0 1px #7EA7FF;
+}
+.home-meeting-row:nth-of-type(3) .home-meeting-dot { background: #8A9AB5; box-shadow: 0 0 0 1px #B8C3D5; }
+.home-meeting-calendar {
+    position: absolute;
+    left: 32px;
+    top: 8px;
+    width: 45px;
+    height: 45px;
+    border-radius: 13px;
+    background: #EEF4FF url("__ICON_CALENDARIO__") center / 23px 23px no-repeat;
+}
+.home-meeting-title { color: #101D40; font-size: 14px; font-weight: 750; }
+.home-meeting-time { margin-top: 4px; color: #647491; font-size: 13px; }
+.home-meeting-meta { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
+.home-avatar-stack { display: flex; align-items: center; padding-left: 6px; }
+.home-participant-count { color: #6A7B99; font-size: 12.5px; }
+.home-meeting-actions { position: absolute; right: 0; top: 46px; display: flex; align-items: center; gap: 12px; }
+.home-start-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 101px;
+    min-height: 42px;
+    color: #FFFFFF !important;
+    border-radius: 7px;
+    background: #075DF4;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none !important;
+}
+.home-more-button {
+    width: 38px;
+    height: 40px;
+    border: 1px solid #D4DDEA;
+    border-radius: 8px;
+    background: #FFFFFF url("__ICON_MAS__") center / 20px 20px no-repeat;
+}
+.home-card-footer { padding: 15px 1px 0; }
+.home-summary-list { margin-top: 2px; }
+.home-summary-row {
+    display: grid;
+    grid-template-columns: 47px 44px 1fr;
+    align-items: center;
+    min-height: 60px;
+    border-bottom: 1px solid #E2E8F1;
+}
+.home-summary-icon, .home-report-icon {
+    width: 43px;
+    height: 43px;
+    border-radius: 13px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 22px 22px;
+}
+.home-summary-icon.meetings { background-color: #EDF3FF; background-image: url("__ICON_CALENDARIO__"); }
+.home-summary-icon.reports { background-color: #E7FBFA; background-image: url("__ICON_REPORTE_TEAL__"); }
+.home-summary-icon.agreements { background-color: #F1E9FF; background-image: url("__ICON_ACUERDOS__"); }
+.home-summary-icon.tasks { background-color: #FFF1E6; background-image: url("__ICON_TAREA_NARANJA__"); }
+.home-summary-value { color: #0C193D; font-size: 24px; font-weight: 800; }
+.home-summary-label { color: #687795; font-size: 12.5px; }
+
+/* Fila inferior */
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_reports,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_tasks,
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_ai {
+    min-height: 278px;
+    margin-top: 18px;
+    padding: 22px 21px 16px;
+    background: rgba(255,255,255,.96);
+    border: 1px solid #DEE5F0;
+    border-radius: 14px;
+    box-shadow: 0 6px 17px rgba(23, 52, 104, .08);
+}
+.home-report-row {
+    position: relative;
+    min-height: 79px;
+    padding: 9px 40px 9px 52px;
+    border-bottom: 1px solid #E2E8F1;
+}
+.home-report-icon { position: absolute; left: 0; top: 9px; }
+.home-report-icon.approved { background-color: #E7FBFA; background-image: url("__ICON_REPORTE_TEAL__"); }
+.home-report-icon.review { background-color: #F2E9FF; background-image: url("__ICON_REPORTE_MORADO__"); }
+.home-report-title { overflow: hidden; color: #122043; font-size: 12.5px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.home-report-time { margin-top: 4px; color: #6A7A97; font-size: 11px; }
+.home-status { display: inline-block; margin-top: 7px; padding: 3px 9px; border-radius: 7px; font-size: 10px; }
+.home-status.approved { color: #137437; background: #E1F7E8; }
+.home-status.review { color: #A46300; background: #FFF1D8; }
+.home-report-more { position: absolute; right: 0; top: 18px; width: 34px; height: 34px; border: 1px solid #D4DDEA; border-radius: 8px; background: #FFF url("__ICON_MAS__") center / 18px no-repeat; }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_tasks [data-testid="stCheckbox"] { padding-top: 5px; }
+.home-task-text { color: #152342; font-size: 12px; font-weight: 600; line-height: 1.25; }
+.home-task-meta { margin-top: 3px; color: #73809A; font-size: 10.5px; font-weight: 400; }
+.home-task-progress { color: #5F6F8D; font-size: 11px; text-align: right; }
+.home-progress-track { width: 72px; height: 4px; margin-top: 8px; margin-left: auto; overflow: hidden; border-radius: 999px; background: #E5EAF2; }
+.home-progress-fill { height: 100%; border-radius: 999px; background: #1765F5; }
+.home-task-row { min-height: 60px; padding: 6px 0; border-bottom: 1px solid #E2E8F1; }
+[data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_tasks [class*="st-key-home_task_row_"] {
+    min-height: 61px;
+    padding: 5px 0 4px;
+    border-bottom: 1px solid #E2E8F1;
+}
+.home-ai-brand { display: flex; align-items: center; gap: 10px; color: #111E40; font-size: 16px; font-weight: 800; }
+.home-ai-brand img { width: 31px; height: 31px; }
+.home-ai-ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    margin: 24px auto 13px;
+    border-radius: 50%;
+    background: conic-gradient(#5E6CF4 0 78%, #D9CEF9 78% 100%);
+    box-shadow: inset 0 0 0 10px #F7F9FE;
+}
+.home-ai-ring span { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; color: #101E42; background: #FFFFFF; font-size: 25px; font-weight: 800; }
+.home-ai-copy { color: #667491; font-size: 12.5px; line-height: 1.35; text-align: center; }
+.home-ai-link { margin-top: 28px; }
+@media (max-width: 1100px) {
+    .home-main-grid { grid-template-columns: 1fr; }
+    [data-testid="stAppViewContainer"]:has(.home-page-marker) .block-container { padding: 24px 24px 32px !important; }
+    .home-header h1 { font-size: 32px !important; }
 }
 
 /* Página Chat */
@@ -1219,6 +1588,10 @@ _colores_iconos_css = {
     "adjuntar": "#667085",
     "microfono": "#667085",
     "enviar": "#FFFFFF",
+    "acuerdos": "#7C3AED",
+    "reporte_teal": "#10BFC1",
+    "reporte_morado": "#7C3AED",
+    "tarea_naranja": "#FF7A1A",
 }
 for _nombre_icono in ICON_FILES:
     _icono_css = icono_data_uri(
@@ -1879,6 +2252,413 @@ def limpiar_chat() -> None:
     st.session_state["tipo_reunion"] = "Virtual"
     st.session_state["vincora_chat_prompt"] = ""
     st.session_state["chat_reset_pending"] = False
+
+
+def navegar_a(pagina: str) -> None:
+    """Cambia la opción real del menú lateral desde una tarjeta del inicio."""
+    st.session_state["main_navigation"] = pagina
+
+
+def preparar_chat_inicio(mensaje: str) -> None:
+    """Abre Chat con una solicitud editable acorde a la acción elegida."""
+    st.session_state["vincora_chat_prompt"] = mensaje
+    navegar_a("Chat")
+
+
+def _fecha_local_inicio(valor):
+    if not valor:
+        return None
+    try:
+        fecha = pd.to_datetime(valor, utc=True, errors="coerce")
+        if pd.isna(fecha):
+            return None
+        return fecha.to_pydatetime().astimezone()
+    except Exception:
+        return None
+
+
+def _hora_inicio(fecha) -> str:
+    hora = fecha.hour % 12 or 12
+    periodo = "a. m." if fecha.hour < 12 else "p. m."
+    return f"{hora}:{fecha.minute:02d} {periodo}"
+
+
+def _momento_inicio(fecha) -> str:
+    hoy = datetime.now().astimezone().date()
+    if fecha.date() == hoy:
+        prefijo = "Hoy"
+    elif fecha.date() == hoy + timedelta(days=1):
+        prefijo = "Mañana"
+    else:
+        prefijo = fecha.strftime("%d/%m/%Y")
+    return f"{prefijo} · {_hora_inicio(fecha)}"
+
+
+def _fecha_corta_inicio(valor) -> str:
+    fecha = _fecha_local_inicio(valor)
+    if not fecha:
+        return "Sin fecha"
+    meses = ["ene.", "feb.", "mar.", "abr.", "may.", "jun.", "jul.", "ago.", "sep.", "oct.", "nov.", "dic."]
+    return f"{fecha.day} {meses[fecha.month - 1]} {fecha.year}"
+
+
+def _iniciales_inicio(texto: str) -> str:
+    base = str(texto or "Usuario").split("@", 1)[0].replace(".", " ").replace("_", " ")
+    partes = [p for p in base.split() if p]
+    return "".join(p[0] for p in partes[:2]).upper() or "U"
+
+
+def _url_inicio(valor) -> str | None:
+    url = str(valor or "").strip()
+    return url if url.startswith(("https://", "http://")) else None
+
+
+def _avatares_inicio(participantes, usuarios_correo) -> str:
+    avatares = []
+    for participante in participantes[:5]:
+        correo = str(participante.get("correo") or "")
+        nombre = usuarios_correo.get(correo.lower(), {}).get("nombre") or correo
+        avatares.append(
+            f'<span class="home-mini-avatar" title="{escape(str(nombre), quote=True)}">{escape(_iniciales_inicio(nombre))}</span>'
+        )
+    restantes = max(0, len(participantes) - 5)
+    if restantes:
+        avatares.append(f'<span class="home-mini-avatar home-avatar-more">+{restantes}</span>')
+    return "".join(avatares)
+
+
+def _actualizar_tarea_inicio(tarea_id: str, clave: str, estado_anterior: str) -> None:
+    nuevo_estado = "completada" if st.session_state.get(clave) else (
+        estado_anterior if estado_anterior != "completada" else "pendiente"
+    )
+    try:
+        respuesta = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/tareas",
+            headers={**HEADERS, "Prefer": "return=representation"},
+            params={"id": f"eq.{tarea_id}"},
+            data=json.dumps({"estado": nuevo_estado}),
+            timeout=30,
+        )
+        respuesta.raise_for_status()
+        st.toast("Tarea actualizada")
+    except Exception as exc:
+        st.toast(f"No se pudo actualizar: {exc}")
+
+
+@st.dialog("Unirse con código")
+def _dialogo_unirse_inicio() -> None:
+    st.caption("Ingresa el código de una reunión registrada en VINCORA.")
+    codigo = st.text_input("Código de reunión", key="home_join_code", placeholder="Ej.: demo-zoom-001")
+    if st.button("Buscar reunión", type="primary", use_container_width=True, key="home_join_search"):
+        try:
+            coincidencias = sb_select(
+                "reuniones",
+                {"select": "id,tema,id_externo,join_url,start_url,tipo,direccion", "id_externo": f"eq.{codigo.strip()}"},
+            )
+            if not coincidencias:
+                coincidencias = sb_select(
+                    "reuniones",
+                    {"select": "id,tema,id_externo,join_url,start_url,tipo,direccion", "id": f"eq.{codigo.strip()}"},
+                )
+            st.session_state["home_join_result"] = coincidencias[0] if coincidencias else None
+            st.session_state["home_join_searched"] = True
+        except Exception as exc:
+            st.write(f"No se pudo consultar la reunión: {exc}")
+    if st.session_state.get("home_join_searched"):
+        reunion = st.session_state.get("home_join_result")
+        if not reunion:
+            st.write("No encontramos una reunión con ese código.")
+        else:
+            st.markdown(f"**{escape(str(reunion.get('tema') or 'Reunión'))}**")
+            enlace = _url_inicio(reunion.get("join_url") or reunion.get("start_url"))
+            if enlace:
+                st.link_button("Unirme ahora", enlace, type="primary", use_container_width=True)
+            else:
+                st.write(f"Reunión {reunion.get('tipo') or ''}. Dirección: {reunion.get('direccion') or 'por confirmar'}")
+
+
+@st.dialog("Compartir pantalla")
+def _dialogo_compartir_inicio() -> None:
+    st.caption("El navegador solicitará permiso antes de mostrar tu pantalla.")
+    import streamlit.components.v1 as components
+    components.html(
+        """
+        <style>
+          body{margin:0;font-family:Segoe UI,Arial;color:#0b183a}
+          button{width:100%;height:46px;border:0;border-radius:10px;color:white;font-weight:700;background:linear-gradient(120deg,#176bf7,#8b3ff3);cursor:pointer}
+          video{display:none;width:100%;margin-top:12px;border-radius:10px;background:#0b183a;max-height:250px}
+          p{font-size:12px;color:#667491;text-align:center}
+        </style>
+        <button id="share">Comenzar a compartir</button>
+        <video id="preview" autoplay muted></video>
+        <p id="status">La vista previa aparecerá aquí.</p>
+        <script>
+          const button=document.getElementById('share');
+          const video=document.getElementById('preview');
+          const status=document.getElementById('status');
+          button.onclick=async()=>{
+            try{
+              const stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
+              video.srcObject=stream; video.style.display='block';
+              button.textContent='Detener pantalla'; status.textContent='Tu pantalla se está compartiendo en la vista previa.';
+              button.onclick=()=>{stream.getTracks().forEach(t=>t.stop());video.style.display='none';status.textContent='La pantalla dejó de compartirse.';};
+              stream.getVideoTracks()[0].addEventListener('ended',()=>{video.style.display='none';status.textContent='La pantalla dejó de compartirse.';});
+            }catch(error){status.textContent='No se concedió permiso para compartir la pantalla.';}
+          };
+        </script>
+        """,
+        height=350,
+    )
+
+
+def view_inicio():
+    """Panel de inicio conectado a las tablas reales de VINCORA."""
+    st.markdown('<div class="home-page-marker"></div>', unsafe_allow_html=True)
+    sesion = st.session_state.session or {}
+    nombre_completo = str(sesion.get("nombre") or "Usuario")
+    primer_nombre = nombre_completo.split()[0] if nombre_completo.split() else "Usuario"
+    iniciales = _iniciales_inicio(nombre_completo)
+
+    st.markdown(
+        f"""
+        <div class="home-header">
+          <div>
+            <h1>Buenos días, {escape(primer_nombre)}</h1>
+            <p>Organiza tus reuniones y mantén cada acuerdo bajo control.</p>
+          </div>
+          <div class="home-profile">
+            <a href="?pagina=Tareas" target="_self" class="home-notification" aria-label="Ver tareas"></a>
+            <div class="home-avatar" title="{escape(nombre_completo, quote=True)}">{escape(iniciales)}</div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    acciones = st.columns(4, gap="medium")
+    with acciones[0]:
+        st.button(
+            "Nueva reunión",
+            key="home_action_new",
+            use_container_width=True,
+            on_click=preparar_chat_inicio,
+            args=("Inicia una reunión virtual ahora.",),
+        )
+    with acciones[1]:
+        if st.button("Unirse con código", key="home_action_join", use_container_width=True):
+            st.session_state["home_join_open"] = True
+    with acciones[2]:
+        st.button(
+            "Programar reunión",
+            key="home_action_schedule",
+            use_container_width=True,
+            on_click=preparar_chat_inicio,
+            args=("Programa una reunión.",),
+        )
+    with acciones[3]:
+        if st.button("Compartir pantalla", key="home_action_share", use_container_width=True):
+            st.session_state["home_share_open"] = True
+
+    if st.session_state.pop("home_join_open", False):
+        _dialogo_unirse_inicio()
+    if st.session_state.pop("home_share_open", False):
+        _dialogo_compartir_inicio()
+
+    try:
+        reuniones = sb_select(
+            "reuniones",
+            {"select": "id,tema,fecha_inicio,duracion_minutos,join_url,start_url,estado,tipo,direccion", "order": "fecha_inicio.asc"},
+        )
+    except Exception:
+        reuniones = []
+    try:
+        participantes = sb_select(
+            "participantes",
+            {"select": "id,reunion_id,usuario_id,correo,rol,estado_invitacion"},
+        )
+    except Exception:
+        participantes = []
+    try:
+        tareas = sb_select(
+            "tareas",
+            {"select": "id,reunion_id,descripcion,asignado_a_correo,estado,fecha_vencimiento,fecha_creacion"},
+        )
+    except Exception:
+        tareas = []
+    try:
+        resumenes = sb_select(
+            "resumenes",
+            {"select": "id,reunion_id,resumen,fecha_creacion", "order": "fecha_creacion.desc"},
+        )
+    except Exception:
+        resumenes = []
+    try:
+        usuarios = sb_select("usuarios", {"select": "id,nombre,correo"})
+    except Exception:
+        usuarios = []
+
+    usuarios_correo = {str(u.get("correo") or "").lower(): u for u in usuarios}
+    participantes_reunion = {}
+    for participante in participantes:
+        participantes_reunion.setdefault(str(participante.get("reunion_id")), []).append(participante)
+    reuniones_id = {str(r.get("id")): r for r in reuniones}
+
+    ahora = datetime.now().astimezone()
+    inicio_semana = ahora.date() - timedelta(days=ahora.weekday())
+    fin_semana = inicio_semana + timedelta(days=7)
+    reuniones_fecha = [(r, _fecha_local_inicio(r.get("fecha_inicio"))) for r in reuniones]
+    proximas = [
+        (r, fecha) for r, fecha in reuniones_fecha
+        if fecha and fecha >= ahora and str(r.get("estado") or "").lower() != "cancelada"
+    ][:2]
+
+    def esta_semana(valor) -> bool:
+        fecha = _fecha_local_inicio(valor)
+        return bool(fecha and inicio_semana <= fecha.date() < fin_semana)
+
+    reuniones_semana = sum(1 for _, fecha in reuniones_fecha if fecha and inicio_semana <= fecha.date() < fin_semana)
+    informes_semana = sum(1 for r in resumenes if esta_semana(r.get("fecha_creacion")))
+    acuerdos_semana = sum(1 for t in tareas if esta_semana(t.get("fecha_creacion")))
+    pendientes = sum(1 for t in tareas if str(t.get("estado") or "pendiente").lower() != "completada")
+    seguimiento = 0
+    for tarea in tareas:
+        vencimiento = _fecha_local_inicio(tarea.get("fecha_vencimiento"))
+        if str(tarea.get("estado") or "").lower() != "completada" and vencimiento and vencimiento.date() <= ahora.date():
+            seguimiento += 1
+
+    filas_reuniones = []
+    for indice, (reunion, fecha) in enumerate(proximas):
+        part = participantes_reunion.get(str(reunion.get("id")), [])
+        enlace = _url_inicio(reunion.get("start_url") or reunion.get("join_url"))
+        boton_inicio = (
+            f'<a class="home-start-button" href="{escape(enlace, quote=True)}" target="_blank" rel="noopener">Iniciar</a>'
+            if enlace else ""
+        )
+        filas_reuniones.append(
+            f"""
+            <div class="home-meeting-row">
+              <span class="home-meeting-dot"></span><span class="home-meeting-calendar"></span>
+              <div class="home-meeting-title">{escape(str(reunion.get('tema') or 'Reunión sin tema'))}</div>
+              <div class="home-meeting-time">{escape(_momento_inicio(fecha))} · {int(reunion.get('duracion_minutos') or 0)} min</div>
+              <div class="home-meeting-meta">
+                <div class="home-avatar-stack">{_avatares_inicio(part, usuarios_correo)}</div>
+                <span class="home-participant-count">{len(part)} participantes</span>
+              </div>
+              <div class="home-meeting-actions">{boton_inicio}<a class="home-more-button" href="?pagina=Reuniones" target="_self" aria-label="Ver reunión"></a></div>
+            </div>
+            """
+        )
+    if not filas_reuniones:
+        filas_reuniones.append('<div style="padding:48px 20px;color:#71809B;text-align:center">No hay próximas reuniones programadas.</div>')
+
+    st.markdown(
+        f"""
+        <div class="home-main-grid">
+          <section class="home-panel home-panel-padding">
+            <div class="home-panel-head"><span class="home-panel-title">Próximas reuniones</span><a class="home-link home-no-arrow" href="?pagina=Reuniones" target="_self">Ver calendario</a></div>
+            {''.join(filas_reuniones)}
+            <div class="home-card-footer"><a class="home-link" href="?pagina=Reuniones" target="_self">Ver todas las reuniones</a></div>
+          </section>
+          <section class="home-panel home-panel-padding">
+            <div class="home-panel-head"><span class="home-panel-title">Resumen de esta semana</span></div>
+            <div class="home-summary-list">
+              <div class="home-summary-row"><span class="home-summary-icon meetings"></span><strong class="home-summary-value">{reuniones_semana}</strong><span class="home-summary-label">reuniones</span></div>
+              <div class="home-summary-row"><span class="home-summary-icon reports"></span><strong class="home-summary-value">{informes_semana}</strong><span class="home-summary-label">informes generados</span></div>
+              <div class="home-summary-row"><span class="home-summary-icon agreements"></span><strong class="home-summary-value">{acuerdos_semana}</strong><span class="home-summary-label">acuerdos</span></div>
+              <div class="home-summary-row"><span class="home-summary-icon tasks"></span><strong class="home-summary-value">{pendientes}</strong><span class="home-summary-label">tareas pendientes</span></div>
+            </div>
+            <div class="home-card-footer"><a class="home-link" href="?pagina=Métricas" target="_self">Ver resumen completo</a></div>
+          </section>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    inferior = st.columns([1.05, 1.35, .75], gap="medium")
+    with inferior[0]:
+        with st.container(key="home_reports"):
+            filas_informes = []
+            for indice, resumen in enumerate(resumenes[:2]):
+                reunion = reuniones_id.get(str(resumen.get("reunion_id")), {})
+                fecha = _fecha_local_inicio(resumen.get("fecha_creacion"))
+                tiempo = f"{_momento_inicio(fecha)}" if fecha else "Fecha no disponible"
+                clase = "approved" if indice == 0 else "review"
+                estado = "Aprobado" if indice == 0 else "En revisión"
+                filas_informes.append(
+                    f"""
+                    <div class="home-report-row">
+                      <span class="home-report-icon {clase}"></span>
+                      <div class="home-report-title">{escape(str(reunion.get('tema') or 'Informe de reunión'))}</div>
+                      <div class="home-report-time">{escape(tiempo)}</div>
+                      <span class="home-status {clase}">{estado}</span>
+                      <a class="home-report-more" href="?pagina=Resumen%20de%20reuniones" target="_self" aria-label="Abrir informe"></a>
+                    </div>
+                    """
+                )
+            if not filas_informes:
+                filas_informes.append('<div style="padding:55px 10px;color:#71809B;text-align:center">No hay informes generados.</div>')
+            st.markdown(
+                f'<div class="home-panel-head"><span class="home-panel-title">Informes recientes</span><a class="home-link home-no-arrow" href="?pagina=Resumen%20de%20reuniones" target="_self">Ver todos</a></div>{"".join(filas_informes)}',
+                unsafe_allow_html=True,
+            )
+    with inferior[1]:
+        with st.container(key="home_tasks"):
+            st.markdown(
+                '<div class="home-panel-head"><span class="home-panel-title">Mis tareas</span><a class="home-link home-no-arrow" href="?pagina=Tareas" target="_self">Ver todas</a></div>',
+                unsafe_allow_html=True,
+            )
+            correo_actual = str(sesion.get("correo") or "").lower()
+            ordenadas = sorted(
+                tareas,
+                key=lambda t: (_fecha_local_inicio(t.get("fecha_vencimiento")) or ahora + timedelta(days=3650)),
+            )
+            propias = [t for t in ordenadas if str(t.get("asignado_a_correo") or "").lower() == correo_actual]
+            visibles = propias[:3]
+            if len(visibles) < 3:
+                usados = {str(t.get("id")) for t in visibles}
+                visibles.extend([t for t in ordenadas if str(t.get("id")) not in usados][: 3 - len(visibles)])
+            if not visibles:
+                st.markdown('<div style="padding:55px 10px;color:#71809B;text-align:center">No tienes tareas asignadas.</div>', unsafe_allow_html=True)
+            for indice, tarea in enumerate(visibles):
+                estado = str(tarea.get("estado") or "pendiente").lower()
+                progreso = 100 if estado == "completada" else (40 if estado == "en_progreso" else 20)
+                clave = f"home_task_check_{str(tarea.get('id')).replace('-', '_')}"
+                asignado = str(tarea.get("asignado_a_correo") or "No asignado")
+                nombre_asignado = usuarios_correo.get(asignado.lower(), {}).get("nombre") or asignado.split("@", 1)[0].replace(".", " ").title()
+                with st.container(key=f"home_task_row_{indice}"):
+                    columnas_tarea = st.columns([.10, 2.75, .34, .78], gap="small")
+                    with columnas_tarea[0]:
+                        st.checkbox(
+                            "Completada",
+                            value=estado == "completada",
+                            key=clave,
+                            label_visibility="collapsed",
+                            on_change=_actualizar_tarea_inicio,
+                            args=(str(tarea.get("id")), clave, estado),
+                        )
+                    with columnas_tarea[1]:
+                        st.markdown(
+                            f'<div class="home-task-text">{escape(str(tarea.get("descripcion") or "Sin descripción"))}</div><div class="home-task-meta">{escape(nombre_asignado)} · {_fecha_corta_inicio(tarea.get("fecha_vencimiento"))}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    with columnas_tarea[2]:
+                        st.markdown(f'<span class="home-mini-avatar" style="margin:0">{escape(_iniciales_inicio(nombre_asignado))}</span>', unsafe_allow_html=True)
+                    with columnas_tarea[3]:
+                        st.markdown(
+                            f'<div class="home-task-progress">{progreso}%<div class="home-progress-track"><div class="home-progress-fill" style="width:{progreso}%"></div></div></div>',
+                            unsafe_allow_html=True,
+                        )
+    with inferior[2]:
+        with st.container(key="home_ai"):
+            st.markdown(
+                f"""
+                <div class="home-ai-brand"><img src="{LOGO_DATA_URI}" alt="VINCORA IA">VINCORA IA</div>
+                <div class="home-ai-ring"><span>{seguimiento}</span></div>
+                <div class="home-ai-copy">acuerdos requieren<br>seguimiento</div>
+                <div class="home-ai-link"><a class="home-link" href="?pagina=Inteligencia%20artificial" target="_self">Ver sugerencias</a></div>
+                """,
+                unsafe_allow_html=True,
+            )
 
 
 def view_chat():
@@ -4141,11 +4921,21 @@ else:
         """,
         unsafe_allow_html=True,
     )
-    opciones_menu = ["Chat", "Reuniones", "Tareas", "Resumen de reuniones", "Participantes", "Inteligencia artificial", "Métricas", "Cerrar sesión"]
+    opciones_menu = ["Inicio", "Chat", "Reuniones", "Tareas", "Resumen de reuniones", "Participantes", "Inteligencia artificial", "Métricas", "Cerrar sesión"]
     if admin:
-        opciones_menu.insert(1, "Usuarios")
-    page = st.sidebar.radio("Navegación", opciones_menu)
-    if page == "Chat":
+        opciones_menu.insert(2, "Usuarios")
+
+    destino_query = str(st.query_params.get("pagina", "") or "")
+    if destino_query in opciones_menu:
+        st.session_state["main_navigation"] = destino_query
+        del st.query_params["pagina"]
+    if st.session_state.get("main_navigation") not in opciones_menu:
+        st.session_state["main_navigation"] = "Inicio"
+
+    page = st.sidebar.radio("Navegación", opciones_menu, key="main_navigation")
+    if page == "Inicio":
+        view_inicio()
+    elif page == "Chat":
         view_chat()
     elif page == "Usuarios":
         view_usuarios()
