@@ -690,13 +690,6 @@ def subtitulo_pagina(icono: str, texto: str) -> None:
         unsafe_allow_html=True,
     )
 
-if DEMO_MODE:
-    st.warning(
-        "MODO DEMOSTRACIÓN LOCAL: los usuarios y textos de tareas proceden de "
-        "los scripts SQL del proyecto original. UUID, fechas y asignaciones son datos "
-        "de prueba generados para ejecutar la interfaz sin Supabase."
-    )
-
 def registrar_metrica_n8n(endpoint, tiempo_respuesta, estado, codigo_estado=None, reunion_id=None, tamano_respuesta=None, detalles=None):
     """
     Registra métricas de rendimiento de las peticiones a n8n en Supabase.
@@ -1072,6 +1065,13 @@ if DEMO_MODE and st.session_state.session is None and not mostrar_login_captura:
         "nivel": "enterprise",
         "estado": "activo",
     }
+
+if DEMO_MODE and st.session_state.session is not None:
+    st.warning(
+        "MODO DEMOSTRACIÓN LOCAL: los usuarios y textos de tareas proceden de "
+        "los scripts SQL del proyecto original. UUID, fechas y asignaciones son datos "
+        "de prueba generados para ejecutar la interfaz sin Supabase."
+    )
 
 # -------- Auth Views --------
 def view_login(mostrar_titulo: bool = True):
