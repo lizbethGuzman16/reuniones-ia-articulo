@@ -432,6 +432,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     border-radius: 14px;
     box-shadow: 0 7px 24px rgba(30, 64, 175, 0.08);
 }
+[data-testid="stSidebarContent"] {
+    padding-top: 0 !important;
+}
+[data-testid="stSidebarUserContent"] {
+    padding: 20px 20px 16px !important;
+}
 [data-testid="stSidebar"] .brand-box {
     gap: 12px;
     padding: 18px 5px 20px;
@@ -520,6 +526,14 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     color: #182640;
     font-size: 13.5px;
 }
+[data-testid="stSidebar"] .stRadio > label,
+[data-testid="stSidebar"] [data-testid="stRadio"] > label:first-child {
+    display: none !important;
+}
+[data-testid="stSidebar"] [role="radiogroup"] label div:has(> input[type="radio"]),
+[data-testid="stSidebar"] [role="radiogroup"] label div:has(input[type="radio"]):not(:has(p)) {
+    display: none !important;
+}
 [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
     color: #173E9E;
     background: linear-gradient(100deg, #EFF6FF 0%, #F0E6FF 100%);
@@ -559,7 +573,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
         #FBFDFF;
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stHeader"] {
-    background: transparent;
+    display: none !important;
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) .block-container {
     max-width: 100% !important;
@@ -669,6 +683,10 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) > div 
     font-weight: 700;
 }
 .st-key-tipo_reunion [role="radiogroup"] > label > div:has(input) { display: none !important; }
+.st-key-tipo_reunion [role="radiogroup"] > label div:has(> input[type="radio"]),
+.st-key-tipo_reunion [role="radiogroup"] > label div:has(input[type="radio"]):not(:has(p)) {
+    display: none !important;
+}
 .st-key-tipo_reunion [role="radiogroup"] > label::before {
     content: "";
     width: 22px;
@@ -790,6 +808,13 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) .stTex
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stBottom"] {
     background: transparent;
 }
+.chat-composer-marker { height: 0; overflow: hidden; }
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-composer-marker),
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .chat-composer-marker) {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInput"] > div {
     min-height: 76px;
     background: #FFFFFF !important;
@@ -812,15 +837,10 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) .stTex
     box-shadow: 0 8px 18px rgba(74, 83, 244, .25) !important;
 }
 .chat-disclaimer {
-    position: fixed;
-    z-index: 1001;
-    left: 300px;
-    right: 0;
-    bottom: 5px;
+    margin: 5px 0 0;
     color: #8B95A9;
     font-size: 11px;
     text-align: center;
-    pointer-events: none;
 }
 @media (max-width: 980px) {
     [data-testid="stAppViewContainer"]:has(.chat-page-marker) .block-container { padding: 20px 22px 112px !important; }
@@ -1850,16 +1870,18 @@ def view_chat():
                 st.markdown(text)
 
     # Campo único funcional: texto, adjuntos y grabación desde el micrófono.
-    submission = st.chat_input(
-        "Escribe tu solicitud...",
-        key="vincora_chat_prompt",
-        accept_file="multiple",
-        file_type=["pdf", "doc", "docx", "txt", "png", "jpg", "jpeg"],
-        accept_audio=True,
-        audio_sample_rate=16000,
-        submit_mode="disable",
-        height=68,
-    )
+    with st.container():
+        st.markdown('<div class="chat-composer-marker"></div>', unsafe_allow_html=True)
+        submission = st.chat_input(
+            "Escribe tu solicitud...",
+            key="vincora_chat_prompt",
+            accept_file="multiple",
+            file_type=["pdf", "doc", "docx", "txt", "png", "jpg", "jpeg"],
+            accept_audio=True,
+            audio_sample_rate=16000,
+            submit_mode="disable",
+            height=68,
+        )
     st.markdown(
         '<div class="chat-disclaimer">VINCORA puede cometer errores. Verifica la información antes de confirmar.</div>',
         unsafe_allow_html=True,

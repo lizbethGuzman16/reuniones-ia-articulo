@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Page, expect, sync_playwright
 
 
 BASE_URL = "http://127.0.0.1:8501"
@@ -30,11 +30,23 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
     heading = page.get_by_role("heading", name=titulo, exact=True)
     heading.wait_for(state="visible", timeout=45_000)
     page.wait_for_timeout(1_200)
+    page.evaluate("window.scrollTo(0, 0)")
+    main = page.locator('[data-testid="stMain"]')
+    if main.count():
+        main.evaluate("element => element.scrollTo(0, 0)")
+    page.wait_for_timeout(300)
     page.screenshot(
         path=str(OUTPUT_DIR / archivo),
         full_page=False,
         animations="disabled",
     )
+
+    if opcion == "Chat":
+        page.get_by_role("button", name="Programar reunión para mañana", exact=True).click()
+        entrada = page.locator('[data-testid="stChatInput"] textarea')
+        expect(entrada).to_have_value(re.compile(r"Programa una reunión mañana"), timeout=15_000)
+        page.get_by_role("button", name="Limpiar", exact=True).click()
+        expect(entrada).to_have_value("", timeout=15_000)
 
 
 def capturar_login(page: Page) -> None:
