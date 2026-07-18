@@ -51,7 +51,7 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
         expect(page.get_by_text("Resumen de esta semana", exact=True)).to_be_visible()
         expect(page.get_by_text("Informes recientes", exact=True)).to_be_visible()
         expect(page.get_by_text("Mis tareas", exact=True)).to_be_visible()
-        page.get_by_role("button", name="Programar reunión", exact=True).click()
+        page.locator(".st-key-home_action_schedule button").click()
         page.get_by_role("heading", name="Crear reunión por chat", exact=True).wait_for(
             state="visible", timeout=30_000
         )

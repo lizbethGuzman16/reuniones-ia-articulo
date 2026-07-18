@@ -63,7 +63,7 @@ def build_demo_data() -> dict[str, list[dict[str, Any]]]:
     users = _build_demo_users()
     # Mantener la demostración útil en cualquier fecha: el Inicio siempre
     # presenta reuniones y vencimientos relativos al día de ejecución.
-    now = datetime.now(timezone.utc).replace(hour=15, minute=0, second=0, microsecond=0)
+    now = datetime.now(timezone.utc).replace(microsecond=0)
 
     # Temas derivados de ejemplos y textos ya presentes en el proyecto original.
     meetings = [

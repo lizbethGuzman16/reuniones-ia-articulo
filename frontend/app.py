@@ -712,7 +712,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     width: 100%;
     min-height: 131px;
     justify-content: flex-start;
-    padding: 20px 48px 20px 95px;
+    padding: 20px 18px 20px 90px;
     overflow: hidden;
     color: #0B183A;
     background: rgba(255,255,255,.95);
@@ -725,9 +725,16 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_join button p,
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_schedule button p,
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_share button p {
+    position: absolute;
+    left: 90px;
+    top: 25px;
+    width: calc(100% - 104px);
+    margin: 0;
     color: inherit;
-    font-size: 16px;
+    font-size: 14.5px;
     font-weight: 750;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_new button::before,
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_join button::before,
@@ -735,7 +742,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_share button::before {
     content: "";
     position: absolute;
-    left: 22px;
+    left: 18px;
     top: 23px;
     width: 53px;
     height: 53px;
@@ -750,9 +757,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_schedule button::after,
 [data-testid="stAppViewContainer"]:has(.home-page-marker) .st-key-home_action_share button::after {
     position: absolute;
-    left: 95px;
+    left: 90px;
     top: 63px;
-    max-width: 125px;
+    max-width: 140px;
     color: #71809B;
     font-size: 13px;
     font-weight: 400;
@@ -2416,7 +2423,7 @@ def view_inicio():
     st.markdown('<div class="home-page-marker"></div>', unsafe_allow_html=True)
     sesion = st.session_state.session or {}
     nombre_completo = str(sesion.get("nombre") or "Usuario")
-    primer_nombre = nombre_completo.split()[0] if nombre_completo.split() else "Usuario"
+    primer_nombre = "Carlos" if DEMO_MODE else (nombre_completo.split()[0] if nombre_completo.split() else "Usuario")
     iniciales = _iniciales_inicio(nombre_completo)
 
     st.markdown(
@@ -2535,18 +2542,14 @@ def view_inicio():
             if enlace else ""
         )
         filas_reuniones.append(
-            f"""
-            <div class="home-meeting-row">
-              <span class="home-meeting-dot"></span><span class="home-meeting-calendar"></span>
-              <div class="home-meeting-title">{escape(str(reunion.get('tema') or 'Reunión sin tema'))}</div>
-              <div class="home-meeting-time">{escape(_momento_inicio(fecha))} · {int(reunion.get('duracion_minutos') or 0)} min</div>
-              <div class="home-meeting-meta">
-                <div class="home-avatar-stack">{_avatares_inicio(part, usuarios_correo)}</div>
-                <span class="home-participant-count">{len(part)} participantes</span>
-              </div>
-              <div class="home-meeting-actions">{boton_inicio}<a class="home-more-button" href="?pagina=Reuniones" target="_self" aria-label="Ver reunión"></a></div>
-            </div>
-            """
+            f'<div class="home-meeting-row">'
+            f'<span class="home-meeting-dot"></span><span class="home-meeting-calendar"></span>'
+            f'<div class="home-meeting-title">{escape(str(reunion.get("tema") or "Reunión sin tema"))}</div>'
+            f'<div class="home-meeting-time">{escape(_momento_inicio(fecha))} · {int(reunion.get("duracion_minutos") or 0)} min</div>'
+            f'<div class="home-meeting-meta"><div class="home-avatar-stack">{_avatares_inicio(part, usuarios_correo)}</div>'
+            f'<span class="home-participant-count">{len(part)} participantes</span></div>'
+            f'<div class="home-meeting-actions">{boton_inicio}<a class="home-more-button" href="?pagina=Reuniones" target="_self" aria-label="Ver reunión"></a></div>'
+            f'</div>'
         )
     if not filas_reuniones:
         filas_reuniones.append('<div style="padding:48px 20px;color:#71809B;text-align:center">No hay próximas reuniones programadas.</div>')
