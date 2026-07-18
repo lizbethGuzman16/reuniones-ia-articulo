@@ -1,4 +1,5 @@
 import os, json, requests
+import base64
 import time
 import re
 import pandas as pd
@@ -6,6 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from io import BytesIO
+from html import escape
 from pathlib import Path
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -30,6 +32,49 @@ ADMIN_EMAILS = {
     if email.strip()
 }
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+ICON_DIR = PROJECT_ROOT / "frontend" / "assets" / "icons"
+BRAND_DIR = PROJECT_ROOT / "frontend" / "assets" / "branding"
+LOGO_PATH = BRAND_DIR / "vincora-logo.png"
+
+ICON_FILES = {
+    "chat": "message-circle.svg",
+    "usuarios": "users.svg",
+    "administracion": "user-cog.svg",
+    "reuniones": "calendar-event.svg",
+    "tareas": "clipboard-check.svg",
+    "resumen": "file-description.svg",
+    "ia": "brain.svg",
+    "metricas": "chart-bar.svg",
+    "salir": "logout.svg",
+    "grafico": "chart-line.svg",
+    "buscar": "search.svg",
+    "agregar": "plus.svg",
+    "eliminar": "trash.svg",
+    "guardar": "device-floppy.svg",
+    "pdf": "file-type-pdf.svg",
+    "actualizar": "refresh.svg",
+    "procesar": "rocket.svg",
+    "tiempo": "clock.svg",
+    "web": "world.svg",
+    "idea": "bulb.svg",
+    "correcto": "check.svg",
+    "alerta": "alert-triangle.svg",
+    "lista": "list-details.svg",
+    "actividad": "activity.svg",
+    "datos": "database.svg",
+}
+
+
+def icono_data_uri(nombre: str, color: str = "#2563EB") -> str:
+    """Carga un SVG local de Tabler y lo incrusta como imagen autosuficiente."""
+    ruta = ICON_DIR / ICON_FILES[nombre]
+    svg = ruta.read_text(encoding="utf-8").replace("currentColor", color)
+    codificado = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+    return f"data:image/svg+xml;base64,{codificado}"
+
+
+ICONOS_AZULES = {nombre: icono_data_uri(nombre) for nombre in ICON_FILES}
+LOGO_DATA_URI = "data:image/png;base64," + base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
 
 if DEMO_MODE:
     from demo_backend import install_demo_backend
@@ -47,7 +92,11 @@ HEADERS = {
     "Content-Type": "application/json",
 }
 
-st.set_page_config(page_title="Asistente de Reuniones", page_icon="💬", layout="wide")
+st.set_page_config(
+    page_title="VINCORA Meet",
+    page_icon=str(LOGO_PATH),
+    layout="wide",
+)
 
 # -------- Estilos globales --------
 ESTILOS_GLOBALES = """
@@ -89,6 +138,23 @@ html, body, [class*="css"], [data-testid="stAppViewContainer"] * {
 h1, h2, h3, .login-title {
     font-family: Georgia, "Times New Roman", serif !important;
     color: var(--ink) !important;
+}
+.page-title, .section-title {
+    display: flex;
+    align-items: center;
+    color: var(--ink);
+}
+.page-title { gap: 14px; margin: 0 0 1rem 0; }
+.page-title img {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+}
+.section-title { gap: 10px; margin: 1rem 0 0.65rem 0; }
+.section-title img {
+    width: 29px;
+    height: 29px;
+    flex: 0 0 29px;
 }
 h1 {
     font-weight: 700 !important;
@@ -257,6 +323,49 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     font-weight: 700;
     box-shadow: 0 5px 16px rgba(37, 99, 235, 0.10);
 }
+[data-testid="stSidebar"] [role="radiogroup"] > label::before {
+    content: "";
+    width: 19px;
+    height: 19px;
+    flex: 0 0 19px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+[data-testid="stSidebar"] [role="radiogroup"] > label:nth-child(1)::before {
+    background-image: url("__ICON_CHAT__");
+}
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(2)::before {
+    background-image: url("__ICON_ADMINISTRACION__");
+}
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(3)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(2)::before {
+    background-image: url("__ICON_REUNIONES__");
+}
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(4)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(3)::before {
+    background-image: url("__ICON_TAREAS__");
+}
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(5)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(4)::before {
+    background-image: url("__ICON_RESUMEN__");
+}
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(6)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(5)::before {
+    background-image: url("__ICON_USUARIOS__");
+}
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(7)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(6)::before {
+    background-image: url("__ICON_IA__");
+}
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(8)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(7)::before {
+    background-image: url("__ICON_METRICAS__");
+}
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(9)::before,
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(8)::before {
+    background-image: url("__ICON_SALIR__");
+}
 
 /* Marca del sistema en el sidebar */
 .brand-box {
@@ -268,14 +377,16 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     box-shadow: 0 6px 20px rgba(77, 58, 34, 0.05);
 }
 .brand-logo {
-    width: 40px; height: 40px; border-radius: 12px;
+    width: 48px; height: 48px; border-radius: 13px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    background: linear-gradient(145deg, #1D4ED8, #3B82F6);
-    box-shadow: 0 7px 18px rgba(37, 99, 235, 0.25);
+    overflow: hidden;
+    background: #FFFFFF;
+    border: 1px solid #DCE5F5;
+    box-shadow: 0 7px 18px rgba(37, 99, 235, 0.14);
 }
-.brand-name { font-weight: 800; font-size: 15px; line-height: 1.15; color: var(--ink); }
-.brand-sub  { font-size: 11px; color: var(--muted); }
+.brand-logo img { width: 44px; height: 41px; object-fit: cover; }
+.brand-name { font-weight: 800; font-size: 16px; line-height: 1.15; color: var(--ink); }
+.brand-sub  { max-width: 145px; font-size: 10.5px; line-height: 1.25; color: var(--muted); }
 
 /* Perfil del usuario */
 .user-chip {
@@ -296,15 +407,17 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 /* Hero del login */
 .login-hero { text-align: center; padding: 30px 0 12px 0; }
 .login-logo {
-    width: 74px; height: 74px; margin: 0 auto 18px auto;
-    border-radius: 22px;
+    width: 112px; height: 104px; margin: 0 auto 18px auto;
+    border-radius: 25px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 36px;
-    background: linear-gradient(145deg, #1D4ED8, #3B82F6);
-    box-shadow: 0 16px 38px rgba(37, 99, 235, 0.24);
+    overflow: hidden;
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    box-shadow: 0 16px 38px rgba(37, 99, 235, 0.14);
 }
+.login-logo img { width: 104px; height: 97px; object-fit: cover; }
 .login-title { font-size: 32px; font-weight: 700; letter-spacing: -0.7px; color: var(--ink); }
-.login-sub   { font-size: 14px; color: var(--muted); margin-top: 7px; }
+.login-sub   { font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 7px; }
 
 /* Badge de clase predicha */
 .pred-badge {
@@ -317,11 +430,32 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 </style>
 """
+for _nombre_icono in (
+    "chat", "administracion", "reuniones", "tareas", "resumen",
+    "usuarios", "ia", "metricas", "salir",
+):
+    ESTILOS_GLOBALES = ESTILOS_GLOBALES.replace(
+        f"__ICON_{_nombre_icono.upper()}__", ICONOS_AZULES[_nombre_icono]
+    )
 st.markdown(ESTILOS_GLOBALES, unsafe_allow_html=True)
+
+
+def titulo_pagina(icono: str, texto: str) -> None:
+    st.markdown(
+        f'<h1 class="page-title"><img src="{ICONOS_AZULES[icono]}" alt=""><span>{escape(texto)}</span></h1>',
+        unsafe_allow_html=True,
+    )
+
+
+def subtitulo_pagina(icono: str, texto: str) -> None:
+    st.markdown(
+        f'<h3 class="section-title"><img src="{ICONOS_AZULES[icono]}" alt=""><span>{escape(texto)}</span></h3>',
+        unsafe_allow_html=True,
+    )
 
 if DEMO_MODE:
     st.warning(
-        "🧪 MODO DEMOSTRACIÓN LOCAL: los usuarios y textos de tareas proceden de "
+        "MODO DEMOSTRACIÓN LOCAL: los usuarios y textos de tareas proceden de "
         "los scripts SQL del proyecto original. UUID, fechas y asignaciones son datos "
         "de prueba generados para ejecutar la interfaz sin Supabase."
     )
@@ -902,7 +1036,7 @@ def interpretar_solicitud_reunion(texto):
 
 
 def view_chat():
-    st.title("💬 Crear reunión por chat")
+    titulo_pagina("chat", "Crear reunión por chat")
     st.caption("Escribe algo como: *“Programa una reunión mañana 11 am por 45 min con asunto Ventas Q4 e invita a enterprise y a ana@empresa.com”*")
 
     # Reset seguro de opciones antes de instanciar widgets
@@ -1006,7 +1140,7 @@ def view_chat():
                 )
 
                 lineas = [
-                    f"✅ Reunión creada: **{datos['tema']}**",
+                    f"Reunión creada: **{datos['tema']}**",
                     f"- Fecha/hora: {datos['fecha_inicio'].replace('T', ' ')}",
                     f"- Duración: {datos['duracion_minutos']} minutos",
                     f"- Tipo: {datos['tipo']}",
@@ -1056,7 +1190,7 @@ def view_chat():
                 data = resp.json()
                 # Construir resumen según tipo/datos
                 resumen_lines = [
-                    f"✅ Reunión creada: **{data.get('meeting', {}).get('tema','')}**",
+                    f"Reunión creada: **{data.get('meeting', {}).get('tema','')}**",
                     f"- Fecha/hora: {data.get('meeting', {}).get('fecha','')}",
                 ]
                 # Añadir tipo/dirección si vienen en la respuesta
@@ -1162,7 +1296,7 @@ def view_chat():
 
 # -------- Usuarios --------
 def view_usuarios():
-    st.title("👥 Gestión de Usuarios")
+    titulo_pagina("usuarios", "Gestión de Usuarios")
     admin = is_admin()
 
     # -------- FILTROS --------
@@ -1245,7 +1379,7 @@ def view_usuarios():
     )
 
     # Detectar cambios
-    if admin and st.button("💾 Guardar cambios"):
+    if admin and st.button("Guardar cambios"):
         for i, row in edited_df.iterrows():
             original = next(u for u in users if u["id"] == row["id"])
             if dict(row) != original:
@@ -1264,13 +1398,13 @@ def view_usuarios():
                 except Exception as e:
                     st.error(f"Error editando usuario {row['correo']}: {e}")
 
-        st.success("✅ Cambios guardados")
+        st.success("Cambios guardados")
         st.rerun()
 
     # -------- Exportar PDF --------
     col_exp1, col_exp2 = st.columns([1,3])
     with col_exp1:
-        if st.button("📄 Exportar a PDF"):
+        if st.button("Exportar a PDF"):
             try:
                 pdf_bytes = df_to_pdf_bytes("Reporte de Usuarios", users_df.reset_index(drop=True))
                 st.session_state["usuarios_pdf_bytes"] = pdf_bytes
@@ -1302,7 +1436,7 @@ def view_usuarios():
         )
 
         confirm_text = st.text_input("Escribe ELIMINAR para confirmar", key="confirmar_eliminacion")
-        eliminar_clicked = st.button("🗑 Eliminar seleccionados", type="primary")
+        eliminar_clicked = st.button("Eliminar seleccionados", type="primary")
 
         if eliminar_clicked:
             if not seleccion_labels:
@@ -1324,13 +1458,13 @@ def view_usuarios():
                 if errores:
                     st.error("\n".join(["Errores al eliminar:"] + errores))
                 else:
-                    st.success("✅ Usuario(s) eliminado(s)")
+                    st.success("Usuario(s) eliminado(s)")
                     st.rerun()
 
     # -------- CREAR NUEVO --------
     st.divider()
     if admin:
-        st.subheader("➕ Registrar usuario nuevo")
+        subtitulo_pagina("agregar", "Registrar usuario nuevo")
 
     if admin:
         with st.form("nuevo_usuario"):
@@ -1352,12 +1486,12 @@ def view_usuarios():
                         "nivel_suscripcion": nivel,
                         "estado_suscripcion": estado
                     }])
-                    st.success("✅ Usuario creado")
+                    st.success("Usuario creado")
                     st.rerun()
 
 # -------- Reuniones --------            
 def view_reuniones():
-    st.title("📅 Reuniones")
+    titulo_pagina("reuniones", "Reuniones")
     admin = is_admin()
 
     # ---- Filtros ----
@@ -1468,7 +1602,7 @@ def view_reuniones():
             st.write("—")
 
     # ---- Guardar cambios (solo estado) ----
-    if admin and st.button("💾 Guardar cambios"):
+    if admin and st.button("Guardar cambios"):
         for i, row in edited_df.iterrows():
             original = next(u for u in reuniones if u["id"] == row["id"])
             if row["estado"] != original["estado"]:
@@ -1481,7 +1615,7 @@ def view_reuniones():
                     )
                 except Exception as e:
                     st.error(f"Error actualizando reunión:: {e}")
-        st.success("✅ Cambios guardados")
+        st.success("Cambios guardados")
         st.rerun()
 
     # ---- Botones acción ----
@@ -1535,7 +1669,7 @@ def view_reuniones():
 
             col_save, col_del = st.columns([2,1])
             with col_save:
-                if st.button("💾 Guardar cambios", key="btn_save_reu"):
+                if st.button("Guardar cambios", key="btn_save_reu"):
                     fecha_str = f"{efecha.isoformat()}T{ehora.strftime('%H:%M:%S')}"
                     payload = {
                         "tema": etema,
@@ -1555,13 +1689,13 @@ def view_reuniones():
                             params={"id": f"eq.{rec['id']}"},
                             data=json.dumps(payload)
                         )
-                        st.success("✅ Reunión actualizada")
+                        st.success("Reunión actualizada")
                         st.rerun()
                     except Exception as e:
                         st.error(f"Error al actualizar: {e}")
 
             with col_del:
-                if st.button("🗑 Eliminar reunión", key="btn_del_reu"):
+                if st.button("Eliminar reunión", key="btn_del_reu"):
                     try:
                         requests.delete(
                             f"{SUPABASE_URL}/rest/v1/reuniones",
@@ -1575,7 +1709,7 @@ def view_reuniones():
 
     if admin:
         st.divider()
-        st.subheader("➕ Crear nueva reunión")
+        subtitulo_pagina("agregar", "Crear nueva reunión")
     if admin:
         ntema = st.text_input("Tema", key="new_tema")
         ncol1, ncol2 = st.columns(2)
@@ -1604,14 +1738,14 @@ def view_reuniones():
                 }
                 try:
                     sb_insert("reuniones", [row])
-                    st.success("✅ Reunión creada")
+                    st.success("Reunión creada")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error creando reunión: {e}")
 
 # -------- Resumen de reuniones --------
 def view_resumen_reuniones():
-    st.title("📝 Resumen de reuniones")
+    titulo_pagina("resumen", "Resumen de reuniones")
 
     # Obtener reuniones con campos clave
     try:
@@ -1705,7 +1839,7 @@ def view_resumen_reuniones():
                   }
                   st.json(det)
                   # Ver participantes de la reunión
-                  if st.button("👥 Ver participantes", key=f"ver_part_{key_prefix}"):
+                  if st.button("Ver participantes", key=f"ver_part_{key_prefix}"):
                       try:
                           parts = sb_select(
                               "participantes",
@@ -1765,7 +1899,7 @@ def view_resumen_reuniones():
                   # Generación según tipo
                   tipo_val = str(fila.get("tipo") or "").lower()
                   if tipo_val in ["virtual", "mixta"]:
-                      btn = st.button("📝 Generar resumen (IA)", key=f"gen_{key_prefix}")
+                      btn = st.button("Generar resumen (IA)", key=f"gen_{key_prefix}")
                       if btn:
                           if not N8N_RESUMEN_VIRTUAL_URL:
                               st.error("Configura N8N_RESUMEN_VIRTUAL_WEBHOOK_URL en .env")
@@ -1794,9 +1928,9 @@ def view_resumen_reuniones():
                                       resumen_texto = data.get("resumen") or data.get("summary") or ""
                                       if resumen_texto:
                                           if save_resumen(reunion_id, resumen_texto):
-                                              st.success("✅ Resumen generado y guardado")
+                                              st.success("Resumen generado y guardado")
                                               st.write(resumen_texto)
-                                              if st.button("🔄 Actualizar", key=f"refresh_{key_prefix}"):
+                                              if st.button("Actualizar", key=f"refresh_{key_prefix}"):
                                                   st.rerun()
                                           else:
                                               st.error("No se pudo guardar el resumen")
@@ -1821,7 +1955,7 @@ def view_resumen_reuniones():
                       if resumen_existente and resumen_existente[0].get("resumen"):
                           # Mostrar el resumen existente
                           item = resumen_existente[0]
-                          st.markdown("### 📄 Resumen existente")
+                          subtitulo_pagina("resumen", "Resumen existente")
                           st.write(item.get("resumen"))
                           if item.get("fecha_creacion"):
                               st.caption(f"Creado: {item['fecha_creacion'].replace('T',' ').replace('Z','')}")
@@ -1830,7 +1964,7 @@ def view_resumen_reuniones():
                           archivo_pdf = st.file_uploader("Sube el acta (PDF)", type=["pdf"], key=f"pdf_{key_prefix}")
                           if archivo_pdf is not None:
                               st.success(f"Archivo cargado: {archivo_pdf.name}")
-                          btnp = st.button("🚀 Procesar PDF y generar resumen", key=f"genpdf_{key_prefix}")
+                          btnp = st.button("Procesar PDF y generar resumen", key=f"genpdf_{key_prefix}")
                           if btnp:
                               if not N8N_RESUMEN_PRESENCIAL_URL:
                                   st.error("Configura N8N_RESUMEN_PRESENCIAL_WEBHOOK_URL en .env")
@@ -1883,7 +2017,7 @@ def view_resumen_reuniones():
                                                           detalles=f"Tiempo total de procesamiento: {tiempo_total:.2f}s"
                                                       )
                                                       
-                                                      st.success("✅ Resumen generado y guardado")
+                                                      st.success("Resumen generado y guardado")
                                                       st.markdown("**Resumen**")
                                                       st.write(item.get("resumen"))
                                                       if item.get("fecha_creacion"):
@@ -1914,7 +2048,7 @@ def view_resumen_reuniones():
                                           reunion_id=reunion_id,
                                           detalles="Timeout en la petición a n8n"
                                       )
-                                      st.error("⏱️ Tiempo de espera agotado")
+                                      st.error("Tiempo de espera agotado")
                                   except Exception as e:
                                       tiempo_total = time.time() - inicio
                                       registrar_metrica_n8n(
@@ -1936,7 +2070,7 @@ def view_resumen_reuniones():
 
 # -------- Participantes --------
 def view_participantes():
-    st.title("👥 Participantes de Reuniones")
+    titulo_pagina("usuarios", "Participantes de Reuniones")
     admin = is_admin()
 
     opciones = {}
@@ -2024,7 +2158,7 @@ def view_participantes():
             )
 
         # Guardar cambios
-        if admin and st.button("💾 Guardar cambios participante(s)"):
+        if admin and st.button("Guardar cambios participante(s)"):
             for i, row in edited_df.iterrows():
                 original = next(p for p in participantes if p["id"] == row["id"])
                 if dict(row) != original:
@@ -2041,12 +2175,12 @@ def view_participantes():
                         )
                     except Exception as e:
                         st.error(f"Error actualizando {row['correo']}: {e}")
-            st.success("✅ Cambios guardados")
+            st.success("Cambios guardados")
             st.rerun()
 
         # Eliminar participante
         if admin:
-            st.subheader("🗑 Eliminar participante")
+            subtitulo_pagina("eliminar", "Eliminar participante")
             del_id = st.text_input("ID de participante a eliminar")
 
             if st.button("Eliminar participante"):
@@ -2056,14 +2190,14 @@ def view_participantes():
                         headers=HEADERS,
                         params={"id":f"eq.{del_id}"}
                     )
-                    st.success("Participante eliminado ✅")
+                    st.success("Participante eliminado")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error: {e}")
 
     st.divider()
     if admin:
-        st.subheader("➕ Agregar nuevo participante")
+        subtitulo_pagina("agregar", "Agregar nuevo participante")
 
         new_email = st.text_input("Correo del participante")
         new_rol = st.selectbox("Rol", ["participante","organizador"])
@@ -2079,7 +2213,7 @@ def view_participantes():
                     "rol": new_rol,
                     "estado_invitacion": "enviado"
                 }])
-                st.success("✅ Participante agregado")
+                st.success("Participante agregado")
                 st.rerun()
             except Exception as e:
                 st.error(f"Error: {e}")
@@ -2087,7 +2221,7 @@ def view_participantes():
 
 # -------- Tareas --------
 def view_tareas():
-    st.title("📋 Gestión de Tareas")
+    titulo_pagina("tareas", "Gestión de Tareas")
     admin = is_admin()
     
     # -------- Obtener tareas con información de reunión --------
@@ -2124,7 +2258,7 @@ def view_tareas():
         st.info("No hay tareas registradas todavía. Cree la primera con el formulario de abajo (administradores) o desde los acuerdos de una reunión.")
         if admin:
             st.divider()
-            st.subheader("➕ Crear nueva tarea")
+            subtitulo_pagina("agregar", "Crear nueva tarea")
             with st.form("nueva_tarea"):
                 try:
                     reuniones = sb_select("reuniones", {"select": "id,tema,fecha_inicio", "order": "fecha_inicio.desc", "limit": "50"})
@@ -2147,7 +2281,7 @@ def view_tareas():
                                 "estado": estado,
                                 "fecha_vencimiento": fecha_venc.isoformat()
                             }])
-                            st.success("✅ Tarea creada")
+                            st.success("Tarea creada")
                             st.rerun()
                 except Exception as e:
                     st.error(f"Error: {e}")
@@ -2182,7 +2316,7 @@ def view_tareas():
             df[col] = ""  # O un valor por defecto apropiado
     
     # -------- PANEL DE MÉTRICAS --------
-    st.subheader("📊 Métricas Generales")
+    subtitulo_pagina("metricas", "Métricas Generales")
     
     total_tareas = len(df)
     completadas = len(df[df["estado"] == "completada"])
@@ -2206,13 +2340,13 @@ def view_tareas():
     col2.metric("Completadas", completadas, delta=f"{porcentaje_avance:.1f}%")
     col3.metric("Pendientes", pendientes)
     col4.metric("En Progreso", en_progreso)
-    col5.metric("Atrasadas", atrasadas, delta="⚠️" if atrasadas > 0 else "✅")
+    col5.metric("Atrasadas", atrasadas, delta="Revisar" if atrasadas > 0 else "Al día")
     col6.metric("% Avance", f"{porcentaje_avance:.1f}%")
     
     st.divider()
     
     # -------- GRÁFICOS ESTADÍSTICOS --------
-    st.subheader("📈 Análisis Estadístico")
+    subtitulo_pagina("grafico", "Análisis Estadístico")
     
     colg1, colg2, colg3 = st.columns(3)
     
@@ -2276,7 +2410,7 @@ def view_tareas():
     st.divider()
     
     # -------- FILTROS --------
-    st.subheader("🔍 Filtros y Búsqueda")
+    subtitulo_pagina("buscar", "Filtros y Búsqueda")
     
     col_f1, col_f2, col_f3, col_f4 = st.columns(4)
     
@@ -2332,7 +2466,7 @@ def view_tareas():
     st.caption(f"Mostrando {len(df_filtrado)} de {len(df)} tareas")
     
     # -------- TABLA DE TAREAS --------
-    st.subheader("📋 Tabla de Tareas")
+    subtitulo_pagina("lista", "Tabla de Tareas")
     
     # Configuración de columnas
     column_config = {
@@ -2396,7 +2530,7 @@ def view_tareas():
     st.divider()
     col_exp1, col_exp2 = st.columns([1, 3])
     with col_exp1:
-        if st.button("📄 Exportar a PDF"):
+        if st.button("Exportar a PDF"):
             try:
                 # Preparar DataFrame para PDF (convertir fechas a string)
                 df_pdf = df_filtrado.copy()
@@ -2425,7 +2559,7 @@ def view_tareas():
     
     if admin:
         # Admin puede guardar todos los cambios
-        if st.button("💾 Guardar cambios", type="primary", use_container_width=True):
+        if st.button("Guardar cambios", type="primary", use_container_width=True):
             cambios_realizados = 0
             for i, row in edited_df.iterrows():
                 # Obtener el ID de la tarea desde el mapeo
@@ -2478,13 +2612,13 @@ def view_tareas():
                         continue
                         
             if cambios_realizados > 0:
-                st.success(f"✅ {cambios_realizados} tarea(s) actualizada(s)")
+                st.success(f"{cambios_realizados} tarea(s) actualizada(s)")
                 st.rerun()
             else:
                 st.info("No hay cambios para guardar")
     else:
         # Usuario regular solo puede cambiar estado
-        if st.button("✅ Guardar cambios de estado", type="primary", use_container_width=True):
+        if st.button("Guardar cambios de estado", type="primary", use_container_width=True):
             cambios_realizados = 0
             for i, row in edited_df.iterrows():
                 # Obtener el ID de la tarea desde el mapeo
@@ -2516,7 +2650,7 @@ def view_tareas():
                         continue
             
             if cambios_realizados > 0:
-                st.success(f"✅ {cambios_realizados} tarea(s) actualizada(s)")
+                st.success(f"{cambios_realizados} tarea(s) actualizada(s)")
                 st.rerun()
             else:
                 st.info("No hay cambios de estado para guardar")
@@ -2524,7 +2658,7 @@ def view_tareas():
     # -------- CREAR NUEVA TAREA --------
     if admin:
         st.divider()
-        st.subheader("➕ Crear nueva tarea")
+        subtitulo_pagina("agregar", "Crear nueva tarea")
         
         with st.form("nueva_tarea"):
             try:
@@ -2558,7 +2692,7 @@ def view_tareas():
                             "estado": estado,
                             "fecha_vencimiento": fecha_venc.isoformat()
                         }])
-                        st.success("✅ Tarea creada")
+                        st.success("Tarea creada")
                         st.rerun()
             except Exception as e:
                 st.error(f"Error: {e}")
@@ -2566,7 +2700,7 @@ def view_tareas():
 
 # -------- Estadísticas --------
 def view_estadisticas():
-    st.title("📊 Estadísticas")
+    titulo_pagina("metricas", "Estadísticas")
 
     # Reuniones base
     try:
@@ -2671,7 +2805,7 @@ def view_estadisticas():
 
 # -------- Métricas y Análisis --------
 def view_metricas():
-    st.title("📊 Métricas y Estadísticas")
+    titulo_pagina("metricas", "Métricas y Estadísticas")
     st.markdown("---")
     
     try:
@@ -2725,7 +2859,7 @@ def view_metricas():
             return
             
         # Mostrar métricas generales
-        st.subheader("📈 Resumen General")
+        subtitulo_pagina("grafico", "Resumen General")
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -2743,7 +2877,7 @@ def view_metricas():
         st.markdown("---")
         
         # Gráfico 1: Peticiones por día
-        st.subheader("📅 Peticiones por día")
+        subtitulo_pagina("reuniones", "Peticiones por día")
         df_diario = df_filtrado.set_index('fecha').resample('D').size().reset_index(name='count')
         if not df_diario.empty:
             fig1 = px.line(df_diario, x='fecha', y='count', 
@@ -2752,7 +2886,7 @@ def view_metricas():
             st.plotly_chart(fig1, use_container_width=True)
         
         # Gráfico 2: Distribución por endpoint
-        st.subheader("🌐 Distribución por endpoint")
+        subtitulo_pagina("web", "Distribución por endpoint")
         df_endpoint = df_filtrado.groupby('endpoint').size().reset_index(name='count')
         if not df_endpoint.empty:
             fig2 = px.pie(df_endpoint, values='count', names='endpoint', 
@@ -2761,7 +2895,7 @@ def view_metricas():
             st.plotly_chart(fig2, use_container_width=True)
         
         # Gráfico 3: Tiempo de respuesta por endpoint
-        st.subheader("⏱️ Tiempo de respuesta promedio")
+        subtitulo_pagina("tiempo", "Tiempo de respuesta promedio")
         df_tiempo = df_filtrado.groupby('endpoint')['tiempo_respuesta'].agg(['mean', 'count']).reset_index()
         df_tiempo = df_tiempo.sort_values('mean', ascending=False)
         if not df_tiempo.empty:
@@ -2772,7 +2906,7 @@ def view_metricas():
             st.plotly_chart(fig3, use_container_width=True)
         
         # Gráfico 4: Estado de las peticiones
-        st.subheader("✅ Estado de las peticiones")
+        subtitulo_pagina("correcto", "Estado de las peticiones")
         df_estado = df_filtrado.groupby('estado').size().reset_index(name='count')
         if not df_estado.empty:
             fig4 = px.bar(df_estado, x='estado', y='count', color='estado',
@@ -2781,7 +2915,7 @@ def view_metricas():
             st.plotly_chart(fig4, use_container_width=True)
         
         # Tabla con los últimos registros
-        st.subheader("📝 Registros recientes")
+        subtitulo_pagina("lista", "Registros recientes")
         st.dataframe(df_filtrado[['fecha', 'endpoint', 'estado', 'tiempo_respuesta', 'detalles']]
                     .sort_values('fecha', ascending=False)
                     .head(20), 
@@ -2801,7 +2935,7 @@ def view_metricas():
 
 # -------- Inteligencia artificial --------
 def view_inteligencia_artificial():
-    st.title("🧠 Inteligencia artificial para reuniones")
+    titulo_pagina("ia", "Inteligencia artificial para reuniones")
     st.caption("Clasificación de actos de diálogo entrenada con el dataset público MRDA.")
 
     # El plan gratuito de Render duerme la API tras inactividad. Durante el
@@ -2854,7 +2988,7 @@ def view_inteligencia_artificial():
             height=120,
             help="El modelo fue entrenado con MRDA (reuniones en inglés). Puede escribir en español: el texto se traduce automáticamente al inglés antes de clasificar.",
         )
-        st.caption("💡 Puede escribir en español o inglés. El corpus MRDA es en inglés, por lo que el texto en español se traduce automáticamente antes de la predicción.")
+        st.caption("Puede escribir en español o inglés. El corpus MRDA es en inglés, por lo que el texto en español se traduce automáticamente antes de la predicción.")
         if st.button("Clasificar intervención", type="primary"):
             try:
                 texto_modelo = text
@@ -2970,11 +3104,11 @@ if st.session_state.session is None:
     _izq, _centro, _der = st.columns([1, 1.15, 1])
     with _centro:
         st.markdown(
-            """
+            f"""
             <div class="login-hero">
-                <div class="login-logo">💬</div>
-                <div class="login-title">Asistente de Reuniones</div>
-                <div class="login-sub">Gestión inteligente de reuniones con clasificación de actos de diálogo (MRDA)</div>
+                <div class="login-logo"><img src="{LOGO_DATA_URI}" alt="Logo de VINCORA Meet"></div>
+                <div class="login-title">VINCORA Meet</div>
+                <div class="login-sub">Conecta. Reúnete. Avanza.</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -2990,10 +3124,10 @@ else:
     st.sidebar.markdown(
         f"""
         <div class="brand-box">
-            <div class="brand-logo">💬</div>
+            <div class="brand-logo"><img src="{LOGO_DATA_URI}" alt="Logo de VINCORA Meet"></div>
             <div>
-                <div class="brand-name">Asistente de<br>Reuniones</div>
-                <div class="brand-sub">IA · dataset MRDA</div>
+                <div class="brand-name">VINCORA Meet</div>
+                <div class="brand-sub">Conecta. Reúnete. Avanza.</div>
             </div>
         </div>
         <div class="user-chip">
@@ -3006,11 +3140,10 @@ else:
         """,
         unsafe_allow_html=True,
     )
-    opciones_menu = ["💬 Chat", "📅 Reuniones", "✅ Tareas", "📝 Resumen de reuniones", "👥 Participantes", "🧠 Inteligencia artificial", "📊 Métricas", "🚪 Cerrar sesión"]
+    opciones_menu = ["Chat", "Reuniones", "Tareas", "Resumen de reuniones", "Participantes", "Inteligencia artificial", "Métricas", "Cerrar sesión"]
     if admin:
-        opciones_menu.insert(1, "🧑‍💼 Usuarios")
+        opciones_menu.insert(1, "Usuarios")
     page = st.sidebar.radio("Navegación", opciones_menu)
-    page = page.split(" ", 1)[1]  # quitar el emoji para el enrutado
     if page == "Chat":
         view_chat()
     elif page == "Usuarios":
