@@ -67,6 +67,7 @@ ICON_FILES = {
     "correo": "mail.svg",
     "candado": "lock.svg",
     "ver": "eye.svg",
+    "informacion": "info-circle.svg",
 }
 
 
@@ -441,7 +442,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 [data-testid="stSidebar"] .brand-box {
     gap: 12px;
     padding: 18px 5px 20px;
-    margin: 0 0 18px 0;
+    margin: -75px 0 18px 0;
     background: transparent;
     border: 0;
     border-radius: 0;
@@ -540,6 +541,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     border-color: transparent;
     box-shadow: none;
 }
+[data-testid="stSidebar"] [data-testid="stRadio"] label[data-selected] {
+    color: #173E9E;
+    background: linear-gradient(100deg, #EFF6FF 0%, #F0E6FF 100%);
+    border-color: transparent;
+    box-shadow: none;
+}
 [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked)::after {
     content: "";
     position: absolute;
@@ -550,6 +557,19 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     border-radius: 0 4px 4px 0;
     background: #1764F5;
 }
+[data-testid="stSidebar"] [data-testid="stRadio"] label[data-selected]::after {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 0 4px 4px 0;
+    background: #1764F5;
+}
+[data-testid="stSidebar"] label[data-testid="stRadioOption"] > div > div:first-child > div:first-child {
+    display: none !important;
+}
 [data-testid="stSidebar"] [role="radiogroup"] > label::before {
     width: 22px;
     height: 22px;
@@ -557,7 +577,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 [data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(9),
 [data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(8) {
-    margin-top: 29px;
+    margin-top: 70px;
     border-top: 1px solid #DFE5EF;
     border-radius: 0;
     padding-top: 25px;
@@ -577,17 +597,33 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) .block-container {
     max-width: 100% !important;
-    padding: 22px 42px 112px !important;
+    padding: 6px 42px 30px !important;
+}
+[data-testid="stElementContainer"]:has(.chat-page-marker) {
+    display: none !important;
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stAlert"] {
+    display: flex;
+    align-items: center;
     min-height: 64px;
-    margin: 0 0 28px 0;
-    padding: 13px 20px;
+    margin: 0;
+    padding: 4px 20px;
     color: #18233E;
     background: #FFFAE9;
     border: 1px solid #FFD56D;
     border-radius: 11px;
     box-shadow: 0 4px 15px rgba(174, 123, 18, 0.05);
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stAlert"] > div {
+    background: transparent !important;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stAlert"]::before {
+    content: "";
+    width: 25px;
+    height: 25px;
+    margin-right: 16px;
+    flex: 0 0 25px;
+    background: url("__ICON_INFORMACION__") center / contain no-repeat;
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stAlert"] p {
     color: #18233E;
@@ -614,7 +650,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     -webkit-text-fill-color: #071644 !important;
 }
 .chat-page-description {
-    margin: 12px 0 22px 0;
+    margin: 12px 0 8px 0;
     color: #6D7890;
     font-size: 17px;
 }
@@ -626,7 +662,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) {
     box-shadow: 0 8px 24px rgba(30, 64, 175, 0.08) !important;
 }
 div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) > div {
-    padding: 19px 20px 20px !important;
+    padding: 27px 20px 28px !important;
 }
 .chat-options-marker {
     margin-bottom: 14px;
@@ -682,9 +718,17 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) > div 
     background: linear-gradient(105deg, #1764F5 0%, #345CF6 55%, #7654F5 100%);
     font-weight: 700;
 }
+.st-key-tipo_reunion [role="radiogroup"] > label[data-selected] {
+    color: #FFFFFF;
+    background: linear-gradient(105deg, #1764F5 0%, #345CF6 55%, #7654F5 100%);
+    font-weight: 700;
+}
 .st-key-tipo_reunion [role="radiogroup"] > label > div:has(input) { display: none !important; }
 .st-key-tipo_reunion [role="radiogroup"] > label div:has(> input[type="radio"]),
 .st-key-tipo_reunion [role="radiogroup"] > label div:has(input[type="radio"]):not(:has(p)) {
+    display: none !important;
+}
+.st-key-tipo_reunion label[data-testid="stRadioOption"] > div > div:first-child > div:first-child {
     display: none !important;
 }
 .st-key-tipo_reunion [role="radiogroup"] > label::before {
@@ -699,7 +743,8 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) > div 
 .st-key-tipo_reunion [role="radiogroup"] > label:nth-child(1)::before { background-image: url("__ICON_WEB__"); }
 .st-key-tipo_reunion [role="radiogroup"] > label:nth-child(2)::before { background-image: url("__ICON_ADMINISTRACION__"); }
 .st-key-tipo_reunion [role="radiogroup"] > label:nth-child(3)::before { background-image: url("__ICON_USUARIOS__"); }
-.st-key-tipo_reunion [role="radiogroup"] > label:has(input:checked)::before { filter: brightness(0) invert(1); }
+.st-key-tipo_reunion [role="radiogroup"] > label:has(input:checked)::before,
+.st-key-tipo_reunion [role="radiogroup"] > label[data-selected]::before { filter: brightness(0) invert(1); }
 div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) .stTextInput input {
     height: 48px;
     color: #263552 !important;
@@ -808,7 +853,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) .stTex
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stBottom"] {
     background: transparent;
 }
-.chat-composer-marker { height: 0; overflow: hidden; }
+.chat-composer-marker { height: 30px; overflow: hidden; }
 div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-composer-marker),
 [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .chat-composer-marker) {
     background: transparent !important;
@@ -1103,10 +1148,15 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-composer-marker),
 for _nombre_icono in (
     "chat", "administracion", "reuniones", "tareas", "resumen",
     "usuarios", "ia", "metricas", "salir", "correo", "candado", "ver",
-    "web", "eliminar", "idea",
+    "web", "eliminar", "idea", "informacion",
 ):
+    _icono_css = (
+        icono_data_uri("informacion", "#F2A100")
+        if _nombre_icono == "informacion"
+        else ICONOS_AZULES[_nombre_icono]
+    )
     ESTILOS_GLOBALES = ESTILOS_GLOBALES.replace(
-        f"__ICON_{_nombre_icono.upper()}__", ICONOS_AZULES[_nombre_icono]
+        f"__ICON_{_nombre_icono.upper()}__", _icono_css
     )
 ESTILOS_GLOBALES = ESTILOS_GLOBALES.replace("__GOOGLE_ICON__", GOOGLE_ICON_DATA_URI)
 st.markdown(ESTILOS_GLOBALES, unsafe_allow_html=True)
@@ -1880,7 +1930,7 @@ def view_chat():
             accept_audio=True,
             audio_sample_rate=16000,
             submit_mode="disable",
-            height=68,
+            height="content",
         )
     st.markdown(
         '<div class="chat-disclaimer">VINCORA puede cometer errores. Verifica la información antes de confirmar.</div>',
