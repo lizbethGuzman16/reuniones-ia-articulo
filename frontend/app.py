@@ -40,9 +40,11 @@ GOOGLE_ICON_PATH = BRAND_DIR / "google-g.svg"
 
 ICON_FILES = {
     "chat": "message-circle.svg",
-    "usuarios": "users.svg",
-    "administracion": "user-cog.svg",
-    "reuniones": "calendar-event.svg",
+    "chat_sonrisa": "chat-smile.svg",
+    "usuarios": "users-group.svg",
+    "administracion": "user-plus.svg",
+    "reuniones": "calendar.svg",
+    "participantes": "users-group.svg",
     "tareas": "clipboard-check.svg",
     "resumen": "file-description.svg",
     "ia": "brain.svg",
@@ -68,6 +70,15 @@ ICON_FILES = {
     "candado": "lock.svg",
     "ver": "eye.svg",
     "informacion": "info-circle.svg",
+    "virtual": "video.svg",
+    "presencial": "user-pin.svg",
+    "mixta": "users-group.svg",
+    "borrador": "eraser.svg",
+    "adjuntar": "paperclip.svg",
+    "microfono": "microphone.svg",
+    "enviar": "arrow-up.svg",
+    "calendario": "calendar.svg",
+    "destellos": "sparkles.svg",
 }
 
 
@@ -366,7 +377,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 [data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(6)::before,
 [data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(5)::before {
-    background-image: url("__ICON_USUARIOS__");
+    background-image: url("__ICON_PARTICIPANTES__");
 }
 [data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(7)::before,
 [data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(6)::before {
@@ -749,9 +760,9 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) > div 
     background-position: center;
     background-size: contain;
 }
-.st-key-tipo_reunion [role="radiogroup"] > label:nth-child(1)::before { background-image: url("__ICON_WEB__"); }
-.st-key-tipo_reunion [role="radiogroup"] > label:nth-child(2)::before { background-image: url("__ICON_ADMINISTRACION__"); }
-.st-key-tipo_reunion [role="radiogroup"] > label:nth-child(3)::before { background-image: url("__ICON_USUARIOS__"); }
+.st-key-tipo_reunion [role="radiogroup"] > label:nth-child(1)::before { background-image: url("__ICON_VIRTUAL__"); }
+.st-key-tipo_reunion [role="radiogroup"] > label:nth-child(2)::before { background-image: url("__ICON_PRESENCIAL__"); }
+.st-key-tipo_reunion [role="radiogroup"] > label:nth-child(3)::before { background-image: url("__ICON_MIXTA__"); }
 .st-key-tipo_reunion [role="radiogroup"] > label:has(input:checked)::before,
 .st-key-tipo_reunion [role="radiogroup"] > label[data-selected]::before { filter: brightness(0) invert(1); }
 div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) .stTextInput input {
@@ -773,7 +784,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) .stTex
     content: "";
     width: 18px;
     height: 18px;
-    background: url("__ICON_ELIMINAR__") center / contain no-repeat;
+    background: url("__ICON_BORRADOR__") center / contain no-repeat;
 }
 .chat-empty-state {
     padding-top: 31px;
@@ -832,8 +843,8 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) .stTex
     background-repeat: no-repeat;
     background-size: contain;
 }
-.st-key-chat_sugerencia_manana button::before { background-image: url("__ICON_REUNIONES__"); }
-.st-key-chat_sugerencia_semanal button::before { background-image: url("__ICON_USUARIOS__"); }
+.st-key-chat_sugerencia_manana button::before { background-image: url("__ICON_CALENDARIO__"); }
+.st-key-chat_sugerencia_semanal button::before { background-image: url("__ICON_PARTICIPANTES__"); }
 .st-key-chat_sugerencia_invitados button::before { background-image: url("__ICON_ADMINISTRACION__"); }
 .chat-example {
     margin: 18px 0 0;
@@ -849,7 +860,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) .stTex
     height: 17px;
     margin-right: 9px;
     vertical-align: -3px;
-    background: url("__ICON_IDEA__") center / contain no-repeat;
+    background: url("__ICON_DESTELLOS__") center / contain no-repeat;
 }
 [data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatMessage"] {
     max-width: 880px;
@@ -889,6 +900,25 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-composer-marker),
     border: 0 !important;
     border-radius: 50% !important;
     box-shadow: 0 8px 18px rgba(74, 83, 244, .25) !important;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputFileUploadButton"] button {
+    color: transparent !important;
+    background: transparent url("__ICON_ADJUNTAR__") center / 27px 27px no-repeat !important;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputFileUploadButton"] button svg,
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputMicButton"] svg,
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputSubmitButton"] svg {
+    display: none !important;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputMicButton"] {
+    color: transparent !important;
+    background: transparent url("__ICON_MICROFONO__") center / 25px 25px no-repeat !important;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputSubmitButton"] {
+    background-image: url("__ICON_ENVIAR__"), linear-gradient(145deg, #20A5F5 0%, #3E6AF8 52%, #9A3EF3 100%) !important;
+    background-position: center, center !important;
+    background-size: 25px 25px, 100% 100% !important;
+    background-repeat: no-repeat !important;
 }
 .chat-disclaimer {
     margin: 5px 0 0;
@@ -1154,15 +1184,19 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-composer-marker),
 }
 </style>
 """
-for _nombre_icono in (
-    "chat", "administracion", "reuniones", "tareas", "resumen",
-    "usuarios", "ia", "metricas", "salir", "correo", "candado", "ver",
-    "web", "eliminar", "idea", "informacion",
-):
-    _icono_css = (
-        icono_data_uri("informacion", "#F2A100")
-        if _nombre_icono == "informacion"
-        else ICONOS_AZULES[_nombre_icono]
+_colores_iconos_css = {
+    "informacion": "#F2A100",
+    "virtual": "#46546F",
+    "presencial": "#46546F",
+    "mixta": "#46546F",
+    "adjuntar": "#667085",
+    "microfono": "#667085",
+    "enviar": "#FFFFFF",
+}
+for _nombre_icono in ICON_FILES:
+    _icono_css = icono_data_uri(
+        _nombre_icono,
+        _colores_iconos_css.get(_nombre_icono, "#2563EB"),
     )
     ESTILOS_GLOBALES = ESTILOS_GLOBALES.replace(
         f"__ICON_{_nombre_icono.upper()}__", _icono_css
@@ -1825,7 +1859,7 @@ def view_chat():
     st.markdown(
         f"""
         <div class="chat-page-heading">
-            <img src="{ICONOS_AZULES['chat']}" alt="">
+            <img src="{ICONOS_AZULES['chat_sonrisa']}" alt="">
             <h1>Crear reunión por chat</h1>
         </div>
         <div class="chat-page-description">Describe tu reunión y VINCORA se encargará de organizarla.</div>
