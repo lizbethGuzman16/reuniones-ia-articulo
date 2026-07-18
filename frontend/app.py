@@ -332,6 +332,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     background-position: center;
     background-size: contain;
 }
+[data-testid="stSidebar"] [role="radiogroup"] > label > div:has(input[type="radio"]) {
+    display: none !important;
+}
 [data-testid="stSidebar"] [role="radiogroup"] > label:nth-child(1)::before {
     background-image: url("__ICON_CHAT__");
 }
