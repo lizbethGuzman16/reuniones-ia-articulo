@@ -417,6 +417,420 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .user-name  { font-weight: 700; font-size: 13px; color: var(--ink); line-height: 1.2; }
 .user-level { font-size: 11px; color: var(--muted); text-transform: capitalize; }
 
+/* Layout principal VINCORA aprobado */
+[data-testid="stSidebar"] {
+    width: 300px !important;
+    min-width: 300px !important;
+    background: #F7FAFF;
+    border-right: 0;
+}
+[data-testid="stSidebar"] > div:first-child {
+    margin: 8px;
+    height: calc(100vh - 16px);
+    background: #FFFFFF;
+    border: 1px solid #E8EDF6;
+    border-radius: 14px;
+    box-shadow: 0 7px 24px rgba(30, 64, 175, 0.08);
+}
+[data-testid="stSidebar"] .brand-box {
+    gap: 12px;
+    padding: 18px 5px 20px;
+    margin: 0 0 18px 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+[data-testid="stSidebar"] .brand-logo {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+[data-testid="stSidebar"] .brand-logo img {
+    width: 58px;
+    height: 55px;
+}
+[data-testid="stSidebar"] .brand-name {
+    color: #071644;
+    font-size: 19px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+[data-testid="stSidebar"] .brand-sub {
+    max-width: 175px;
+    margin-top: 5px;
+    color: #69758E;
+    font-size: 11.5px;
+    white-space: nowrap;
+}
+[data-testid="stSidebar"] .user-chip {
+    min-height: 88px;
+    margin: 0 0 28px 0;
+    padding: 13px 13px;
+    border: 1px solid #DCE3EF;
+    border-radius: 12px;
+    background: #FFFFFF;
+}
+[data-testid="stSidebar"] .user-avatar {
+    width: 45px;
+    height: 45px;
+    flex: 0 0 45px;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 500;
+    background: linear-gradient(145deg, #76A9F8, #8B8CF7);
+}
+[data-testid="stSidebar"] .user-name {
+    max-width: 155px;
+    color: #13213F;
+    font-size: 13.5px;
+    line-height: 1.3;
+}
+[data-testid="stSidebar"] .user-level {
+    margin-top: 4px;
+    color: #7A859C;
+    font-size: 11.5px;
+    text-transform: none;
+}
+.user-chevron {
+    width: 10px;
+    height: 10px;
+    margin-left: auto;
+    margin-right: 3px;
+    border-right: 2px solid #4A5875;
+    border-bottom: 2px solid #4A5875;
+    transform: rotate(45deg) translateY(-3px);
+}
+.nav-label {
+    margin: 0 0 10px 14px;
+    color: #6D7890;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .5px;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label {
+    position: relative;
+    min-height: 51px;
+    padding: 11px 14px;
+    margin: 1px 0;
+    border-radius: 9px;
+    color: #182640;
+    font-size: 13.5px;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
+    color: #173E9E;
+    background: linear-gradient(100deg, #EFF6FF 0%, #F0E6FF 100%);
+    border-color: transparent;
+    box-shadow: none;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked)::after {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 0 4px 4px 0;
+    background: #1764F5;
+}
+[data-testid="stSidebar"] [role="radiogroup"] > label::before {
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+}
+[data-testid="stSidebar"] [role="radiogroup"]:has(> label:nth-child(9)) > label:nth-child(9),
+[data-testid="stSidebar"] [role="radiogroup"]:not(:has(> label:nth-child(9))) > label:nth-child(8) {
+    margin-top: 29px;
+    border-top: 1px solid #DFE5EF;
+    border-radius: 0;
+    padding-top: 25px;
+    min-height: 72px;
+}
+
+/* Página Chat */
+.chat-page-marker { height: 0; overflow: hidden; }
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) {
+    color: #0D1B3E;
+    background:
+        radial-gradient(880px 620px at 60% 60%, rgba(219, 233, 255, 0.40), transparent 70%),
+        #FBFDFF;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stHeader"] {
+    background: transparent;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) .block-container {
+    max-width: 100% !important;
+    padding: 22px 42px 112px !important;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stAlert"] {
+    min-height: 64px;
+    margin: 0 0 28px 0;
+    padding: 13px 20px;
+    color: #18233E;
+    background: #FFFAE9;
+    border: 1px solid #FFD56D;
+    border-radius: 11px;
+    box-shadow: 0 4px 15px rgba(174, 123, 18, 0.05);
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stAlert"] p {
+    color: #18233E;
+    font-size: 14px;
+}
+.chat-page-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 0;
+}
+.chat-page-heading img {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+}
+.chat-page-heading h1 {
+    margin: 0 !important;
+    color: #071644 !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-size: clamp(34px, 3vw, 44px) !important;
+    font-weight: 800 !important;
+    letter-spacing: -1.2px !important;
+    -webkit-text-fill-color: #071644 !important;
+}
+.chat-page-description {
+    margin: 12px 0 22px 0;
+    color: #6D7890;
+    font-size: 17px;
+}
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) {
+    padding: 0 !important;
+    border: 1px solid #DFE5EF !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    box-shadow: 0 8px 24px rgba(30, 64, 175, 0.08) !important;
+}
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) > div {
+    padding: 19px 20px 20px !important;
+}
+.chat-options-marker {
+    margin-bottom: 14px;
+    color: #111F40;
+    font-size: 18px;
+    font-weight: 750;
+}
+.chat-field-title {
+    margin-bottom: 7px;
+    color: #13213F;
+    font-size: 14px;
+    font-weight: 600;
+}
+.chat-field-help {
+    margin: -5px 0 8px;
+    color: #7A859C;
+    font-size: 12px;
+}
+.chat-options-divider {
+    width: 1px;
+    height: 87px;
+    margin: 0 auto;
+    background: #DCE3EF;
+}
+.chat-clear-spacer { height: 30px; }
+.st-key-tipo_reunion [role="radiogroup"] {
+    display: flex;
+    width: 100%;
+    gap: 0;
+    border: 1px solid #CFD7E5;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.st-key-tipo_reunion [role="radiogroup"] > label {
+    display: flex;
+    min-height: 56px;
+    flex: 1 1 33.333%;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 10px;
+    color: #263552;
+    background: #FFFFFF;
+    border: 0;
+    border-right: 1px solid #D8DFEA;
+    border-radius: 0;
+    cursor: pointer;
+}
+.st-key-tipo_reunion [role="radiogroup"] > label:last-child { border-right: 0; }
+.st-key-tipo_reunion [role="radiogroup"] > label:has(input:checked) {
+    color: #FFFFFF;
+    background: linear-gradient(105deg, #1764F5 0%, #345CF6 55%, #7654F5 100%);
+    font-weight: 700;
+}
+.st-key-tipo_reunion [role="radiogroup"] > label > div:has(input) { display: none !important; }
+.st-key-tipo_reunion [role="radiogroup"] > label::before {
+    content: "";
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+.st-key-tipo_reunion [role="radiogroup"] > label:nth-child(1)::before { background-image: url("__ICON_WEB__"); }
+.st-key-tipo_reunion [role="radiogroup"] > label:nth-child(2)::before { background-image: url("__ICON_ADMINISTRACION__"); }
+.st-key-tipo_reunion [role="radiogroup"] > label:nth-child(3)::before { background-image: url("__ICON_USUARIOS__"); }
+.st-key-tipo_reunion [role="radiogroup"] > label:has(input:checked)::before { filter: brightness(0) invert(1); }
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-options-marker) .stTextInput input {
+    height: 48px;
+    color: #263552 !important;
+    background: #FFFFFF !important;
+    border: 1px solid #CFD7E5 !important;
+    border-radius: 10px !important;
+}
+.st-key-chat_limpiar button {
+    min-height: 45px;
+    color: #1F5EFF;
+    background: #FFFFFF;
+    border: 1.5px solid #2F68FF;
+    border-radius: 10px;
+    box-shadow: none;
+}
+.st-key-chat_limpiar button::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    background: url("__ICON_ELIMINAR__") center / contain no-repeat;
+}
+.chat-empty-state {
+    padding-top: 31px;
+    text-align: center;
+}
+.chat-empty-logo {
+    display: flex;
+    width: 124px;
+    height: 124px;
+    margin: 0 auto 20px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #DFE7F5;
+    border-radius: 50%;
+    background: rgba(255,255,255,.78);
+    box-shadow: 0 13px 30px rgba(72, 80, 232, .14);
+}
+.chat-empty-logo img {
+    width: 88px;
+    height: 83px;
+    object-fit: cover;
+}
+.chat-empty-state h2 {
+    margin: 0 0 10px !important;
+    color: #071644 !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-size: 25px !important;
+    font-weight: 800 !important;
+}
+.chat-empty-state p {
+    margin: 0 0 20px;
+    color: #7A859C;
+    font-size: 15px;
+}
+.st-key-chat_sugerencia_manana button,
+.st-key-chat_sugerencia_semanal button,
+.st-key-chat_sugerencia_invitados button {
+    min-height: 46px;
+    color: #1558E9;
+    background: rgba(255,255,255,.80);
+    border: 1.5px solid #3B6FFF;
+    border-radius: 999px;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+.st-key-chat_sugerencia_manana button::before,
+.st-key-chat_sugerencia_semanal button::before,
+.st-key-chat_sugerencia_invitados button::before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+.st-key-chat_sugerencia_manana button::before { background-image: url("__ICON_REUNIONES__"); }
+.st-key-chat_sugerencia_semanal button::before { background-image: url("__ICON_USUARIOS__"); }
+.st-key-chat_sugerencia_invitados button::before { background-image: url("__ICON_ADMINISTRACION__"); }
+.chat-example {
+    margin: 18px 0 0;
+    color: #7A859C;
+    font-size: 14px;
+    font-style: italic;
+    text-align: center;
+}
+.chat-example::before {
+    content: "";
+    display: inline-block;
+    width: 17px;
+    height: 17px;
+    margin-right: 9px;
+    vertical-align: -3px;
+    background: url("__ICON_IDEA__") center / contain no-repeat;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatMessage"] {
+    max-width: 880px;
+    margin-left: auto;
+    margin-right: auto;
+    background: rgba(255,255,255,.92);
+    border-color: #DFE5EF;
+    box-shadow: 0 6px 18px rgba(30,64,175,.06);
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stBottom"] {
+    background: transparent;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInput"] > div {
+    min-height: 76px;
+    background: #FFFFFF !important;
+    border: 1px solid #D2DAE8 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 28px rgba(30, 64, 175, .11) !important;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInput"] textarea {
+    color: #253453 !important;
+    font-size: 15px;
+}
+[data-testid="stAppViewContainer"]:has(.chat-page-marker) [data-testid="stChatInputSubmitButton"] {
+    width: 54px;
+    height: 54px;
+    margin-right: 5px;
+    color: #FFFFFF !important;
+    background: linear-gradient(145deg, #20A5F5 0%, #3E6AF8 52%, #9A3EF3 100%) !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 8px 18px rgba(74, 83, 244, .25) !important;
+}
+.chat-disclaimer {
+    position: fixed;
+    z-index: 1001;
+    left: 300px;
+    right: 0;
+    bottom: 5px;
+    color: #8B95A9;
+    font-size: 11px;
+    text-align: center;
+    pointer-events: none;
+}
+@media (max-width: 980px) {
+    [data-testid="stAppViewContainer"]:has(.chat-page-marker) .block-container { padding: 20px 22px 112px !important; }
+    .chat-page-heading h1 { font-size: 31px !important; }
+    .chat-options-divider { display: none; }
+    .st-key-chat_sugerencia_manana button,
+    .st-key-chat_sugerencia_semanal button,
+    .st-key-chat_sugerencia_invitados button { white-space: normal; }
+}
+
 /* Acceso VINCORA: composición exacta en dos paneles */
 .auth-page-marker, .auth-panel-marker { height: 0; overflow: hidden; }
 [data-testid="stAppViewContainer"]:has(.auth-page-marker) {
@@ -669,6 +1083,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 for _nombre_icono in (
     "chat", "administracion", "reuniones", "tareas", "resumen",
     "usuarios", "ia", "metricas", "salir", "correo", "candado", "ver",
+    "web", "eliminar", "idea",
 ):
     ESTILOS_GLOBALES = ESTILOS_GLOBALES.replace(
         f"__ICON_{_nombre_icono.upper()}__", ICONOS_AZULES[_nombre_icono]
@@ -1068,9 +1483,7 @@ if DEMO_MODE and st.session_state.session is None and not mostrar_login_captura:
 
 if DEMO_MODE and st.session_state.session is not None:
     st.warning(
-        "MODO DEMOSTRACIÓN LOCAL: los usuarios y textos de tareas proceden de "
-        "los scripts SQL del proyecto original. UUID, fechas y asignaciones son datos "
-        "de prueba generados para ejecutar la interfaz sin Supabase."
+        "**Modo demostración local**　|　Los usuarios y tareas proceden de los datos de prueba del proyecto."
     )
 
 # -------- Auth Views --------
@@ -1306,9 +1719,40 @@ def interpretar_solicitud_reunion(texto):
     }
 
 
+SUGERENCIAS_CHAT = {
+    "chat_sugerencia_manana": "Programa una reunión mañana a las 11:00 a. m. por 45 minutos.",
+    "chat_sugerencia_semanal": "Programa una reunión semanal de equipo el próximo lunes a las 9:00 a. m. por 60 minutos.",
+    "chat_sugerencia_invitados": "Programa una reunión mañana a las 10:00 a. m. e invita a ana@empresa.com y juan@empresa.com.",
+}
+
+
+def cargar_sugerencia_chat(texto: str) -> None:
+    """Coloca una sugerencia editable en el cuadro principal del chat."""
+    st.session_state["vincora_chat_prompt"] = texto
+
+
+def limpiar_chat() -> None:
+    """Restablece la conversación y todas las opciones de la reunión."""
+    st.session_state.chat = []
+    st.session_state["quick_email"] = ""
+    st.session_state["direccion_reunion"] = ""
+    st.session_state["tipo_reunion"] = "Virtual"
+    st.session_state["vincora_chat_prompt"] = ""
+    st.session_state["chat_reset_pending"] = False
+
+
 def view_chat():
-    titulo_pagina("chat", "Crear reunión por chat")
-    st.caption("Escribe algo como: *“Programa una reunión mañana 11 am por 45 min con asunto Ventas Q4 e invita a enterprise y a ana@empresa.com”*")
+    st.markdown('<div class="chat-page-marker"></div>', unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div class="chat-page-heading">
+            <img src="{ICONOS_AZULES['chat']}" alt="">
+            <h1>Crear reunión por chat</h1>
+        </div>
+        <div class="chat-page-description">Describe tu reunión y VINCORA se encargará de organizarla.</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # Reset seguro de opciones antes de instanciar widgets
     if st.session_state.get("chat_reset_pending"):
@@ -1317,27 +1761,127 @@ def view_chat():
         st.session_state["tipo_reunion"] = "Virtual"
         st.session_state["chat_reset_pending"] = False
 
-    # Mostrar historial
-    for role, text in st.session_state.chat:
-        with st.chat_message(role):
-            st.markdown(text)
-
-    # Opciones de reunión en una tarjeta visible sobre el input fijo.
-    # Evita depender del icono Material del expander, que algunos navegadores
-    # muestran como texto cuando la fuente todavía no se ha cargado.
+    # Tarjeta de opciones del diseño aprobado.
     with st.container(border=True):
-        st.markdown("**Opciones de reunión**")
-        col_tipo, col_inv = st.columns([2,3])
+        st.markdown('<div class="chat-options-marker">Opciones de reunión</div>', unsafe_allow_html=True)
+        col_tipo, col_separador, col_inv, col_limpiar = st.columns([1.28, 0.05, 1.22, 0.38])
         with col_tipo:
-            st.radio("Tipo de reunión", ["Virtual","Presencial","Mixta"], horizontal=True, key="tipo_reunion")
+            st.markdown('<div class="chat-field-title">Tipo de reunión</div>', unsafe_allow_html=True)
+            st.radio(
+                "Tipo de reunión",
+                ["Virtual", "Presencial", "Mixta"],
+                horizontal=True,
+                key="tipo_reunion",
+                label_visibility="collapsed",
+            )
+        with col_separador:
+            st.markdown('<div class="chat-options-divider"></div>', unsafe_allow_html=True)
         with col_inv:
-            st.text_input("Invitados (emails separados por coma)", placeholder="ana@empresa.com, juan@empresa.com", key="quick_email")
+            st.markdown(
+                '<div class="chat-field-title">Invitados</div><div class="chat-field-help">Emails separados por comas</div>',
+                unsafe_allow_html=True,
+            )
+            st.text_input(
+                "Invitados",
+                placeholder="ana@empresa.com, juan@empresa.com",
+                key="quick_email",
+                label_visibility="collapsed",
+            )
+        with col_limpiar:
+            st.markdown('<div class="chat-clear-spacer"></div>', unsafe_allow_html=True)
+            st.button(
+                "Limpiar",
+                key="chat_limpiar",
+                use_container_width=True,
+                on_click=limpiar_chat,
+            )
         if st.session_state.get("tipo_reunion") in ["Presencial", "Mixta"]:
-            st.text_input("Dirección del lugar (si aplica)", placeholder="Av. Ejemplo 123, Sala A", key="direccion_reunion")
+            st.text_input(
+                "Dirección del lugar",
+                placeholder="Av. Ejemplo 123, Sala A",
+                key="direccion_reunion",
+            )
 
-    # Entrada fija estilo chat (WhatsApp-like)
-    prompt = st.chat_input("Escribe tu solicitud…")
-    if prompt:
+    # Estado inicial y accesos rápidos. Cada botón rellena el campo inferior.
+    if not st.session_state.chat:
+        st.markdown(
+            f"""
+            <div class="chat-empty-state">
+                <div class="chat-empty-logo"><img src="{LOGO_DATA_URI}" alt="Logo de VINCORA Meet"></div>
+                <h2>¿Qué reunión deseas organizar?</h2>
+                <p>Escribe tu solicitud o utiliza una sugerencia para comenzar.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        sug_1, sug_2, sug_3 = st.columns(3)
+        with sug_1:
+            st.button(
+                "Programar reunión para mañana",
+                key="chat_sugerencia_manana",
+                use_container_width=True,
+                on_click=cargar_sugerencia_chat,
+                args=(SUGERENCIAS_CHAT["chat_sugerencia_manana"],),
+            )
+        with sug_2:
+            st.button(
+                "Reunión semanal de equipo",
+                key="chat_sugerencia_semanal",
+                use_container_width=True,
+                on_click=cargar_sugerencia_chat,
+                args=(SUGERENCIAS_CHAT["chat_sugerencia_semanal"],),
+            )
+        with sug_3:
+            st.button(
+                "Invitar participantes",
+                key="chat_sugerencia_invitados",
+                use_container_width=True,
+                on_click=cargar_sugerencia_chat,
+                args=(SUGERENCIAS_CHAT["chat_sugerencia_invitados"],),
+            )
+        st.markdown(
+            '<div class="chat-example">Ejemplo: Programa una reunión mañana a las 11:00 a. m. por 45 minutos.</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown('<div class="chat-history-marker"></div>', unsafe_allow_html=True)
+        for role, text in st.session_state.chat:
+            with st.chat_message(role):
+                st.markdown(text)
+
+    # Campo único funcional: texto, adjuntos y grabación desde el micrófono.
+    submission = st.chat_input(
+        "Escribe tu solicitud...",
+        key="vincora_chat_prompt",
+        accept_file="multiple",
+        file_type=["pdf", "doc", "docx", "txt", "png", "jpg", "jpeg"],
+        accept_audio=True,
+        audio_sample_rate=16000,
+        submit_mode="disable",
+        height=68,
+    )
+    st.markdown(
+        '<div class="chat-disclaimer">VINCORA puede cometer errores. Verifica la información antes de confirmar.</div>',
+        unsafe_allow_html=True,
+    )
+
+    if submission:
+        prompt = str(getattr(submission, "text", "") or "").strip()
+        archivos = list(getattr(submission, "files", []) or [])
+        audio = getattr(submission, "audio", None)
+
+        if not prompt:
+            medios = []
+            if archivos:
+                medios.append("archivos: " + ", ".join(a.name for a in archivos))
+            if audio is not None:
+                medios.append("una grabación de voz")
+            recibido = "Contenido recibido" + (f" ({'; '.join(medios)})" if medios else "") + "."
+            respuesta = "Añade por escrito la fecha, hora, duración y tema para poder crear la reunión."
+            st.session_state.chat.extend([("user", recibido), ("assistant", respuesta)])
+            st.rerun()
+            return
+
         extras = []
         if 'tipo_reunion' in st.session_state and st.session_state.tipo_reunion:
             extras.append(f"la reunión es de tipo {st.session_state.tipo_reunion.lower()}")
@@ -1354,6 +1898,10 @@ def view_chat():
                 extras.append(f"invita también a {invitados_texto}")
         if st.session_state.get('direccion_reunion'):
             extras.append(f"la dirección es {st.session_state.direccion_reunion}")
+        if archivos:
+            extras.append("se adjuntaron los archivos " + ", ".join(a.name for a in archivos))
+        if audio is not None:
+            extras.append("se adjuntó una grabación de voz")
         final_prompt = prompt if not extras else f"{prompt}. Por favor, {', y '.join(extras)}."
 
         st.session_state.chat.append(("user", final_prompt))
@@ -3446,7 +3994,9 @@ else:
                 <div class="user-name">{nombre_usuario}</div>
                 <div class="user-level">{nivel_txt}</div>
             </div>
+            <span class="user-chevron" aria-hidden="true"></span>
         </div>
+        <div class="nav-label">NAVEGACIÓN</div>
         """,
         unsafe_allow_html=True,
     )
