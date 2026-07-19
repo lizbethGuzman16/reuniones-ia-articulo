@@ -4034,6 +4034,7 @@ def view_reuniones():
                 f'<div class="meetings-agenda-guests">{escape(", ".join(nombres))}</div>'
                 f'<span class="meetings-type-pill">{escape(str(reunion.get("tipo") or "Virtual").title())}</span></div>'
             )
+        agenda_html = "".join(agenda) if agenda else '<div class="meetings-agenda-empty">No hay reuniones programadas para hoy.</div>'
         boton_programar = '<a class="meetings-toolbar-button primary" href="?pagina=Reuniones&amp;programar_reunion=1" target="_self">Programar reunión</a>' if is_admin() else ""
         st.markdown(
             f'<div class="meetings-shell"><div class="meetings-toolbar">'
@@ -4045,7 +4046,7 @@ def view_reuniones():
             + "".join(f'<div class="meetings-weekday">{dia}</div>' for dia in ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"])
             + f'</div><div class="meetings-days">{"".join(celdas)}</div><div class="meetings-legend"><span><i></i>Reunión de equipo</span><span><i class="external"></i>Reunión externa</span></div></div>'
             f'<aside class="meetings-agenda"><h2>Hoy</h2><div class="meetings-agenda-date">{ahora.day} de {MESES_ES[ahora.month - 1]} de {ahora.year}</div>'
-            f'{"".join(agenda) if agenda else "<div class=\"meetings-agenda-empty\">No hay reuniones programadas para hoy.</div>"}'
+            f'{agenda_html}'
             f'<a class="meetings-agenda-link" href="?pagina=Reuniones&amp;vista_reuniones=Próximas" target="_self">Ver agenda completa</a></aside></div></div>',
             unsafe_allow_html=True,
         )
