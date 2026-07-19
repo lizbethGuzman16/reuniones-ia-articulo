@@ -21,7 +21,10 @@ from passlib.hash import bcrypt
 import streamlit as st
 from dotenv import load_dotenv
 import altair as alt
-from frontend.prejoin_room import build_prejoin_html
+try:
+    from frontend.prejoin_room import build_prejoin_html
+except ModuleNotFoundError:
+    from prejoin_room import build_prejoin_html
 
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
