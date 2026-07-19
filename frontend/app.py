@@ -3850,7 +3850,7 @@ def _crear_reunion_directa(tema, fecha_inicio, duracion, invitados) -> None:
         } for correo in invitados])
 
 
-@st.dialog("Programar nueva reunión", width="large", on_dismiss=_cerrar_dialogo_reunion)
+@st.dialog("Programar nueva reunión", width="small", on_dismiss=_cerrar_dialogo_reunion)
 def _dialogo_programar_reunion(correos_disponibles: list[str]) -> None:
     st.markdown('<div class="meeting-dialog-marker"></div>', unsafe_allow_html=True)
     st.markdown('<div class="meeting-dialog-description">Configura los detalles y deja que VINCORA prepare todo.</div>', unsafe_allow_html=True)
