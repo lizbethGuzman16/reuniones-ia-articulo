@@ -1671,6 +1671,14 @@ div[role="dialog"]:has(.meeting-dialog-marker) {
     padding: 0 !important; border: 0 !important; border-radius: 15px !important;
     box-shadow: 0 24px 65px rgba(18,34,69,.24) !important;
 }
+div[role="dialog"] {
+    width: min(560px, calc(100vw - 30px)) !important; max-width: 560px !important;
+    border-radius: 15px !important; box-shadow: 0 24px 65px rgba(18,34,69,.24) !important;
+}
+div[role="dialog"] h2 {
+    color: #071644 !important; font-family: "Segoe UI", Arial, sans-serif !important;
+    font-weight: 800 !important; letter-spacing: -.4px !important;
+}
 div[role="dialog"]:has(.meeting-dialog-marker) > div { padding: 25px 29px 26px !important; }
 div[role="dialog"]:has(.meeting-dialog-marker) h2 {
     color: #071644 !important; font: 800 23px/1.15 "Segoe UI", Arial, sans-serif !important;
@@ -3833,15 +3841,18 @@ def _dialogo_programar_reunion(correos_disponibles: list[str]) -> None:
     st.markdown('<div class="meeting-dialog-marker"></div>', unsafe_allow_html=True)
     st.markdown('<div class="meeting-dialog-description">Configura los detalles y deja que VINCORA prepare todo.</div>', unsafe_allow_html=True)
     ahora = datetime.now(ZoneInfo("America/Lima"))
-    hora_base = datetime.strptime("16:00", "%H:%M").time()
+    horas_disponibles = [f"{hora:02d}:{minuto:02d}" for hora in range(24) for minuto in (0, 30)]
     predeterminados = correos_disponibles[:2] if DEMO_MODE else []
     with st.form("meeting_schedule_form"):
         tema = st.text_input("Título de la reunión", placeholder="Revisión del proyecto VINCORA")
         fecha_col, hora_col, duracion_col = st.columns([1.1, .95, 1])
         with fecha_col:
-            fecha = st.date_input("Fecha", value=ahora.date())
+            fecha = st.date_input("Fecha", value=ahora.date(), format="DD/MM/YYYY")
         with hora_col:
-            hora = st.time_input("Hora de inicio", value=hora_base)
+            hora_texto = st.selectbox(
+                "Hora de inicio", horas_disponibles, index=horas_disponibles.index("16:00"),
+                format_func=lambda valor: _hora_es(datetime.strptime(valor, "%H:%M")),
+            )
         with duracion_col:
             duracion = st.selectbox("Duración", [15, 30, 45, 60, 90, 120], index=2, format_func=lambda valor: f"{valor} minutos")
         st.selectbox("Zona horaria", ["Lima (GMT-5)"])
@@ -3880,6 +3891,7 @@ def _dialogo_programar_reunion(correos_disponibles: list[str]) -> None:
     if invalidos:
         st.error("Revisa los correos de los invitados.")
         return
+    hora = datetime.strptime(hora_texto, "%H:%M").time()
     inicio = datetime.combine(fecha, hora, tzinfo=ZoneInfo("America/Lima"))
     if inicio <= datetime.now(ZoneInfo("America/Lima")):
         st.error("Selecciona una fecha y hora futuras.")
