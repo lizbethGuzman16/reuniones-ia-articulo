@@ -3,13 +3,15 @@ from __future__ import annotations
 import json
 import logging
 import os
+import secrets
 from pathlib import Path
 
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
+from livekit import api as livekit_api
 
 from backend.model_service import load_artifacts, predict_texts
 
@@ -49,6 +51,46 @@ class PredictionRequest(BaseModel):
 
 class BatchPredictionRequest(BaseModel):
     texts: list[str] = Field(min_length=1, max_length=100)
+
+
+class LiveKitTokenRequest(BaseModel):
+    meeting_id: str = Field(min_length=1, max_length=100)
+    participant_id: str = Field(min_length=1, max_length=100)
+    participant_name: str = Field(min_length=1, max_length=120)
+
+
+@app.post("/livekit/token")
+def livekit_token(
+    payload: LiveKitTokenRequest,
+    x_vincora_internal_key: str = Header(default=""),
+) -> dict[str, str]:
+    """Genera tokens LiveKit únicamente para el frontend autenticado de VINCORA."""
+    livekit_url = os.getenv("LIVEKIT_URL", "").strip()
+    api_key = os.getenv("LIVEKIT_API_KEY", "").strip()
+    api_secret = os.getenv("LIVEKIT_API_SECRET", "").strip()
+    internal_key = os.getenv("VINCORA_INTERNAL_API_KEY", "").strip()
+    if not all((livekit_url, api_key, api_secret, internal_key)):
+        raise HTTPException(status_code=503, detail="LiveKit no está configurado completamente.")
+    if not secrets.compare_digest(x_vincora_internal_key, internal_key):
+        raise HTTPException(status_code=401, detail="Solicitud no autorizada.")
+    room_name = f"vincora-{payload.meeting_id}"[:128]
+    identity = f"{payload.participant_id}-{secrets.token_hex(4)}"[:128]
+    token = (
+        livekit_api.AccessToken(api_key, api_secret)
+        .with_identity(identity)
+        .with_name(payload.participant_name)
+        .with_grants(
+            livekit_api.VideoGrants(
+                room_join=True,
+                room=room_name,
+                can_publish=True,
+                can_subscribe=True,
+                can_publish_data=True,
+            )
+        )
+        .to_jwt()
+    )
+    return {"server_url": livekit_url, "participant_token": token, "room_name": room_name}
 
 
 @app.get("/health")

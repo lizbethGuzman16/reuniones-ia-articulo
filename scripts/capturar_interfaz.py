@@ -111,6 +111,21 @@ def capturar_sala_previa(page: Page) -> None:
     frame.get_by_role("heading", name="¿Preparado para unirte?", exact=True).wait_for(
         state="visible", timeout=90_000
     )
+
+
+def capturar_videollamada(page: Page) -> None:
+    reunion_id = "00000000-0000-4000-8000-000000000101"
+    page.goto(f"{BASE_URL}?videollamada={reunion_id}", wait_until="domcontentloaded", timeout=90_000)
+    frame = page.frame_locator('[data-testid="stIFrame"]')
+    frame.get_by_text("VINCORA IA activa", exact=False).wait_for(state="visible", timeout=90_000)
+    expect(frame.get_by_role("button", name=re.compile(r"Finalizar"))).to_be_visible()
+    expect(frame.get_by_text("Ana García", exact=True)).to_be_visible()
+    page.wait_for_timeout(800)
+    page.screenshot(
+        path=str(OUTPUT_DIR / "10-videollamada-activa.png"),
+        full_page=False,
+        animations="disabled",
+    )
     frame.get_by_role("button", name="Permitir dispositivos", exact=True).click()
     frame.get_by_text("Grabación y transcripción con IA", exact=True).wait_for(
         state="visible", timeout=30_000
@@ -149,6 +164,7 @@ def main() -> None:
             abrir_pantalla(page, opcion, titulo, archivo)
 
         capturar_sala_previa(page)
+        capturar_videollamada(page)
 
         context.close()
         browser.close()

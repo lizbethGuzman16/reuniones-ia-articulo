@@ -11,6 +11,7 @@ def build_prejoin_html(*, logo: str, meeting: dict, participant_name: str, parti
             "joinUrl": str(meeting.get("join_url") or meeting.get("start_url") or ""),
             "name": participant_name,
             "participantCount": participant_count,
+            "meetingId": str(meeting.get("id") or ""),
         },
         ensure_ascii=False,
     ).replace("</", "<\\/")
@@ -47,6 +48,6 @@ document.getElementById('allow').onclick=start;cameraSelect.onchange=start;micSe
 document.getElementById('camera-toggle').onclick=()=>{if(!stream)return start();const t=stream.getVideoTracks()[0];t.enabled=!t.enabled;document.getElementById('camera-wrap').classList.toggle('off',!t.enabled)};document.getElementById('mic-toggle').onclick=()=>{if(!stream)return start();const t=stream.getAudioTracks()[0];t.enabled=!t.enabled;document.getElementById('mic-wrap').classList.toggle('off',!t.enabled)};
 document.querySelectorAll('.background-choice').forEach(b=>b.onclick=()=>{document.querySelectorAll('.background-choice').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('preview').className='preview '+(b.dataset.background==='none'?'':b.dataset.background)});
 const consent=document.getElementById('consent'),join=document.getElementById('join');consent.onchange=()=>join.disabled=!consent.checked;document.getElementById('name').onchange=e=>localStorage.setItem('vincora-prejoin-name',e.target.value.trim());document.getElementById('remember').onchange=remember;
-join.onclick=()=>{if(!cfg.joinUrl)return toast('Esta reunión aún no tiene enlace de acceso');remember();stop();window.open(cfg.joinUrl,'_blank','noopener')};document.getElementById('back').onclick=()=>{stop();window.parent.location.href='?pagina=Reuniones'};document.getElementById('help').onclick=()=>toast('Permite cámara y micrófono para comprobarlos');document.getElementById('configure').onclick=()=>{document.querySelector('.settings').scrollIntoView({behavior:'smooth'});toast('Selecciona aquí tus dispositivos')};window.addEventListener('beforeunload',stop);
+join.onclick=()=>{remember();stop();window.parent.location.href='?videollamada='+encodeURIComponent(cfg.meetingId)};document.getElementById('back').onclick=()=>{stop();window.parent.location.href='?pagina=Reuniones'};document.getElementById('help').onclick=()=>toast('Permite cámara y micrófono para comprobarlos');document.getElementById('configure').onclick=()=>{document.querySelector('.settings').scrollIntoView({behavior:'smooth'});toast('Selecciona aquí tus dispositivos')};window.addEventListener('beforeunload',stop);
 devices().then(()=>{try{const saved=JSON.parse(localStorage.getItem('vincora-prejoin-devices')||'{}');if(saved.camera)cameraSelect.value=saved.camera;if(saved.mic)micSelect.value=saved.mic;if(saved.speaker)speakerSelect.value=saved.speaker}catch(e){}});
 </script></body></html>'''

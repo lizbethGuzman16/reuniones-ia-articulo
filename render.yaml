@@ -15,6 +15,14 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: LIVEKIT_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+      - key: VINCORA_INTERNAL_API_KEY
+        sync: false
 
   - type: web
     name: reuniones-ia-frontend
@@ -36,4 +44,6 @@ services:
       - key: SUPABASE_ANON_KEY
         sync: false
       - key: ADMIN_EMAILS
+        sync: false
+      - key: VINCORA_INTERNAL_API_KEY
         sync: false

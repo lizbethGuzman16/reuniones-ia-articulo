@@ -23,8 +23,10 @@ from dotenv import load_dotenv
 import altair as alt
 try:
     from frontend.prejoin_room import build_prejoin_html
+    from frontend.active_room import build_active_room_html
 except ModuleNotFoundError:
     from prejoin_room import build_prejoin_html
+    from active_room import build_active_room_html
 
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -39,6 +41,7 @@ ADMIN_EMAILS = {
     for email in os.getenv("ADMIN_EMAILS", "").split(",")
     if email.strip()
 }
+VINCORA_INTERNAL_API_KEY = os.getenv("VINCORA_INTERNAL_API_KEY", "").strip()
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ICON_DIR = PROJECT_ROOT / "frontend" / "assets" / "icons"
 BRAND_DIR = PROJECT_ROOT / "frontend" / "assets" / "branding"
@@ -1726,14 +1729,19 @@ div[role="dialog"]:has(.meeting-dialog-marker) [data-testid="stFormSubmitButton"
 }
 .prejoin-page-marker { height: 0; overflow: hidden; }
 [data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stHeader"],
+[data-testid="stAppViewContainer"]:has(.active-room-page-marker) [data-testid="stHeader"],
 [data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stSidebar"],
-[data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stAlert"] { display: none !important; }
+[data-testid="stAppViewContainer"]:has(.active-room-page-marker) [data-testid="stSidebar"],
+[data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stAlert"],
+[data-testid="stAppViewContainer"]:has(.active-room-page-marker) [data-testid="stAlert"] { display: none !important; }
 [data-testid="stAppViewContainer"]:has(.prejoin-page-marker) .block-container {
     max-width: none !important; padding: 0 !important;
 }
+[data-testid="stAppViewContainer"]:has(.active-room-page-marker) .block-container { max-width: none !important; padding: 0 !important; }
 [data-testid="stAppViewContainer"]:has(.prejoin-page-marker) iframe {
     display: block; width: 100%; border: 0;
 }
+[data-testid="stAppViewContainer"]:has(.active-room-page-marker) iframe { display:block;width:100%;border:0; }
 @media (max-width: 980px) {
     .meetings-layout { grid-template-columns: 1fr; }
     .meetings-calendar { border-right: 0; }
@@ -4038,6 +4046,54 @@ def view_sala_previa(reunion_id: str) -> None:
     components.html(html, height=1000, scrolling=True)
 
 
+def view_videollamada(reunion_id: str) -> None:
+    """Sala LiveKit activa para usuarios autenticados de VINCORA."""
+    import streamlit.components.v1 as components
+
+    st.markdown('<div class="active-room-page-marker"></div>', unsafe_allow_html=True)
+    try:
+        reuniones = sb_select(
+            "reuniones",
+            {"select": "id,tema,id_externo,creador_id", "id": f"eq.{reunion_id}", "limit": "1"},
+        )
+        reunion = reuniones[0] if reuniones else None
+    except Exception:
+        reunion = None
+    if not reunion:
+        st.error("No encontramos la reunión solicitada.")
+        return
+    sesion = st.session_state.session or {}
+    conexion = {}
+    if not DEMO_MODE:
+        if not VINCORA_INTERNAL_API_KEY:
+            st.error("La comunicación segura entre VINCORA y LiveKit aún no está configurada.")
+            return
+        try:
+            respuesta = requests.post(
+                f"{FASTAPI_URL}/livekit/token",
+                headers={"X-Vincora-Internal-Key": VINCORA_INTERNAL_API_KEY},
+                json={
+                    "meeting_id": reunion_id,
+                    "participant_id": str(sesion.get("id") or ""),
+                    "participant_name": str(sesion.get("nombre") or "Usuario"),
+                },
+                timeout=30,
+            )
+            respuesta.raise_for_status()
+            conexion = respuesta.json()
+        except Exception as exc:
+            st.error(f"No fue posible conectar con LiveKit: {exc}")
+            return
+    html = build_active_room_html(
+        logo=LOGO_DATA_URI,
+        meeting=reunion,
+        connection=conexion,
+        user=sesion,
+        demo=DEMO_MODE,
+    )
+    components.html(html, height=1000, scrolling=False)
+
+
 def view_reuniones():
     st.markdown('<div class="meetings-page-marker"></div>', unsafe_allow_html=True)
     try:
@@ -5571,6 +5627,8 @@ elif st.session_state.session is None:
                 '<div class="auth-register-prompt">¿No tienes una cuenta? <a href="?auth=register" target="_self">Regístrate</a></div>',
                 unsafe_allow_html=True,
             )
+elif str(st.query_params.get("videollamada", "") or ""):
+    view_videollamada(str(st.query_params.get("videollamada", "") or ""))
 elif str(st.query_params.get("sala_previa", "") or ""):
     view_sala_previa(str(st.query_params.get("sala_previa", "") or ""))
 else:
