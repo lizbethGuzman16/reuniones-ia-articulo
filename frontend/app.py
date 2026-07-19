@@ -1679,6 +1679,24 @@ div[role="dialog"] h2 {
     color: #071644 !important; font-family: "Segoe UI", Arial, sans-serif !important;
     font-weight: 800 !important; letter-spacing: -.4px !important;
 }
+[role="dialog"] {
+    width: min(575px, calc(100vw - 30px)) !important; max-width: 575px !important;
+    border: 0 !important; border-radius: 15px !important;
+    box-shadow: 0 24px 65px rgba(18,34,69,.24) !important;
+}
+[role="dialog"] > div { padding: 25px 29px 26px !important; }
+[role="dialog"] h2 {
+    color: #071644 !important; font-family: "Segoe UI", Arial, sans-serif !important;
+    font-size: 23px !important; font-weight: 800 !important; letter-spacing: -.4px !important;
+}
+[role="dialog"] [data-testid="stForm"] {
+    padding: 0 !important; background: transparent !important; border: 0 !important; box-shadow: none !important;
+}
+[role="dialog"] [data-testid="stFormSubmitButton"] button { min-height: 44px; border-radius: 7px !important; }
+[role="dialog"] [data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"] {
+    color: #FFF !important; border: 0 !important;
+    background: linear-gradient(100deg, #1765ED 0%, #3D64F5 55%, #9346F4 100%) !important;
+}
 div[role="dialog"]:has(.meeting-dialog-marker) > div { padding: 25px 29px 26px !important; }
 div[role="dialog"]:has(.meeting-dialog-marker) h2 {
     color: #071644 !important; font: 800 23px/1.15 "Segoe UI", Arial, sans-serif !important;
@@ -1694,6 +1712,10 @@ div[role="dialog"]:has(.meeting-dialog-marker) [data-baseweb="select"] > div {
 }
 .st-key-meeting_assistant { margin: 4px 0 6px; padding: 10px 13px 7px; border: 1px solid #D4DDEA; border-radius: 8px; }
 .meeting-assistant-title { margin-bottom: 3px; color: #142347; font-size: 12.5px; font-weight: 800; }
+.meeting-assistant-option { display: flex; align-items: center; gap: 10px; min-height: 32px; color: #1A2948; font-size: 11.5px; }
+.meeting-assistant-option img { width: 19px; height: 19px; }
+.st-key-meeting_assistant [data-testid="stHorizontalBlock"] { align-items: center; }
+.st-key-meeting_assistant .stToggle { display: flex; justify-content: flex-end; }
 .meeting-dialog-note { margin: 7px 0 13px; color: #647493; font-size: 10.5px; font-style: italic; }
 div[role="dialog"]:has(.meeting-dialog-marker) [data-testid="stFormSubmitButton"] button {
     min-height: 44px; border-radius: 7px !important; box-shadow: none !important;
@@ -3863,9 +3885,21 @@ def _dialogo_programar_reunion(correos_disponibles: list[str]) -> None:
         objetivo = st.text_area("Objetivo", placeholder="Revisar avances, resolver bloqueos y establecer los próximos acuerdos.", height=72)
         with st.container(key="meeting_assistant"):
             st.markdown('<div class="meeting-assistant-title">Asistente inteligente</div>', unsafe_allow_html=True)
-            grabar = st.toggle("Grabar reunión", value=True)
-            transcribir = st.toggle("Transcripción automática", value=True)
-            informe = st.toggle("Generar informe con IA", value=True)
+            grabar_texto, grabar_control = st.columns([6, 1])
+            with grabar_texto:
+                st.markdown(f'<div class="meeting-assistant-option"><img src="{ICONOS_AZULES["microfono"]}" alt="">Grabar reunión</div>', unsafe_allow_html=True)
+            with grabar_control:
+                grabar = st.toggle("Grabar reunión", value=True, label_visibility="collapsed", key="meeting_record")
+            transcribir_texto, transcribir_control = st.columns([6, 1])
+            with transcribir_texto:
+                st.markdown(f'<div class="meeting-assistant-option"><img src="{ICONOS_AZULES["resumen"]}" alt="">Transcripción automática</div>', unsafe_allow_html=True)
+            with transcribir_control:
+                transcribir = st.toggle("Transcripción automática", value=True, label_visibility="collapsed", key="meeting_transcribe")
+            informe_texto, informe_control = st.columns([6, 1])
+            with informe_texto:
+                st.markdown(f'<div class="meeting-assistant-option"><img src="{ICONOS_AZULES["destellos"]}" alt="">Generar informe con IA</div>', unsafe_allow_html=True)
+            with informe_control:
+                informe = st.toggle("Generar informe con IA", value=True, label_visibility="collapsed", key="meeting_report")
         st.markdown(
             '<div class="meeting-dialog-note">ⓘ　Los participantes deberán aceptar la grabación y transcripción al ingresar.</div>',
             unsafe_allow_html=True,
