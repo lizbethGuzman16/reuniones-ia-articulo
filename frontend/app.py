@@ -1671,29 +1671,21 @@ div[role="dialog"]:has(.meeting-dialog-marker) {
     padding: 0 !important; border: 0 !important; border-radius: 15px !important;
     box-shadow: 0 24px 65px rgba(18,34,69,.24) !important;
 }
-div[role="dialog"] {
-    width: min(560px, calc(100vw - 30px)) !important; max-width: 560px !important;
-    border-radius: 15px !important; box-shadow: 0 24px 65px rgba(18,34,69,.24) !important;
-}
-div[role="dialog"] h2 {
-    color: #071644 !important; font-family: "Segoe UI", Arial, sans-serif !important;
-    font-weight: 800 !important; letter-spacing: -.4px !important;
-}
-[role="dialog"] {
+[data-baseweb="modal"]:has(.meeting-dialog-marker) {
     width: min(575px, calc(100vw - 30px)) !important; max-width: 575px !important;
     border: 0 !important; border-radius: 15px !important;
     box-shadow: 0 24px 65px rgba(18,34,69,.24) !important;
 }
-[role="dialog"] > div { padding: 25px 29px 26px !important; }
-[role="dialog"] h2 {
+[data-baseweb="modal"]:has(.meeting-dialog-marker) > div { padding: 25px 29px 26px !important; }
+[data-baseweb="modal"]:has(.meeting-dialog-marker) h2 {
     color: #071644 !important; font-family: "Segoe UI", Arial, sans-serif !important;
     font-size: 23px !important; font-weight: 800 !important; letter-spacing: -.4px !important;
 }
-[role="dialog"] [data-testid="stForm"] {
+[data-baseweb="modal"]:has(.meeting-dialog-marker) [data-testid="stForm"] {
     padding: 0 !important; background: transparent !important; border: 0 !important; box-shadow: none !important;
 }
-[role="dialog"] [data-testid="stFormSubmitButton"] button { min-height: 44px; border-radius: 7px !important; }
-[role="dialog"] [data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"] {
+[data-baseweb="modal"]:has(.meeting-dialog-marker) [data-testid="stFormSubmitButton"] button { min-height: 44px; border-radius: 7px !important; }
+[data-baseweb="modal"]:has(.meeting-dialog-marker) [data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"] {
     color: #FFF !important; border: 0 !important;
     background: linear-gradient(100deg, #1765ED 0%, #3D64F5 55%, #9346F4 100%) !important;
 }
