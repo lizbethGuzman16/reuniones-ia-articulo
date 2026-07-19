@@ -50,6 +50,12 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
             "heading", name="Invitar nuevo usuario", exact=True
         ).wait_for(state="visible", timeout=30_000)
         page.wait_for_timeout(300)
+    elif opcion == "Reuniones":
+        page.get_by_role("link", name=re.compile(r"Programar reunión$")).click()
+        page.get_by_role(
+            "heading", name="Programar nueva reunión", exact=True
+        ).wait_for(state="visible", timeout=30_000)
+        page.wait_for_timeout(300)
 
     page.screenshot(
         path=str(OUTPUT_DIR / archivo),
@@ -78,6 +84,10 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
     elif opcion == "Usuarios":
         expect(page.get_by_text("Permisos iniciales", exact=True)).to_be_visible()
         expect(page.get_by_role("button", name="Enviar invitación", exact=True)).to_be_visible()
+        page.keyboard.press("Escape")
+    elif opcion == "Reuniones":
+        expect(page.get_by_text("Asistente inteligente", exact=True)).to_be_visible()
+        expect(page.get_by_role("button", name="Programar reunión", exact=True)).to_be_visible()
         page.keyboard.press("Escape")
 
 

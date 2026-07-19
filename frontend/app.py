@@ -1,5 +1,6 @@
 import os, json, requests
 import base64
+import calendar
 import secrets
 import time
 import re
@@ -11,6 +12,7 @@ from io import BytesIO
 from html import escape
 from pathlib import Path
 from urllib.parse import quote
+from zoneinfo import ZoneInfo
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
@@ -1561,6 +1563,141 @@ div[role="dialog"]:has(.users-dialog-marker) [data-testid="stFormSubmitButton"] 
     .users-heading h1 { font-size: 27px !important; }
     .users-metrics { grid-template-columns: 1fr; }
     .users-table { min-width: 860px; }
+}
+
+/* Reuniones: calendario y programación según la referencia VINCORA */
+.meetings-page-marker { height: 0; overflow: hidden; }
+[data-testid="stAppViewContainer"]:has(.meetings-page-marker) {
+    color: #0B183A;
+    background: linear-gradient(135deg, #F8FAFE 0%, #F1F5FB 100%);
+}
+[data-testid="stAppViewContainer"]:has(.meetings-page-marker) [data-testid="stHeader"] { background: transparent; }
+[data-testid="stAppViewContainer"]:has(.meetings-page-marker) .block-container {
+    max-width: none !important; padding: 25px 24px 48px !important;
+}
+.meetings-heading { display: flex; align-items: center; gap: 16px; }
+.meetings-heading img { width: 38px; height: 38px; }
+.meetings-heading h1 {
+    margin: 0 !important; color: #071644 !important; -webkit-text-fill-color: #071644 !important;
+    font: 800 30px/1.1 "Segoe UI", Arial, sans-serif !important; letter-spacing: -.7px !important;
+}
+.meetings-subtitle { margin: 5px 0 18px 1px; color: #68758E; font-size: 14px; }
+.st-key-meetings_view [data-testid="stWidgetLabel"] { display: none; }
+.st-key-meetings_view [data-baseweb="button-group"] { gap: 10px; }
+.st-key-meetings_view [data-baseweb="button-group"] button {
+    min-height: 36px; padding: 6px 21px; color: #273552; background: transparent;
+    border: 0 !important; border-radius: 18px !important; box-shadow: none !important; font-size: 13px;
+}
+.st-key-meetings_view [data-baseweb="button-group"] button[aria-pressed="true"] {
+    color: #1455CE !important; background: #E7EEFA !important; font-weight: 700;
+}
+.meetings-shell {
+    overflow: hidden; margin-top: 8px; background: rgba(255,255,255,.94);
+    border: 1px solid #D9E2EF; border-radius: 13px; box-shadow: 0 7px 20px rgba(31,52,91,.06);
+}
+.meetings-toolbar {
+    min-height: 74px; display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 19px; border-bottom: 1px solid #DCE4EF;
+}
+.meetings-month { display: flex; align-items: center; gap: 17px; color: #071644; font-size: 18px; font-weight: 800; }
+.meetings-month-arrow { color: #314563; font-size: 30px; font-weight: 300; }
+.meetings-toolbar-actions { display: flex; align-items: center; gap: 8px; }
+.meetings-toolbar-button {
+    min-width: 51px; height: 37px; display: inline-flex; align-items: center; justify-content: center;
+    color: #273958 !important; background: #FFF; border: 1px solid #D3DCE9; border-radius: 7px;
+    text-decoration: none !important; font-size: 12px; font-weight: 650;
+}
+.meetings-toolbar-button.arrow { min-width: 43px; font-size: 20px; }
+.meetings-toolbar-button.primary {
+    min-width: 159px; color: #FFF !important; background: #195ED8; border-color: #195ED8; font-size: 13px;
+}
+.meetings-toolbar-button.primary::before { content: "+"; margin-right: 10px; font-size: 23px; font-weight: 300; }
+.meetings-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; }
+.meetings-calendar { min-width: 0; border-right: 1px solid #DCE4EF; }
+.meetings-weekdays, .meetings-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.meetings-weekday {
+    min-height: 46px; display: flex; align-items: center; justify-content: center;
+    color: #53617B; background: #FBFCFE; border-bottom: 1px solid #DCE4EF;
+    font-size: 10.5px; font-weight: 750;
+}
+.meetings-day {
+    min-height: 118px; overflow: hidden; padding: 13px 10px 8px;
+    border-right: 1px solid #E1E7F0; border-bottom: 1px solid #E1E7F0; background: #FFF;
+}
+.meetings-day:nth-child(7n) { border-right: 0; }
+.meetings-day.outside { color: #9AA5B7; background: #FBFCFE; }
+.meetings-day-number { color: #263754; font-size: 12.5px; font-weight: 650; }
+.meetings-day.outside .meetings-day-number { color: #9AA5B7; }
+.meetings-day.today .meetings-day-number {
+    width: 25px; height: 25px; display: inline-flex; align-items: center; justify-content: center;
+    color: #FFF; background: #1D63DF; border-radius: 50%;
+}
+.meetings-event {
+    display: block; overflow: hidden; margin-top: 6px; padding: 4px 6px;
+    color: #FFF !important; background: #1761D9; border-radius: 4px;
+    text-decoration: none !important; font-size: 9px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap;
+}
+.meetings-event.external { background: #7136C9; }
+.meetings-legend { display: flex; gap: 22px; padding: 15px 16px; color: #66738B; font-size: 10px; }
+.meetings-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.meetings-legend i { width: 12px; height: 12px; background: #1761D9; border-radius: 50%; }
+.meetings-legend i.external { background: #7136C9; }
+.meetings-agenda { padding: 18px 15px 14px; background: #FBFCFE; }
+.meetings-agenda h2 { margin: 0; color: #071644; font-size: 18px; }
+.meetings-agenda-date { margin: 4px 0 17px; color: #596780; font-size: 11px; }
+.meetings-agenda-card {
+    margin-bottom: 13px; padding: 13px 12px 12px; background: #FFF;
+    border: 1px solid #D6DFEA; border-left: 5px solid #1761D9; border-radius: 8px;
+}
+.meetings-agenda-card.external { border-left-color: #7136C9; }
+.meetings-agenda-time { color: #155DD9; font-size: 10px; font-weight: 750; }
+.meetings-agenda-card.external .meetings-agenda-time { color: #7136C9; }
+.meetings-agenda-title { margin: 8px 0 6px; color: #0C1938; font-size: 12px; font-weight: 800; }
+.meetings-agenda-guests { color: #697790; font-size: 10.5px; }
+.meetings-type-pill { display: inline-flex; margin-top: 8px; padding: 4px 8px; color: #1758C7; background: #E9F0FC; border-radius: 4px; font-size: 9px; }
+.meetings-agenda-empty { margin: 28px 0; color: #71809A; font-size: 12px; text-align: center; }
+.meetings-agenda-link {
+    min-height: 38px; display: flex; align-items: center; justify-content: center;
+    margin-top: 22px; color: #1557C8 !important; border: 1px solid #1D62D5; border-radius: 6px;
+    text-decoration: none !important; font-size: 11px; font-weight: 700;
+}
+.meetings-list { display: grid; gap: 12px; margin-top: 8px; }
+.meetings-list-card { padding: 17px 19px; background: #FFF; border: 1px solid #D9E2EF; border-radius: 10px; }
+.meetings-list-card h3 { margin: 0 0 5px; color: #0B183A; font-size: 15px; }
+.meetings-list-card p { margin: 0; color: #68758E; font-size: 12px; }
+.meetings-list-card a { color: #155ED5; text-decoration: none; font-weight: 700; }
+div[role="dialog"]:has(.meeting-dialog-marker) {
+    width: min(560px, calc(100vw - 30px)) !important; max-width: 560px !important;
+    padding: 0 !important; border: 0 !important; border-radius: 15px !important;
+    box-shadow: 0 24px 65px rgba(18,34,69,.24) !important;
+}
+div[role="dialog"]:has(.meeting-dialog-marker) > div { padding: 25px 29px 26px !important; }
+div[role="dialog"]:has(.meeting-dialog-marker) h2 {
+    color: #071644 !important; font: 800 23px/1.15 "Segoe UI", Arial, sans-serif !important;
+}
+.meeting-dialog-marker { height: 0; overflow: hidden; }
+.meeting-dialog-description { margin: -6px 0 17px; color: #65728B; font-size: 12px; }
+div[role="dialog"]:has(.meeting-dialog-marker) [data-testid="stForm"] { padding: 0; border: 0; }
+div[role="dialog"]:has(.meeting-dialog-marker) label { color: #142347; font-size: 11.5px; font-weight: 700; }
+div[role="dialog"]:has(.meeting-dialog-marker) input,
+div[role="dialog"]:has(.meeting-dialog-marker) textarea,
+div[role="dialog"]:has(.meeting-dialog-marker) [data-baseweb="select"] > div {
+    border-color: #CCD6E5 !important; border-radius: 7px !important; box-shadow: none !important;
+}
+.st-key-meeting_assistant { margin: 4px 0 6px; padding: 10px 13px 7px; border: 1px solid #D4DDEA; border-radius: 8px; }
+.meeting-assistant-title { margin-bottom: 3px; color: #142347; font-size: 12.5px; font-weight: 800; }
+.meeting-dialog-note { margin: 7px 0 13px; color: #647493; font-size: 10.5px; font-style: italic; }
+div[role="dialog"]:has(.meeting-dialog-marker) [data-testid="stFormSubmitButton"] button {
+    min-height: 44px; border-radius: 7px !important; box-shadow: none !important;
+}
+div[role="dialog"]:has(.meeting-dialog-marker) [data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"] {
+    color: #FFF !important; border: 0 !important;
+    background: linear-gradient(100deg, #1765ED 0%, #3D64F5 55%, #9346F4 100%) !important;
+}
+@media (max-width: 980px) {
+    .meetings-layout { grid-template-columns: 1fr; }
+    .meetings-calendar { border-right: 0; }
+    .meetings-day { min-height: 92px; }
 }
 
 /* Acceso VINCORA: composición exacta en dos paneles */
@@ -3638,259 +3775,282 @@ def view_usuarios():
         if seleccionado:
             _dialogo_gestionar_usuario(seleccionado)
 
-# -------- Reuniones --------            
-def view_reuniones():
-    titulo_pagina("reuniones", "Reuniones")
-    admin = is_admin()
+# -------- Reuniones --------
+MESES_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 
-    # ---- Filtros ----
-    col1, col2, col3 = st.columns(3)
 
-    with col1:
-        filtro_texto = st.text_input("Buscar por tema o creador", placeholder="ventas, actualización...")
-
-    with col2:
-        filtro_estado = st.selectbox("Estado", ["Todos", "programada", "completada", "cancelada"])
-
-    with col3:
-        filtro_fecha = st.date_input("Filtrar por fecha", value=None)
-
-    # ---- Obtener reuniones ----
+def _fecha_hora_reunion(valor):
+    if not valor:
+        return None
     try:
-        reuniones = sb_select("reuniones", {"select":"id,tema,fecha_inicio,duracion_minutos,proveedor,id_externo,join_url,start_url,estado,creador_id,tipo,direccion"})
-    except Exception as e:
-        st.error(f"Error cargando reuniones: {e}")
-        return
+        fecha = datetime.fromisoformat(str(valor).replace("Z", "+00:00"))
+        if fecha.tzinfo:
+            fecha = fecha.astimezone(ZoneInfo("America/Lima"))
+        return fecha
+    except (TypeError, ValueError):
+        return None
 
-    # Formatear fechas
-    for r in reuniones:
-        r["fecha_inicio"] = r["fecha_inicio"].replace("T", " ").replace("Z", "") if r["fecha_inicio"] else r["fecha_inicio"]
 
-    df = pd.DataFrame(reuniones)
+def _hora_es(fecha: datetime) -> str:
+    hora = fecha.hour % 12 or 12
+    sufijo = "a. m." if fecha.hour < 12 else "p. m."
+    return f"{hora}:{fecha.minute:02d} {sufijo}"
 
-    if df.empty:
-        st.info("No hay reuniones registradas todavía. Cree la primera desde el formulario de abajo.")
-        df = pd.DataFrame(columns=["id","tema","fecha_inicio","duracion_minutos","proveedor","id_externo","join_url","start_url","estado","creador_id","tipo","direccion"])
 
-    # ---- Aplicar filtros ----
-    if filtro_texto:
-        df = df[df["tema"].str.contains(filtro_texto, case=False, na=False)]
+def _cerrar_dialogo_reunion() -> None:
+    st.session_state["meeting_dialog_open"] = False
 
-    if filtro_estado != "Todos":
-        df = df[df["estado"] == filtro_estado]
 
-    if filtro_fecha:
-        filtro_str = filtro_fecha.strftime("%Y-%m-%d")
-        df = df[df["fecha_inicio"].str.startswith(filtro_str)]
-
-    df = df.sort_values(by="fecha_inicio", ascending=False)
-
-    st.subheader("Reuniones registradas")
-
-    edited_df = st.data_editor(
-        df,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "tema": st.column_config.TextColumn("Tema"),
-            "fecha_inicio": st.column_config.TextColumn("Fecha"),
-            "duracion_minutos": st.column_config.NumberColumn("Duración (min)"),
-            "estado": st.column_config.SelectboxColumn("Estado", options=["programada","completada","cancelada"]),
-            "join_url": st.column_config.LinkColumn("Enlace Zoom"),
-            "start_url": st.column_config.LinkColumn("Host Link"),
-            "tipo": st.column_config.TextColumn("Tipo"),
-            "direccion": st.column_config.TextColumn("Dirección")
-        },
-        disabled=(list(df.columns) if not admin else ["id", "creador_id", "id_externo", "proveedor", "tipo", "direccion"])
+def _crear_reunion_directa(tema, fecha_inicio, duracion, invitados) -> None:
+    creada = requests.post(
+        f"{SUPABASE_URL}/rest/v1/reuniones",
+        headers={**HEADERS, "Prefer": "return=representation"},
+        data=json.dumps([{
+            "creador_id": st.session_state.session["id"],
+            "tema": tema,
+            "fecha_inicio": fecha_inicio,
+            "duracion_minutos": int(duracion),
+            "proveedor": "manual",
+            "estado": "programada",
+            "tipo": "virtual",
+            "direccion": None,
+        }]),
+        timeout=30,
     )
+    creada.raise_for_status()
+    reunion_id = creada.json()[0]["id"]
+    if invitados:
+        sb_insert("participantes", [{
+            "reunion_id": reunion_id,
+            "correo": correo,
+            "rol": "participante",
+            "estado_invitacion": "enviado",
+        } for correo in invitados])
 
-    # ---- Gráficos compactos ----
-    st.caption("Insights rápidos")
-    colg1, colg2, colg3 = st.columns(3)
-    # Reuniones por mes
-    with colg1:
-        try:
-            dfg = df.copy()
-            dfg["fecha_dt"] = pd.to_datetime(dfg["fecha_inicio"], errors="coerce")
-            dfg = dfg.dropna(subset=["fecha_dt"]).copy()
-            dfg["ym"] = dfg["fecha_dt"].dt.to_period("M").astype(str)
-            cdata = dfg.groupby("ym").size().reset_index(name="reuniones")
-            line = alt.Chart(cdata).mark_line(point=True, color="#1f77b4").encode(
-                x=alt.X("ym:N", title="Mes"),
-                y=alt.Y("reuniones:Q", title="Reuniones")
-            )
-            pts = alt.Chart(cdata).mark_point(size=60, color="#ff7f0e").encode(
-                x="ym:N", y="reuniones:Q"
-            )
-            chart = (line + pts).properties(height=180)
-            st.altair_chart(chart, use_container_width=True)
-        except Exception:
-            st.write("—")
-    # Por tipo
-    with colg2:
-        try:
-            cdata = df.groupby("tipo").size().reset_index(name="reuniones")
-            chart = alt.Chart(cdata).mark_arc(innerRadius=40).encode(
-                theta=alt.Theta("reuniones:Q", stack=True),
-                color=alt.Color("tipo:N", scale=alt.Scale(scheme="category10")),
-                tooltip=["tipo:N","reuniones:Q"]
-            ).properties(height=200)
-            st.altair_chart(chart, use_container_width=True)
-        except Exception:
-            st.write("—")
-    # Por estado
-    with colg3:
-        try:
-            cdata = df.groupby("estado").size().reset_index(name="reuniones")
-            chart = alt.Chart(cdata).mark_bar(color="#6a3d9a").encode(
-                y=alt.Y("estado:N", title="Estado", sort='-x'),
-                x=alt.X("reuniones:Q", title="Reuniones"),
-            ).properties(height=180)
-            st.altair_chart(chart, use_container_width=True)
-        except Exception:
-            st.write("—")
 
-    # ---- Guardar cambios (solo estado) ----
-    if admin and st.button("Guardar cambios"):
-        for i, row in edited_df.iterrows():
-            original = next(u for u in reuniones if u["id"] == row["id"])
-            if row["estado"] != original["estado"]:
-                try:
-                    requests.patch(
-                        f"{SUPABASE_URL}/rest/v1/reuniones",
-                        headers={**HEADERS,"Prefer":"return=representation"},
-                        params={"id": f"eq.{row['id']}"},
-                        data=json.dumps({"estado": row["estado"]})
-                    )
-                except Exception as e:
-                    st.error(f"Error actualizando reunión:: {e}")
-        st.success("Cambios guardados")
+@st.dialog("Programar nueva reunión", width="large", on_dismiss=_cerrar_dialogo_reunion)
+def _dialogo_programar_reunion(correos_disponibles: list[str]) -> None:
+    st.markdown('<div class="meeting-dialog-marker"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="meeting-dialog-description">Configura los detalles y deja que VINCORA prepare todo.</div>', unsafe_allow_html=True)
+    ahora = datetime.now(ZoneInfo("America/Lima"))
+    hora_base = datetime.strptime("16:00", "%H:%M").time()
+    predeterminados = correos_disponibles[:2] if DEMO_MODE else []
+    with st.form("meeting_schedule_form"):
+        tema = st.text_input("Título de la reunión", placeholder="Revisión del proyecto VINCORA")
+        fecha_col, hora_col, duracion_col = st.columns([1.1, .95, 1])
+        with fecha_col:
+            fecha = st.date_input("Fecha", value=ahora.date())
+        with hora_col:
+            hora = st.time_input("Hora de inicio", value=hora_base)
+        with duracion_col:
+            duracion = st.selectbox("Duración", [15, 30, 45, 60, 90, 120], index=2, format_func=lambda valor: f"{valor} minutos")
+        st.selectbox("Zona horaria", ["Lima (GMT-5)"])
+        invitados = st.multiselect(
+            "Invitados", correos_disponibles, default=predeterminados,
+            accept_new_options=True, placeholder="ana@empresa.com",
+        )
+        objetivo = st.text_area("Objetivo", placeholder="Revisar avances, resolver bloqueos y establecer los próximos acuerdos.", height=72)
+        with st.container(key="meeting_assistant"):
+            st.markdown('<div class="meeting-assistant-title">Asistente inteligente</div>', unsafe_allow_html=True)
+            grabar = st.toggle("Grabar reunión", value=True)
+            transcribir = st.toggle("Transcripción automática", value=True)
+            informe = st.toggle("Generar informe con IA", value=True)
+        st.markdown(
+            '<div class="meeting-dialog-note">ⓘ　Los participantes deberán aceptar la grabación y transcripción al ingresar.</div>',
+            unsafe_allow_html=True,
+        )
+        cancelar_col, espacio_col, crear_col = st.columns([1.05, 1.7, 1.8])
+        with cancelar_col:
+            cancelar = st.form_submit_button("Cancelar", use_container_width=True)
+        with espacio_col:
+            st.markdown("")
+        with crear_col:
+            crear = st.form_submit_button("Programar reunión", type="primary", use_container_width=True)
+    if cancelar:
+        st.session_state["meeting_dialog_open"] = False
         st.rerun()
+    if not crear:
+        return
+    tema = tema.strip()
+    invitados = list(dict.fromkeys(str(c).strip().lower() for c in invitados if str(c).strip()))
+    if not tema:
+        st.error("Introduce el título de la reunión.")
+        return
+    invalidos = [c for c in invitados if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", c)]
+    if invalidos:
+        st.error("Revisa los correos de los invitados.")
+        return
+    inicio = datetime.combine(fecha, hora, tzinfo=ZoneInfo("America/Lima"))
+    if inicio <= datetime.now(ZoneInfo("America/Lima")):
+        st.error("Selecciona una fecha y hora futuras.")
+        return
+    fecha_inicio = inicio.isoformat()
+    opciones_asistente = []
+    if grabar:
+        opciones_asistente.append("grabar la reunión")
+    if transcribir:
+        opciones_asistente.append("activar la transcripción automática")
+    if informe:
+        opciones_asistente.append("generar un informe con IA")
+    mensaje = (
+        f"Programa una reunión virtual titulada {tema} el {fecha.isoformat()} a las {hora.strftime('%H:%M')} "
+        f"hora de Lima, con una duración de {duracion} minutos"
+    )
+    if invitados:
+        mensaje += f", e invita a {', '.join(invitados)}"
+    if objetivo.strip():
+        mensaje += f". Objetivo: {objetivo.strip()}"
+    if opciones_asistente:
+        mensaje += f". Configura el asistente para {', '.join(opciones_asistente)}"
+    try:
+        if N8N_URL and not DEMO_MODE:
+            respuesta = requests.post(
+                N8N_URL,
+                json={"creador_id": st.session_state.session["id"], "mensaje": mensaje},
+                timeout=90,
+            )
+            respuesta.raise_for_status()
+        else:
+            _crear_reunion_directa(tema, fecha_inicio, int(duracion), invitados)
+        st.session_state["meeting_dialog_open"] = False
+        st.toast("Reunión programada")
+        st.rerun()
+    except Exception as exc:
+        st.error(f"No fue posible programar la reunión: {exc}")
 
-    # ---- Botones acción ----
-    if admin:
-        st.subheader("Acciones")
 
-    # Selección por lista e ID
-    opciones = {}
-    for r in df.to_dict("records"):
-        label = f"{r.get('tema','(Sin tema)')} — {r.get('fecha_inicio','')} (ID {r.get('id')})"
-        opciones[label] = r.get("id")
-    opciones_list = ["— Selecciona —"] + list(opciones.keys())
-    sel_reu = st.selectbox("Escoge una reunión", opciones_list, key="sel_reu_admin")
-    input_reu = st.text_input("O ingresa ID de reunión", key="id_reu_admin")
+def _tarjetas_reuniones(reuniones: list[dict], participantes_por_reunion: dict[str, list[dict]], usuarios_correo: dict[str, str]) -> str:
+    tarjetas = []
+    for reunion in reuniones:
+        fecha = reunion.get("_fecha")
+        if not fecha:
+            continue
+        correos = [str(p.get("correo") or "") for p in participantes_por_reunion.get(str(reunion.get("id")), [])]
+        nombres = [usuarios_correo.get(c.lower(), c) for c in correos if c]
+        enlace = _url_inicio(reunion.get("start_url") or reunion.get("join_url"))
+        accion = f' · <a href="{escape(enlace)}" target="_blank">Abrir reunión</a>' if enlace else ""
+        tarjetas.append(
+            f'<div class="meetings-list-card"><h3>{escape(str(reunion.get("tema") or "Reunión"))}</h3>'
+            f'<p>{fecha.day} de {MESES_ES[fecha.month - 1]} de {fecha.year} · {_hora_es(fecha)} · {int(reunion.get("duracion_minutos") or 0)} minutos{accion}</p>'
+            f'<p>{escape(", ".join(nombres))}</p></div>'
+        )
+    return '<div class="meetings-list">' + ("".join(tarjetas) or '<div class="meetings-list-card"><p>No hay reuniones en esta vista.</p></div>') + "</div>"
 
-    chosen_id = None
-    if sel_reu and sel_reu != "— Selecciona —":
-        chosen_id = opciones[sel_reu]
-    if input_reu:
-        chosen_id = input_reu
 
-    # Editar/Eliminar reunión seleccionada
-    if admin and chosen_id:
+def view_reuniones():
+    st.markdown('<div class="meetings-page-marker"></div>', unsafe_allow_html=True)
+    try:
+        reuniones = sb_select(
+            "reuniones",
+            {"select": "id,tema,fecha_inicio,duracion_minutos,proveedor,id_externo,join_url,start_url,estado,creador_id,tipo,direccion", "order": "fecha_inicio.asc"},
+        )
+        participantes = sb_select("participantes", {"select": "id,reunion_id,usuario_id,correo,rol,estado_invitacion"})
+        usuarios = sb_select("usuarios", {"select": "id,nombre,correo,estado_suscripcion"})
+    except Exception as exc:
+        st.error(f"Error cargando reuniones: {exc}")
+        return
+    for reunion in reuniones:
+        reunion["_fecha"] = _fecha_hora_reunion(reunion.get("fecha_inicio"))
+    participantes_por_reunion: dict[str, list[dict]] = {}
+    for participante in participantes:
+        participantes_por_reunion.setdefault(str(participante.get("reunion_id")), []).append(participante)
+    usuarios_correo = {
+        str(usuario.get("correo") or "").lower(): str(usuario.get("nombre") or usuario.get("correo") or "")
+        for usuario in usuarios
+    }
+    correos_disponibles = sorted(
+        str(usuario.get("correo") or "").lower() for usuario in usuarios
+        if usuario.get("correo") and str(usuario.get("estado_suscripcion") or "activo").lower() == "activo"
+    )
+    if st.query_params.get("programar_reunion") == "1" and is_admin():
+        st.session_state["meeting_dialog_open"] = True
+        del st.query_params["programar_reunion"]
+    vista_query = str(st.query_params.get("vista_reuniones", "") or "")
+    if vista_query in {"Calendario", "Próximas", "Finalizadas"}:
+        st.session_state["meetings_view"] = vista_query
+        del st.query_params["vista_reuniones"]
+    st.markdown(
+        f'<div class="meetings-heading"><img src="{ICONOS_AZULES["reuniones"]}" alt=""><h1>Reuniones</h1></div>'
+        '<div class="meetings-subtitle">Administra y programa tus reuniones.</div>',
+        unsafe_allow_html=True,
+    )
+    if "meetings_view" not in st.session_state:
+        st.session_state["meetings_view"] = "Calendario"
+    vista = st.segmented_control(
+        "Vista", ["Calendario", "Próximas", "Finalizadas"],
+        key="meetings_view", label_visibility="collapsed",
+    ) or "Calendario"
+    ahora = datetime.now(ZoneInfo("America/Lima"))
+    if vista == "Próximas":
+        proximas = [r for r in reuniones if r.get("_fecha") and r["_fecha"] >= ahora and str(r.get("estado") or "").lower() == "programada"]
+        st.markdown(_tarjetas_reuniones(proximas, participantes_por_reunion, usuarios_correo), unsafe_allow_html=True)
+    elif vista == "Finalizadas":
+        finalizadas = [r for r in reuniones if str(r.get("estado") or "").lower() in {"completada", "cancelada"}]
+        st.markdown(_tarjetas_reuniones(finalizadas, participantes_por_reunion, usuarios_correo), unsafe_allow_html=True)
+    else:
+        mes_query = str(st.query_params.get("mes", "") or "")
         try:
-            sel = sb_select("reuniones", {"select":"id,tema,fecha_inicio,duracion_minutos,proveedor,id_externo,join_url,start_url,estado,creador_id,tipo,direccion", "id": f"eq.{chosen_id}"})
-        except Exception as e:
-            st.error(f"Error cargando reunión: {e}")
-            sel = []
-        if sel:
-            rec = sel[0]
-            # Parse fecha Inicio
-            try:
-                dt = pd.to_datetime(rec.get("fecha_inicio")) if rec.get("fecha_inicio") else pd.to_datetime("now")
-            except Exception:
-                dt = pd.to_datetime("now")
-
-            st.markdown("**Editar reunión**")
-            etema = st.text_input("Tema", value=rec.get("tema") or "", key="edit_tema")
-            cold, colt = st.columns(2)
-            with cold:
-                efecha = st.date_input("Fecha", value=dt.date(), key="edit_fecha")
-            with colt:
-                ehora = st.time_input("Hora", value=dt.time(), key="edit_hora")
-            eduracion = st.number_input("Duración (min)", min_value=1, step=5, value=int(rec.get("duracion_minutos") or 30), key="edit_duracion")
-            etipo = st.radio("Tipo", ["virtual","presencial","mixta"], index=["virtual","presencial","mixta"].index(str(rec.get("tipo") or "virtual").lower()), horizontal=True, key="edit_tipo")
-            edireccion = st.text_input("Dirección (si aplica)", value=rec.get("direccion") or "", key="edit_direccion") if etipo in ["presencial","mixta"] else st.text_input("Dirección (si aplica)", value="", key="edit_direccion")
-            eestado = st.selectbox("Estado", ["programada","completada","cancelada"], index=["programada","completada","cancelada"].index(rec.get("estado") or "programada"), key="edit_estado")
-            ejoin = st.text_input("join_url", value=rec.get("join_url") or "", key="edit_join")
-            estart = st.text_input("start_url", value=rec.get("start_url") or "", key="edit_start")
-            eexterno = st.text_input("id_externo", value=rec.get("id_externo") or "", key="edit_externo")
-
-            col_save, col_del = st.columns([2,1])
-            with col_save:
-                if st.button("Guardar cambios", key="btn_save_reu"):
-                    fecha_str = f"{efecha.isoformat()}T{ehora.strftime('%H:%M:%S')}"
-                    payload = {
-                        "tema": etema,
-                        "fecha_inicio": fecha_str,
-                        "duracion_minutos": int(eduracion),
-                        "tipo": etipo,
-                        "direccion": edireccion if etipo in ["presencial","mixta"] else None,
-                        "estado": eestado,
-                        "join_url": ejoin or None,
-                        "start_url": estart or None,
-                        "id_externo": eexterno or None,
-                    }
-                    try:
-                        requests.patch(
-                            f"{SUPABASE_URL}/rest/v1/reuniones",
-                            headers={**HEADERS,"Prefer":"return=representation"},
-                            params={"id": f"eq.{rec['id']}"},
-                            data=json.dumps(payload)
-                        )
-                        st.success("Reunión actualizada")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error al actualizar: {e}")
-
-            with col_del:
-                if st.button("Eliminar reunión", key="btn_del_reu"):
-                    try:
-                        requests.delete(
-                            f"{SUPABASE_URL}/rest/v1/reuniones",
-                            headers=HEADERS,
-                            params={"id": f"eq.{rec['id']}"}
-                        )
-                        st.success("Reunión eliminada")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error al eliminar (verifica relaciones): {e}")
-
-    if admin:
-        st.divider()
-        subtitulo_pagina("agregar", "Crear nueva reunión")
-    if admin:
-        ntema = st.text_input("Tema", key="new_tema")
-        ncol1, ncol2 = st.columns(2)
-        with ncol1:
-            nfecha = st.date_input("Fecha", key="new_fecha")
-        with ncol2:
-            nhora = st.time_input("Hora", key="new_hora")
-        nduracion = st.number_input("Duración (min)", min_value=1, step=5, value=30, key="new_duracion")
-        ntipo = st.radio("Tipo", ["virtual","presencial","mixta"], horizontal=True, key="new_tipo")
-        ndireccion = st.text_input("Dirección (si aplica)", key="new_direccion") if ntipo in ["presencial","mixta"] else st.text_input("Dirección (si aplica)", value="", key="new_direccion")
-
-        if st.button("Crear reunión", key="btn_create_reu"):
-            if not ntema:
-                st.warning("Ingresa un tema")
-            else:
-                fecha_str = f"{nfecha.isoformat()}T{nhora.strftime('%H:%M:%S')}"
-                row = {
-                    "creador_id": st.session_state.session["id"],
-                    "tema": ntema,
-                    "fecha_inicio": fecha_str,
-                    "duracion_minutos": int(nduracion),
-                    "proveedor": "zoom",
-                    "estado": "programada",
-                    "tipo": ntipo,
-                    "direccion": ndireccion if ntipo in ["presencial","mixta"] else None,
-                }
-                try:
-                    sb_insert("reuniones", [row])
-                    st.success("Reunión creada")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Error creando reunión: {e}")
+            anio, mes = [int(x) for x in mes_query.split("-", 1)] if mes_query else (ahora.year, ahora.month)
+            ancla = datetime(anio, mes, 1)
+        except (TypeError, ValueError):
+            ancla = datetime(ahora.year, ahora.month, 1)
+        anterior = (ancla - timedelta(days=1)).replace(day=1)
+        siguiente = (ancla.replace(day=28) + timedelta(days=4)).replace(day=1)
+        reuniones_dia: dict[object, list[dict]] = {}
+        for reunion in reuniones:
+            if reunion.get("_fecha"):
+                reuniones_dia.setdefault(reunion["_fecha"].date(), []).append(reunion)
+        calendario = calendar.Calendar(firstweekday=6).monthdatescalendar(ancla.year, ancla.month)
+        actual_id = str(st.session_state.session.get("id") or "")
+        celdas = []
+        for fecha_dia in [dia for semana in calendario for dia in semana]:
+            clases = ["meetings-day"]
+            if fecha_dia.month != ancla.month:
+                clases.append("outside")
+            if fecha_dia == ahora.date():
+                clases.append("today")
+            eventos = []
+            for reunion in reuniones_dia.get(fecha_dia, [])[:3]:
+                externa = str(reunion.get("creador_id") or "") != actual_id
+                enlace = _url_inicio(reunion.get("start_url") or reunion.get("join_url"))
+                etiqueta = f'{_hora_es(reunion["_fecha"])} {reunion.get("tema") or "Reunión"}'
+                clase = "meetings-event external" if externa else "meetings-event"
+                if enlace:
+                    eventos.append(f'<a class="{clase}" href="{escape(enlace)}" target="_blank">{escape(etiqueta)}</a>')
+                else:
+                    eventos.append(f'<span class="{clase}">{escape(etiqueta)}</span>')
+            celdas.append(f'<div class="{" ".join(clases)}"><span class="meetings-day-number">{fecha_dia.day}</span>{"".join(eventos)}</div>')
+        reuniones_hoy = reuniones_dia.get(ahora.date(), [])
+        agenda = []
+        for reunion in reuniones_hoy:
+            externa = str(reunion.get("creador_id") or "") != actual_id
+            fin = reunion["_fecha"] + timedelta(minutes=int(reunion.get("duracion_minutos") or 0))
+            correos = [str(p.get("correo") or "") for p in participantes_por_reunion.get(str(reunion.get("id")), [])]
+            nombres = [usuarios_correo.get(c.lower(), c) for c in correos if c]
+            agenda.append(
+                f'<div class="meetings-agenda-card{" external" if externa else ""}">'
+                f'<div class="meetings-agenda-time">{_hora_es(reunion["_fecha"])} - {_hora_es(fin)}</div>'
+                f'<div class="meetings-agenda-title">{escape(str(reunion.get("tema") or "Reunión"))}</div>'
+                f'<div class="meetings-agenda-guests">{escape(", ".join(nombres))}</div>'
+                f'<span class="meetings-type-pill">{escape(str(reunion.get("tipo") or "Virtual").title())}</span></div>'
+            )
+        boton_programar = '<a class="meetings-toolbar-button primary" href="?pagina=Reuniones&amp;programar_reunion=1" target="_self">Programar reunión</a>' if is_admin() else ""
+        st.markdown(
+            f'<div class="meetings-shell"><div class="meetings-toolbar">'
+            f'<div class="meetings-month"><span class="meetings-month-arrow">‹</span>{MESES_ES[ancla.month - 1].title()} {ancla.year}</div>'
+            f'<div class="meetings-toolbar-actions"><a class="meetings-toolbar-button" href="?pagina=Reuniones&amp;mes={ahora.year:04d}-{ahora.month:02d}" target="_self">Hoy</a>'
+            f'<a class="meetings-toolbar-button arrow" href="?pagina=Reuniones&amp;mes={anterior.year:04d}-{anterior.month:02d}" target="_self">‹</a>'
+            f'<a class="meetings-toolbar-button arrow" href="?pagina=Reuniones&amp;mes={siguiente.year:04d}-{siguiente.month:02d}" target="_self">›</a>{boton_programar}</div></div>'
+            f'<div class="meetings-layout"><div class="meetings-calendar"><div class="meetings-weekdays">'
+            + "".join(f'<div class="meetings-weekday">{dia}</div>' for dia in ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"])
+            + f'</div><div class="meetings-days">{"".join(celdas)}</div><div class="meetings-legend"><span><i></i>Reunión de equipo</span><span><i class="external"></i>Reunión externa</span></div></div>'
+            f'<aside class="meetings-agenda"><h2>Hoy</h2><div class="meetings-agenda-date">{ahora.day} de {MESES_ES[ahora.month - 1]} de {ahora.year}</div>'
+            f'{"".join(agenda) if agenda else "<div class=\"meetings-agenda-empty\">No hay reuniones programadas para hoy.</div>"}'
+            f'<a class="meetings-agenda-link" href="?pagina=Reuniones&amp;vista_reuniones=Próximas" target="_self">Ver agenda completa</a></aside></div></div>',
+            unsafe_allow_html=True,
+        )
+    if st.session_state.get("meeting_dialog_open", False):
+        _dialogo_programar_reunion(correos_disponibles)
 
 # -------- Resumen de reuniones --------
 def view_resumen_reuniones():
