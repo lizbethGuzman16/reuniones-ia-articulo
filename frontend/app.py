@@ -3857,6 +3857,19 @@ def _cerrar_dialogo_reunion() -> None:
     st.session_state["meeting_dialog_open"] = False
 
 
+def _abrir_dialogo_reunion() -> None:
+    st.session_state["meeting_dialog_open"] = True
+
+
+def _abrir_sala_reunion(reunion_id: str) -> None:
+    st.query_params.clear()
+    st.query_params["sala_previa"] = str(reunion_id)
+
+
+def _cambiar_mes_reuniones(anio: int, mes: int) -> None:
+    st.query_params["mes"] = f"{anio:04d}-{mes:02d}"
+
+
 def _crear_reunion_directa(tema, fecha_inicio, duracion, invitados) -> None:
     creada = requests.post(
         f"{SUPABASE_URL}/rest/v1/reuniones",
@@ -3999,16 +4012,54 @@ def _tarjetas_reuniones(reuniones: list[dict], participantes_por_reunion: dict[s
             continue
         correos = [str(p.get("correo") or "") for p in participantes_por_reunion.get(str(reunion.get("id")), [])]
         nombres = [usuarios_correo.get(c.lower(), c) for c in correos if c]
-        accion = (
-            f' · <a href="?sala_previa={quote(str(reunion.get("id") or ""))}" target="_self">Abrir reunión</a>'
-            if _puede_abrir_sala(reunion) else ""
-        )
         tarjetas.append(
             f'<div class="meetings-list-card"><h3>{escape(str(reunion.get("tema") or "Reunión"))}</h3>'
-            f'<p>{fecha.day} de {MESES_ES[fecha.month - 1]} de {fecha.year} · {_hora_es(fecha)} · {int(reunion.get("duracion_minutos") or 0)} minutos{accion}</p>'
+            f'<p>{fecha.day} de {MESES_ES[fecha.month - 1]} de {fecha.year} · {_hora_es(fecha)} · {int(reunion.get("duracion_minutos") or 0)} minutos</p>'
             f'<p>{escape(", ".join(nombres))}</p></div>'
         )
     return '<div class="meetings-list">' + ("".join(tarjetas) or '<div class="meetings-list-card"><p>No hay reuniones en esta vista.</p></div>') + "</div>"
+
+
+def _render_reuniones_abribles(
+    reuniones: list[dict],
+    participantes_por_reunion: dict[str, list[dict]],
+    usuarios_correo: dict[str, str],
+) -> None:
+    if not reuniones:
+        st.markdown(
+            '<div class="meetings-list"><div class="meetings-list-card"><p>No hay reuniones en esta vista.</p></div></div>',
+            unsafe_allow_html=True,
+        )
+        return
+    for indice, reunion in enumerate(reuniones):
+        fecha = reunion.get("_fecha")
+        if not fecha:
+            continue
+        correos = [
+            str(p.get("correo") or "")
+            for p in participantes_por_reunion.get(str(reunion.get("id")), [])
+        ]
+        nombres = [usuarios_correo.get(c.lower(), c) for c in correos if c]
+        with st.container(key=f"meeting_open_card_{indice}"):
+            datos_col, accion_col = st.columns([5, 1.25], vertical_alignment="center")
+            with datos_col:
+                st.markdown(
+                    f'<div class="meetings-list-card"><h3>{escape(str(reunion.get("tema") or "Reunión"))}</h3>'
+                    f'<p>{fecha.day} de {MESES_ES[fecha.month - 1]} de {fecha.year} · {_hora_es(fecha)} · '
+                    f'{int(reunion.get("duracion_minutos") or 0)} minutos</p>'
+                    f'<p>{escape(", ".join(nombres))}</p></div>',
+                    unsafe_allow_html=True,
+                )
+            with accion_col:
+                st.button(
+                    "Abrir reunión",
+                    key=f"open_meeting_{reunion.get('id')}_{indice}",
+                    type="primary",
+                    use_container_width=True,
+                    disabled=not _puede_abrir_sala(reunion),
+                    on_click=_abrir_sala_reunion,
+                    args=(str(reunion.get("id") or ""),),
+                )
 
 
 def view_sala_previa(reunion_id: str) -> None:
@@ -4184,7 +4235,7 @@ def view_reuniones():
     ahora = datetime.now(ZoneInfo("America/Lima"))
     if vista == "Próximas":
         proximas = [r for r in reuniones if r.get("_fecha") and r["_fecha"] >= ahora and str(r.get("estado") or "").lower() == "programada"]
-        st.markdown(_tarjetas_reuniones(proximas, participantes_por_reunion, usuarios_correo), unsafe_allow_html=True)
+        _render_reuniones_abribles(proximas, participantes_por_reunion, usuarios_correo)
     elif vista == "Finalizadas":
         finalizadas = [r for r in reuniones if str(r.get("estado") or "").lower() in {"finalizada", "completada", "cancelada"}]
         st.markdown(_tarjetas_reuniones(finalizadas, participantes_por_reunion, usuarios_correo), unsafe_allow_html=True)
@@ -4197,6 +4248,30 @@ def view_reuniones():
             ancla = datetime(ahora.year, ahora.month, 1)
         anterior = (ancla - timedelta(days=1)).replace(day=1)
         siguiente = (ancla.replace(day=28) + timedelta(days=4)).replace(day=1)
+        accion_espacio, hoy_col, anterior_col, siguiente_col, accion_programar = st.columns([5, .55, .45, .45, 1.35])
+        with hoy_col:
+            st.button(
+                "Hoy", key="meetings_today_button", use_container_width=True,
+                on_click=_cambiar_mes_reuniones, args=(ahora.year, ahora.month),
+            )
+        with anterior_col:
+            st.button(
+                "‹", key="meetings_previous_button", use_container_width=True,
+                on_click=_cambiar_mes_reuniones, args=(anterior.year, anterior.month),
+            )
+        with siguiente_col:
+            st.button(
+                "›", key="meetings_next_button", use_container_width=True,
+                on_click=_cambiar_mes_reuniones, args=(siguiente.year, siguiente.month),
+            )
+        with accion_programar:
+            st.button(
+                "＋ Programar reunión",
+                key="meetings_schedule_button",
+                type="primary",
+                use_container_width=True,
+                on_click=_abrir_dialogo_reunion,
+            )
         reuniones_dia: dict[object, list[dict]] = {}
         for reunion in reuniones:
             if reunion.get("_fecha"):
@@ -4215,10 +4290,7 @@ def view_reuniones():
                 externa = str(reunion.get("creador_id") or "") != actual_id
                 etiqueta = f'{_hora_es(reunion["_fecha"])} {reunion.get("tema") or "Reunión"}'
                 clase = "meetings-event external" if externa else "meetings-event"
-                if _puede_abrir_sala(reunion):
-                    eventos.append(f'<a class="{clase}" href="?sala_previa={quote(str(reunion.get("id") or ""))}" target="_self">{escape(etiqueta)}</a>')
-                else:
-                    eventos.append(f'<span class="{clase}">{escape(etiqueta)}</span>')
+                eventos.append(f'<span class="{clase}">{escape(etiqueta)}</span>')
             celdas.append(f'<div class="{" ".join(clases)}"><span class="meetings-day-number">{fecha_dia.day}</span>{"".join(eventos)}</div>')
         reuniones_hoy = reuniones_dia.get(ahora.date(), [])
         agenda = []
@@ -4235,19 +4307,15 @@ def view_reuniones():
                 f'<span class="meetings-type-pill">{escape(str(reunion.get("tipo") or "Virtual").title())}</span></div>'
             )
         agenda_html = "".join(agenda) if agenda else '<div class="meetings-agenda-empty">No hay reuniones programadas para hoy.</div>'
-        boton_programar = '<a class="meetings-toolbar-button primary" href="?pagina=Reuniones&amp;programar_reunion=1" target="_self">Programar reunión</a>'
         st.markdown(
             f'<div class="meetings-shell"><div class="meetings-toolbar">'
             f'<div class="meetings-month"><span class="meetings-month-arrow">‹</span>{MESES_ES[ancla.month - 1].title()} {ancla.year}</div>'
-            f'<div class="meetings-toolbar-actions"><a class="meetings-toolbar-button" href="?pagina=Reuniones&amp;mes={ahora.year:04d}-{ahora.month:02d}" target="_self">Hoy</a>'
-            f'<a class="meetings-toolbar-button arrow" href="?pagina=Reuniones&amp;mes={anterior.year:04d}-{anterior.month:02d}" target="_self">‹</a>'
-            f'<a class="meetings-toolbar-button arrow" href="?pagina=Reuniones&amp;mes={siguiente.year:04d}-{siguiente.month:02d}" target="_self">›</a>{boton_programar}</div></div>'
+            f'</div>'
             f'<div class="meetings-layout"><div class="meetings-calendar"><div class="meetings-weekdays">'
             + "".join(f'<div class="meetings-weekday">{dia}</div>' for dia in ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"])
             + f'</div><div class="meetings-days">{"".join(celdas)}</div><div class="meetings-legend"><span><i></i>Reunión de equipo</span><span><i class="external"></i>Reunión externa</span></div></div>'
             f'<aside class="meetings-agenda"><h2>Hoy</h2><div class="meetings-agenda-date">{ahora.day} de {MESES_ES[ahora.month - 1]} de {ahora.year}</div>'
-            f'{agenda_html}'
-            f'<a class="meetings-agenda-link" href="?pagina=Reuniones&amp;vista_reuniones=Próximas" target="_self">Ver agenda completa</a></aside></div></div>',
+            f'{agenda_html}</aside></div></div>',
             unsafe_allow_html=True,
         )
     if st.session_state.get("meeting_dialog_open", False):

@@ -51,7 +51,7 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
         ).wait_for(state="visible", timeout=30_000)
         page.wait_for_timeout(300)
     elif opcion == "Reuniones":
-        page.get_by_role("link", name=re.compile(r"Programar reunión$")).click()
+        page.get_by_role("button", name=re.compile(r"Programar reunión$")).click()
         page.get_by_role(
             "heading", name="Programar nueva reunión", exact=True
         ).wait_for(state="visible", timeout=30_000)
@@ -88,6 +88,7 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
     elif opcion == "Reuniones":
         expect(page.get_by_text("Asistente inteligente", exact=True)).to_be_visible()
         expect(page.get_by_role("button", name="Programar reunión", exact=True)).to_be_visible()
+        expect(page.get_by_role("heading", name="Bienvenido de nuevo", exact=True)).to_have_count(0)
         page.keyboard.press("Escape")
     elif opcion == "Resumen de reuniones":
         expect(page.get_by_text("Preparando tu informe inteligente", exact=True)).to_be_visible()
