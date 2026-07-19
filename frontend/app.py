@@ -2822,6 +2822,13 @@ def _url_inicio(valor) -> str | None:
     return url if url.startswith(("https://", "http://")) else None
 
 
+def _puede_abrir_sala(reunion: dict) -> bool:
+    """Permite la sala interna VINCORA y conserva enlaces externos válidos."""
+    enlace = _url_inicio(reunion.get("start_url") or reunion.get("join_url"))
+    tipo = str(reunion.get("tipo") or "").strip().lower()
+    return bool(enlace or tipo in {"virtual", "mixta"})
+
+
 def _avatares_inicio(participantes, usuarios_correo) -> str:
     avatares = []
     for participante in participantes[:5]:
@@ -2879,8 +2886,7 @@ def _dialogo_unirse_inicio() -> None:
             st.write("No encontramos una reunión con ese código.")
         else:
             st.markdown(f"**{escape(str(reunion.get('tema') or 'Reunión'))}**")
-            enlace = _url_inicio(reunion.get("join_url") or reunion.get("start_url"))
-            if enlace:
+            if _puede_abrir_sala(reunion):
                 st.link_button(
                     "Continuar a sala previa", f"?sala_previa={quote(str(reunion.get('id') or ''))}",
                     type="primary", use_container_width=True,
@@ -3041,10 +3047,9 @@ def view_inicio():
     filas_reuniones = []
     for indice, (reunion, fecha) in enumerate(proximas):
         part = participantes_reunion.get(str(reunion.get("id")), [])
-        enlace = _url_inicio(reunion.get("start_url") or reunion.get("join_url"))
         boton_inicio = (
             f'<a class="home-start-button" href="?sala_previa={quote(str(reunion.get("id") or ""))}" target="_self">Iniciar</a>'
-            if enlace else ""
+            if _puede_abrir_sala(reunion) else ""
         )
         filas_reuniones.append(
             f'<div class="home-meeting-row">'
@@ -3994,8 +3999,10 @@ def _tarjetas_reuniones(reuniones: list[dict], participantes_por_reunion: dict[s
             continue
         correos = [str(p.get("correo") or "") for p in participantes_por_reunion.get(str(reunion.get("id")), [])]
         nombres = [usuarios_correo.get(c.lower(), c) for c in correos if c]
-        enlace = _url_inicio(reunion.get("start_url") or reunion.get("join_url"))
-        accion = f' · <a href="?sala_previa={quote(str(reunion.get("id") or ""))}" target="_self">Abrir reunión</a>' if enlace else ""
+        accion = (
+            f' · <a href="?sala_previa={quote(str(reunion.get("id") or ""))}" target="_self">Abrir reunión</a>'
+            if _puede_abrir_sala(reunion) else ""
+        )
         tarjetas.append(
             f'<div class="meetings-list-card"><h3>{escape(str(reunion.get("tema") or "Reunión"))}</h3>'
             f'<p>{fecha.day} de {MESES_ES[fecha.month - 1]} de {fecha.year} · {_hora_es(fecha)} · {int(reunion.get("duracion_minutos") or 0)} minutos{accion}</p>'
@@ -4156,7 +4163,7 @@ def view_reuniones():
         str(usuario.get("correo") or "").lower() for usuario in usuarios
         if usuario.get("correo") and str(usuario.get("estado_suscripcion") or "activo").lower() == "activo"
     )
-    if st.query_params.get("programar_reunion") == "1" and is_admin():
+    if st.query_params.get("programar_reunion") == "1":
         st.session_state["meeting_dialog_open"] = True
         del st.query_params["programar_reunion"]
     vista_query = str(st.query_params.get("vista_reuniones", "") or "")
@@ -4179,7 +4186,7 @@ def view_reuniones():
         proximas = [r for r in reuniones if r.get("_fecha") and r["_fecha"] >= ahora and str(r.get("estado") or "").lower() == "programada"]
         st.markdown(_tarjetas_reuniones(proximas, participantes_por_reunion, usuarios_correo), unsafe_allow_html=True)
     elif vista == "Finalizadas":
-        finalizadas = [r for r in reuniones if str(r.get("estado") or "").lower() in {"completada", "cancelada"}]
+        finalizadas = [r for r in reuniones if str(r.get("estado") or "").lower() in {"finalizada", "completada", "cancelada"}]
         st.markdown(_tarjetas_reuniones(finalizadas, participantes_por_reunion, usuarios_correo), unsafe_allow_html=True)
     else:
         mes_query = str(st.query_params.get("mes", "") or "")
@@ -4206,10 +4213,9 @@ def view_reuniones():
             eventos = []
             for reunion in reuniones_dia.get(fecha_dia, [])[:3]:
                 externa = str(reunion.get("creador_id") or "") != actual_id
-                enlace = _url_inicio(reunion.get("start_url") or reunion.get("join_url"))
                 etiqueta = f'{_hora_es(reunion["_fecha"])} {reunion.get("tema") or "Reunión"}'
                 clase = "meetings-event external" if externa else "meetings-event"
-                if enlace:
+                if _puede_abrir_sala(reunion):
                     eventos.append(f'<a class="{clase}" href="?sala_previa={quote(str(reunion.get("id") or ""))}" target="_self">{escape(etiqueta)}</a>')
                 else:
                     eventos.append(f'<span class="{clase}">{escape(etiqueta)}</span>')
@@ -4229,7 +4235,7 @@ def view_reuniones():
                 f'<span class="meetings-type-pill">{escape(str(reunion.get("tipo") or "Virtual").title())}</span></div>'
             )
         agenda_html = "".join(agenda) if agenda else '<div class="meetings-agenda-empty">No hay reuniones programadas para hoy.</div>'
-        boton_programar = '<a class="meetings-toolbar-button primary" href="?pagina=Reuniones&amp;programar_reunion=1" target="_self">Programar reunión</a>' if is_admin() else ""
+        boton_programar = '<a class="meetings-toolbar-button primary" href="?pagina=Reuniones&amp;programar_reunion=1" target="_self">Programar reunión</a>'
         st.markdown(
             f'<div class="meetings-shell"><div class="meetings-toolbar">'
             f'<div class="meetings-month"><span class="meetings-month-arrow">‹</span>{MESES_ES[ancla.month - 1].title()} {ancla.year}</div>'
