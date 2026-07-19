@@ -12,7 +12,7 @@ OUTPUT_DIR = Path("capturas-reales")
 PANTALLAS = [
     ("Inicio", "Buenos días", "01-inicio.png"),
     ("Chat", "Crear reunión por chat", "02-chat.png"),
-    ("Usuarios", "Gestión de Usuarios", "03-usuarios.png"),
+    ("Usuarios", "Usuarios y permisos", "03-usuarios.png"),
     ("Reuniones", "Reuniones", "04-reuniones.png"),
     ("Tareas", "Gestión de Tareas", "05-tareas.png"),
     ("Resumen de reuniones", "Resumen de reuniones", "06-resumenes.png"),
@@ -40,6 +40,14 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
     if main.count():
         main.evaluate("element => element.scrollTo(0, 0)")
     page.wait_for_timeout(300)
+
+    if opcion == "Usuarios":
+        page.get_by_role("button", name="Invitar usuario", exact=True).click()
+        page.get_by_role(
+            "heading", name="Invitar nuevo usuario", exact=True
+        ).wait_for(state="visible", timeout=30_000)
+        page.wait_for_timeout(300)
+
     page.screenshot(
         path=str(OUTPUT_DIR / archivo),
         full_page=False,
@@ -64,6 +72,10 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
         expect(entrada).to_have_value(re.compile(r"Programa una reunión mañana"), timeout=15_000)
         page.get_by_role("button", name="Limpiar", exact=True).click()
         expect(entrada).to_have_value("", timeout=15_000)
+    elif opcion == "Usuarios":
+        expect(page.get_by_text("Permisos iniciales", exact=True)).to_be_visible()
+        expect(page.get_by_role("button", name="Enviar invitación", exact=True)).to_be_visible()
+        page.keyboard.press("Escape")
 
 
 def capturar_login(page: Page) -> None:

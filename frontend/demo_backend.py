@@ -26,14 +26,13 @@ def _build_demo_users() -> list[dict[str, Any]]:
     """Usuarios ficticios seguros; producción siempre consulta Supabase."""
     now = datetime(2026, 7, 1, 14, 0, tzinfo=timezone.utc)
     demo_people = [
-        ("Carlos Mendoza", "carlos@example.com"),
-        ("Laura Méndez", "laura@example.com"),
-        ("Diego Ramírez", "diego@example.com"),
-        ("María Gómez", "maria@example.com"),
-        ("Ana Torres", "ana@example.com"),
+        ("Ana García", "ana@example.com", "activo"),
+        ("Luis Torres", "luis@example.com", "activo"),
+        ("María Gómez", "maria@example.com", "pendiente"),
+        ("Diego Ramírez", "diego@example.com", "pendiente"),
     ]
     users: list[dict[str, Any]] = []
-    for i, (nombre, correo) in enumerate(demo_people, start=10):
+    for i, (nombre, correo, estado) in enumerate(demo_people, start=10):
         users.append(
             {
                 "id": _fixed_uuid(i),
@@ -41,7 +40,7 @@ def _build_demo_users() -> list[dict[str, Any]]:
                 "correo": correo,
                 "password_hash": "demo-only-not-for-authentication",
                 "nivel_suscripcion": "enterprise" if i == 10 else "basico",
-                "estado_suscripcion": "activo",
+                "estado_suscripcion": estado,
                 "fecha_creacion": _iso(now + timedelta(days=i - 10)),
             }
         )

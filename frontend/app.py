@@ -1,5 +1,6 @@
 import os, json, requests
 import base64
+import secrets
 import time
 import re
 import pandas as pd
@@ -44,6 +45,9 @@ ICON_FILES = {
     "chat": "message-circle.svg",
     "chat_sonrisa": "chat-smile.svg",
     "usuarios": "users-group.svg",
+    "usuario": "users.svg",
+    "usuario_configuracion": "user-cog.svg",
+    "usuario_suspendido": "user-x.svg",
     "administracion": "user-plus.svg",
     "reuniones": "calendar.svg",
     "participantes": "users-group.svg",
@@ -66,6 +70,7 @@ ICON_FILES = {
     "correcto": "check.svg",
     "alerta": "alert-triangle.svg",
     "lista": "list-details.svg",
+    "filtro": "filter.svg",
     "actividad": "activity.svg",
     "datos": "database.svg",
     "correo": "mail.svg",
@@ -1345,6 +1350,219 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.chat-composer-marker),
     .st-key-chat_sugerencia_invitados button { white-space: normal; }
 }
 
+/* Usuarios y permisos: réplica funcional del panel de referencia */
+.users-page-marker { height: 0; overflow: hidden; }
+[data-testid="stAppViewContainer"]:has(.users-page-marker) {
+    color: #0B183A;
+    background:
+        radial-gradient(760px 460px at 58% 22%, rgba(225, 235, 252, .72), transparent 72%),
+        linear-gradient(135deg, #F8FAFE 0%, #F2F6FC 100%);
+}
+[data-testid="stAppViewContainer"]:has(.users-page-marker) [data-testid="stHeader"] { background: transparent; }
+[data-testid="stAppViewContainer"]:has(.users-page-marker) .block-container {
+    max-width: none !important;
+    padding: 27px 40px 52px !important;
+}
+.users-heading { display: flex; align-items: center; gap: 17px; margin: 0; }
+.users-heading img { width: 45px; height: 45px; flex: 0 0 45px; }
+.users-heading h1 {
+    margin: 0 !important;
+    color: #071644 !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-size: 34px !important;
+    font-weight: 800 !important;
+    letter-spacing: -1px !important;
+    -webkit-text-fill-color: #071644 !important;
+}
+.users-subtitle { margin: 3px 0 22px 2px; color: #64718B; font-size: 15px; }
+.st-key-users_invite_open { display: flex; justify-content: flex-end; padding-top: 6px; }
+.st-key-users_invite_open button {
+    width: 166px; min-height: 45px;
+    color: #FFFFFF !important; background: #195DD8 !important;
+    border: 0 !important; border-radius: 6px !important;
+    box-shadow: 0 8px 18px rgba(25, 93, 216, .20) !important;
+    font-size: 14px; font-weight: 700;
+}
+.st-key-users_invite_open button::before {
+    content: "+"; margin-right: 10px; color: #FFFFFF;
+    font-size: 25px; font-weight: 300; line-height: 1;
+}
+.users-metrics {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px; margin: 0 0 27px;
+}
+.users-metric {
+    min-height: 98px; display: flex; align-items: center; gap: 16px;
+    padding: 17px 20px; background: rgba(255, 255, 255, .91);
+    border: 1px solid #DDE4EF; border-radius: 10px;
+    box-shadow: 0 5px 13px rgba(34, 57, 98, .07);
+}
+.users-metric-icon {
+    width: 55px; height: 55px; flex: 0 0 55px;
+    display: flex; align-items: center; justify-content: center; border-radius: 50%;
+}
+.users-metric-icon img { width: 30px; height: 30px; }
+.users-metric-icon.total { background: #EEE8FF; }
+.users-metric-icon.active { background: #E2F6F6; }
+.users-metric-icon.pending { background: #FFF2DF; }
+.users-metric-icon.suspended { background: #FDE8EB; }
+.users-metric-value { color: #071644; font-size: 29px; font-weight: 800; line-height: 1; }
+.users-metric-label { margin-top: 5px; color: #5F6C86; font-size: 12.5px; line-height: 1.15; }
+.users-filter-marker { height: 0; overflow: hidden; }
+[data-testid="stVerticalBlockBorderWrapper"]:has(.users-filter-marker),
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .users-filter-marker) {
+    padding: 20px 16px 19px !important;
+    background: rgba(255,255,255,.92) !important;
+    border: 1px solid #DCE4F0 !important;
+    border-radius: 11px 11px 0 0 !important;
+    box-shadow: 0 7px 20px rgba(34,57,98,.07) !important;
+}
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .users-filter-marker) [data-testid="stHorizontalBlock"] { align-items: end; }
+.st-key-users_search label { display: none; }
+.st-key-users_search input {
+    height: 45px; padding-left: 41px !important; color: #31405F !important;
+    background: #FFFFFF url("__ICON_BUSCAR__") 13px center / 20px 20px no-repeat !important;
+    border: 1px solid #CDD6E4 !important; border-radius: 7px !important; font-size: 13px;
+}
+.st-key-users_role_filter label, .st-key-users_status_filter label {
+    margin: 0 0 -9px 12px; position: relative; z-index: 2;
+    width: max-content; padding: 0 5px; color: #6E7890;
+    background: #FFFFFF; font-size: 11px;
+}
+.st-key-users_role_filter [data-baseweb="select"] > div,
+.st-key-users_status_filter [data-baseweb="select"] > div,
+.st-key-users_per_page [data-baseweb="select"] > div {
+    min-height: 45px; border: 1px solid #CDD6E4 !important;
+    border-radius: 7px !important; box-shadow: none !important;
+}
+.st-key-users_apply_filter button {
+    width: 48px; min-height: 45px; color: transparent !important; font-size: 0 !important;
+    background: #FFFFFF url("__ICON_FILTRO__") center / 21px 21px no-repeat !important;
+    border: 1px solid #CDD6E4 !important; border-radius: 7px !important; box-shadow: none !important;
+}
+.users-table {
+    display: grid;
+    grid-template-columns: minmax(280px, 2.2fr) minmax(105px, .85fr) minmax(105px, .85fr) minmax(130px, 1fr) minmax(125px, 1fr) 64px;
+    width: 100%; color: #172547; background: #FFFFFF;
+    border-left: 1px solid #DCE4F0; border-right: 1px solid #DCE4F0;
+}
+.users-table > div {
+    min-width: 0; min-height: 84px; display: flex; align-items: center;
+    padding: 15px 14px; border-bottom: 1px solid #E1E7F0; font-size: 12.5px;
+}
+.users-table > .users-th {
+    min-height: 55px; padding-top: 12px; padding-bottom: 12px;
+    color: #42516D; background: #FBFCFE; font-size: 11.5px; font-weight: 700;
+}
+.users-person { display: flex; align-items: center; min-width: 0; gap: 12px; }
+.users-avatar {
+    width: 45px; height: 45px; flex: 0 0 45px;
+    display: flex; align-items: center; justify-content: center;
+    color: #FFFFFF; background: linear-gradient(145deg, #71A7F8, #7C6EF1);
+    border: 2px solid #FFFFFF; border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(31,72,150,.18); font-size: 13px; font-weight: 750;
+}
+.users-person-copy { min-width: 0; }
+.users-person-name {
+    overflow: hidden; color: #0A1738; font-size: 13px; font-weight: 750;
+    text-overflow: ellipsis; white-space: nowrap;
+}
+.users-person-email {
+    overflow: hidden; margin-top: 3px; color: #70809C; font-size: 10.5px;
+    text-overflow: ellipsis; white-space: nowrap;
+}
+.users-role-pill, .users-status-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    border-radius: 6px; font-weight: 650; line-height: 1.15;
+}
+.users-role-pill { padding: 7px 10px; color: #33425F; background: #F0F3F8; }
+.users-role-pill.admin { color: #235ACB; background: #EAF0FF; }
+.users-status-pill { padding: 6px 9px; }
+.users-status-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+.users-status-pill.active { color: #128058; background: #E3F5EB; }
+.users-status-pill.active::before { background: #0AA36D; }
+.users-status-pill.pending { max-width: 100px; color: #B66A00; background: #FFF2DF; }
+.users-status-pill.pending::before { flex: 0 0 6px; background: #F39B12; }
+.users-status-pill.suspended { color: #B62B36; background: #FCE8EB; }
+.users-status-pill.suspended::before { background: #D83C48; }
+.users-action-link {
+    width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;
+    color: #132446 !important; border: 1px solid #D5DDE9; border-radius: 7px;
+    text-decoration: none !important; font-size: 22px; line-height: 1;
+}
+.users-empty { grid-column: 1 / -1; min-height: 130px !important; justify-content: center; color: #71809A; }
+.users-page-number {
+    min-width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;
+    color: #1B4FB7; background: #F5F8FD; border: 1px solid #DCE4F0; font-weight: 700;
+}
+.st-key-users_footer {
+    margin-top: -1px; padding: 11px 16px 10px; background: #FFFFFF;
+    border: 1px solid #DCE4F0; border-radius: 0 0 11px 11px;
+    box-shadow: 0 7px 20px rgba(34,57,98,.07);
+}
+.st-key-users_footer [data-testid="stHorizontalBlock"] { align-items: center; }
+.st-key-users_footer [data-testid="stCaptionContainer"] { color: #6A7690; font-size: 11.5px; }
+.st-key-users_footer .stButton button {
+    min-width: 38px; min-height: 38px; padding: 0; color: #1B4FB7;
+    background: #FFFFFF; border: 1px solid #DCE4F0; border-radius: 0;
+    box-shadow: none; font-size: 20px;
+}
+.st-key-users_footer .stButton button:disabled { color: #9BA5B7; background: #F8FAFD; }
+.st-key-users_footer .users-page-number { width: 100%; }
+.st-key-users_footer .stSelectbox label { display: none; }
+.st-key-users_footer [data-baseweb="select"] > div { min-height: 38px; font-size: 11px; }
+.users-dialog-marker { height: 0; overflow: hidden; }
+div[role="dialog"]:has(.users-dialog-marker) {
+    width: min(510px, calc(100vw - 34px)) !important; max-width: 510px !important;
+    padding: 0 !important; border: 0 !important; border-radius: 15px !important;
+    box-shadow: 0 24px 60px rgba(20, 37, 74, .22) !important;
+}
+div[role="dialog"]:has(.users-dialog-marker) > div { padding: 25px 32px 27px !important; }
+div[role="dialog"]:has(.users-dialog-marker) h2 {
+    color: #071644 !important; font-family: "Segoe UI", Arial, sans-serif !important;
+    font-size: 23px !important; font-weight: 800 !important; letter-spacing: -.5px !important;
+}
+div[role="dialog"]:has(.users-dialog-marker) [data-testid="stForm"] {
+    padding: 0; background: transparent; border: 0 !important; box-shadow: none;
+}
+div[role="dialog"]:has(.users-dialog-marker) .stTextInput input,
+div[role="dialog"]:has(.users-dialog-marker) [data-baseweb="select"] > div {
+    min-height: 40px; border: 1px solid #CCD5E4 !important;
+    border-radius: 7px !important; box-shadow: none !important;
+}
+div[role="dialog"]:has(.users-dialog-marker) label { color: #142347; font-size: 12px; font-weight: 650; }
+.users-dialog-description { margin: -7px 0 16px; color: #68758F; font-size: 13px; }
+.users-permission-title { margin: 4px 0 1px; color: #142347; font-size: 12px; font-weight: 700; }
+.users-invite-info {
+    display: flex; align-items: center; gap: 12px; min-height: 54px;
+    margin: 6px 0 12px; padding: 11px 14px; color: #5E78C9;
+    background: #FAFCFF; border: 1px solid #7EA6FF; border-radius: 7px; font-size: 11px;
+}
+.users-invite-info img { width: 19px; height: 19px; }
+div[role="dialog"]:has(.users-dialog-marker) [data-testid="stFormSubmitButton"] button {
+    height: 45px; border-radius: 7px !important; box-shadow: none !important;
+}
+.users-invite-link-label { margin-top: 10px; color: #142347; font-size: 12px; font-weight: 700; }
+.invite-accept-marker { height: 0; overflow: hidden; }
+[data-testid="stAppViewContainer"]:has(.invite-accept-marker) { background: linear-gradient(135deg, #F6F9FE 0%, #EEF3FB 100%); }
+[data-testid="stAppViewContainer"]:has(.invite-accept-marker) .block-container {
+    max-width: 580px !important; padding: 56px 24px !important;
+}
+.invite-accept-card {
+    padding: 30px 34px 18px; background: #FFFFFF; border: 1px solid #DCE4F0;
+    border-radius: 16px; box-shadow: 0 18px 50px rgba(30,64,175,.12);
+}
+@media (max-width: 1100px) {
+    [data-testid="stAppViewContainer"]:has(.users-page-marker) .block-container { padding: 24px 24px 46px !important; }
+    .users-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .users-table { grid-template-columns: minmax(240px, 2fr) 110px 100px 120px 125px 55px; overflow-x: auto; }
+}
+@media (max-width: 720px) {
+    .users-heading h1 { font-size: 27px !important; }
+    .users-metrics { grid-template-columns: 1fr; }
+    .users-table { min-width: 860px; }
+}
+
 /* Acceso VINCORA: composición exacta en dos paneles */
 .auth-page-marker, .auth-panel-marker { height: 0; overflow: hidden; }
 [data-testid="stAppViewContainer"]:has(.auth-page-marker) {
@@ -1999,7 +2217,12 @@ if "chat" not in st.session_state:
 
 mostrar_login_captura = str(st.query_params.get("mostrar_login", "0")) == "1"
 
-if DEMO_MODE and st.session_state.session is None and not mostrar_login_captura:
+if (
+    DEMO_MODE
+    and st.session_state.session is None
+    and not mostrar_login_captura
+    and not st.query_params.get("aceptar_invitacion")
+):
     st.session_state.session = {
         "id": "00000000-0000-4000-8000-000000000001",
         "correo": "demo_admin@example.com",
@@ -2049,6 +2272,13 @@ def view_login(mostrar_titulo: bool = True):
             if not data: st.error("Usuario no encontrado"); return
             u = data[0]
             if not verify_pw(pw, u["password_hash"]): st.error("Credenciales inválidas"); return
+            estado = str(u.get("estado_suscripcion") or "activo").strip().lower()
+            if estado == "pendiente":
+                st.error("Debes aceptar la invitación antes de iniciar sesión.")
+                return
+            if estado in {"suspendido", "cancelado"}:
+                st.error("Esta cuenta no tiene acceso activo.")
+                return
             st.session_state.session = {
                 "id": u["id"], "correo": u["correo"], "nombre": u["nombre"],
                 "nivel": u["nivel_suscripcion"], "estado": u["estado_suscripcion"]
@@ -2083,6 +2313,86 @@ def view_register(mostrar_titulo: bool = True):
             st.success("Cuenta creada. Inicia sesión.")
         except Exception as e:
             st.error(str(e))
+
+
+def _fecha_iso(valor):
+    """Convierte una fecha ISO de Supabase sin fabricar valores ausentes."""
+    if not valor:
+        return None
+    try:
+        return datetime.fromisoformat(str(valor).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+
+
+def view_aceptar_invitacion(correo: str, token: str) -> None:
+    """Activa una invitación pendiente y permite definir la contraseña real."""
+    st.markdown('<div class="invite-accept-marker"></div>', unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div class="invite-accept-card">
+          <div class="auth-brand" style="margin-bottom:24px">
+            <img src="{LOGO_DATA_URI}" alt="Logo de VINCORA Meet">
+            <div><div class="auth-wordmark" style="font-size:30px">VINCORA</div><div class="auth-tagline" style="font-size:14px">Conecta. Reúnete. Avanza.</div></div>
+          </div>
+          <h1 class="auth-register-title">Aceptar invitación</h1>
+          <div class="auth-register-description">Configura tu contraseña para acceder a VINCORA Meet.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    try:
+        coincidencias = sb_select(
+            "usuarios",
+            {
+                "select": "id,correo,nombre,password_hash,estado_suscripcion,fecha_creacion",
+                "correo": f"eq.{correo}",
+            },
+        )
+    except Exception as exc:
+        st.error(f"No fue posible validar la invitación: {exc}")
+        return
+    if not coincidencias:
+        st.error("La invitación no existe.")
+        return
+    usuario = coincidencias[0]
+    if str(usuario.get("estado_suscripcion") or "").lower() != "pendiente":
+        st.info("Esta invitación ya fue utilizada o dejó de estar disponible.")
+        st.markdown('<a class="auth-back-link" href="?">Volver al inicio de sesión</a>', unsafe_allow_html=True)
+        return
+    creada = _fecha_iso(usuario.get("fecha_creacion"))
+    ahora = datetime.now(creada.tzinfo) if creada and creada.tzinfo else datetime.now()
+    if not creada or ahora - creada > timedelta(days=7):
+        st.error("El enlace de invitación venció.")
+        return
+    try:
+        token_valido = verify_pw(token, str(usuario.get("password_hash") or ""))
+    except Exception:
+        token_valido = False
+    if not token_valido:
+        st.error("El enlace de invitación no es válido.")
+        return
+    with st.form("aceptar_invitacion_form"):
+        nueva_clave = st.text_input("Nueva contraseña", type="password")
+        confirmar_clave = st.text_input("Confirmar contraseña", type="password")
+        activar = st.form_submit_button("ACTIVAR CUENTA", type="primary", use_container_width=True)
+    if activar:
+        if len(nueva_clave) < 8:
+            st.warning("La contraseña debe tener al menos 8 caracteres.")
+            return
+        if nueva_clave != confirmar_clave:
+            st.warning("Las contraseñas no coinciden.")
+            return
+        respuesta = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/usuarios",
+            headers={**HEADERS, "Prefer": "return=representation"},
+            params={"id": f"eq.{usuario['id']}"},
+            data=json.dumps({"password_hash": hash_pw(nueva_clave), "estado_suscripcion": "activo"}),
+            timeout=30,
+        )
+        respuesta.raise_for_status()
+        st.success("Cuenta activada. Ya puedes iniciar sesión.")
+        st.markdown('<a class="auth-back-link" href="?">Ir al inicio de sesión</a>', unsafe_allow_html=True)
 
 # -------- Chat Reuniones --------
 @st.cache_data(show_spinner=False)
@@ -3045,199 +3355,288 @@ def view_chat():
 
 
 # -------- Usuarios --------
-def view_usuarios():
-    titulo_pagina("usuarios", "Gestión de Usuarios")
-    admin = is_admin()
+def _estado_usuario(valor: str) -> tuple[str, str]:
+    estado = str(valor or "activo").strip().lower()
+    if estado == "activo":
+        return "Activo", "active"
+    if estado == "pendiente":
+        return "Invitación pendiente", "pending"
+    return "Suspendido", "suspended"
 
-    # -------- FILTROS --------
-    st.subheader("Filtros")
 
-    filtro_texto = st.text_input("Buscar por nombre o correo", placeholder="Escribe para filtrar...")
-    filtro_nivel = st.selectbox("Filtrar por nivel", ["Todos", "basico", "pro", "enterprise"])
-    filtro_estado = st.selectbox("Filtrar por estado", ["Todos", "activo", "cancelado", "suspendido"])
+def _rol_usuario(usuario: dict) -> tuple[str, str]:
+    correo = str(usuario.get("correo") or "").strip().lower()
+    return ("Administrador", "admin") if correo in ADMIN_EMAILS else ("Miembro", "member")
 
-    # -------- OBTENER USUARIOS --------
-    try:
-        users = sb_select("usuarios", {"select":"id,nombre,correo,nivel_suscripcion,estado_suscripcion,fecha_creacion"})
-    except Exception as e:
-        st.error(f"Error cargando usuarios: {e}")
-        return
-    
-    # Convert FECHA (streamlit needs)
-    for u in users:
-        if "fecha_creacion" in u and u["fecha_creacion"]:
-            u["fecha_creacion"] = u["fecha_creacion"].replace("T", " ").replace("Z", "")
 
-    users_df = pd.DataFrame(users)
+def _iniciales_usuario(nombre: str, correo: str) -> str:
+    partes = [p for p in str(nombre or "").split() if p]
+    if not partes:
+        partes = [str(correo or "U").split("@", 1)[0]]
+    return "".join(p[0] for p in partes[:2]).upper() or "U"
 
-    if users_df.empty:
-        users_df = pd.DataFrame(columns=["id","nombre","correo","nivel_suscripcion","estado_suscripcion","fecha_creacion"])
 
-    # -------- APLICAR FILTROS --------
-    if filtro_texto:
-        mask = users_df["nombre"].str.contains(filtro_texto, case=False, na=False) | \
-               users_df["correo"].str.contains(filtro_texto, case=False, na=False)
-        users_df = users_df[mask]
+def _fecha_invitacion_usuario(valor) -> str:
+    fecha = _fecha_iso(valor)
+    if not fecha:
+        return "—"
+    meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+    return f"{fecha.day} {meses[fecha.month - 1]} {fecha.year}"
 
-    if filtro_nivel != "Todos":
-        users_df = users_df[users_df["nivel_suscripcion"] == filtro_nivel]
 
-    if filtro_estado != "Todos":
-        users_df = users_df[users_df["estado_suscripcion"] == filtro_estado]
+def _cerrar_dialogo_invitacion() -> None:
+    st.session_state["users_invite_dialog_open"] = False
 
-    # Orden por fecha
-    users_df = users_df.sort_values(by="fecha_creacion", ascending=False)
 
-    # -------- Gráfico: Usuarios por nivel --------
-    st.caption("Distribución por nivel de suscripción")
-    try:
-        cdata = users_df.groupby("nivel_suscripcion").size().reset_index(name="usuarios")
-        chart = alt.Chart(cdata).mark_arc(innerRadius=40).encode(
-            theta=alt.Theta("usuarios:Q", stack=True),
-            color=alt.Color("nivel_suscripcion:N", scale=alt.Scale(scheme="category10")),
-            tooltip=["nivel_suscripcion:N", "usuarios:Q"]
-        ).properties(height=200)
-        st.altair_chart(chart, use_container_width=True)
-    except Exception:
-        pass
-
-    st.subheader("Usuarios")
-
-    # -------- EDITOR DE TABLA --------
-    edited_df = st.data_editor(
-        users_df,
-        use_container_width=True,
-        hide_index=True,
-        key="tabla_usuarios",
-        column_config={
-            "nombre": st.column_config.TextColumn("Nombre"),
-            "correo": st.column_config.TextColumn("Correo"),
-            "nivel_suscripcion": st.column_config.SelectboxColumn(
-                "Nivel",
-                options=["basico", "pro", "enterprise"]
-            ),
-            "estado_suscripcion": st.column_config.SelectboxColumn(
-                "Estado",
-                options=["activo", "cancelado", "suspendido"]
-            ),
-            "fecha_creacion": st.column_config.DatetimeColumn("Fecha Registro")
-        },
-        disabled=[
-            "id", "fecha_creacion",
-            *([] if admin else ["nombre","correo","nivel_suscripcion","estado_suscripcion"])
-        ]
-    )
-
-    # Detectar cambios
-    if admin and st.button("Guardar cambios"):
-        for i, row in edited_df.iterrows():
-            original = next(u for u in users if u["id"] == row["id"])
-            if dict(row) != original:
-                try:
-                    requests.patch(
-                        f"{SUPABASE_URL}/rest/v1/usuarios",
-                        headers={**HEADERS, "Prefer": "return=representation"},
-                        params={"id": f"eq.{row['id']}"},
-                        data=json.dumps({
-                            "nombre": row["nombre"],
-                            "correo": row["correo"],
-                            "nivel_suscripcion": row["nivel_suscripcion"],
-                            "estado_suscripcion": row["estado_suscripcion"]
-                        })
-                    )
-                except Exception as e:
-                    st.error(f"Error editando usuario {row['correo']}: {e}")
-
-        st.success("Cambios guardados")
-        st.rerun()
-
-    # -------- Exportar PDF --------
-    col_exp1, col_exp2 = st.columns([1,3])
-    with col_exp1:
-        if st.button("Exportar a PDF"):
-            try:
-                pdf_bytes = df_to_pdf_bytes("Reporte de Usuarios", users_df.reset_index(drop=True))
-                st.session_state["usuarios_pdf_bytes"] = pdf_bytes
-                st.success("PDF generado")
-            except Exception as e:
-                st.error(f"Error generando PDF: {e}")
-    with col_exp2:
-        if "usuarios_pdf_bytes" in st.session_state:
-            st.download_button(
-                label="⬇️ Descargar reporte PDF",
-                data=st.session_state["usuarios_pdf_bytes"],
-                file_name="reporte_usuarios.pdf",
-                mime="application/pdf"
-            )
-
-    # -------- ELIMINAR USUARIO(S) --------
-    if admin:
-        st.subheader("Eliminar usuario(s)")
-        # Construir opciones desde la tabla filtrada actual
-        opciones = {}
-        for r in users_df.to_dict("records"):
-            label = f"{r.get('nombre','')} ({r.get('correo','')}) - ID {r.get('id')}"
-            opciones[label] = r.get("id")
-
-        seleccion_labels = st.multiselect(
-            "Selecciona usuarios a eliminar",
-            list(opciones.keys()),
-            placeholder="Busca por nombre o correo"
+@st.dialog("Invitar nuevo usuario", width="large", on_dismiss=_cerrar_dialogo_invitacion)
+def _dialogo_invitar_usuario() -> None:
+    st.markdown('<div class="users-dialog-marker"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="users-dialog-description">Envía una invitación para unirse a tu organización.</div>', unsafe_allow_html=True)
+    with st.form("users_invite_form"):
+        correo = st.text_input("Correo electrónico", placeholder="ana@empresa.com")
+        nombre = st.text_input("Nombre (opcional)", placeholder="Ej. Ana García")
+        columna_rol, columna_equipo = st.columns(2)
+        with columna_rol:
+            rol = st.selectbox("Rol", ["Miembro", "Administrador"])
+        with columna_equipo:
+            st.selectbox("Equipo o área", ["Producto"])
+        st.markdown('<div class="users-permission-title">Permisos iniciales</div>', unsafe_allow_html=True)
+        crear_reuniones = st.checkbox("Crear y programar reuniones", value=True)
+        transcripciones = st.checkbox("Acceder a transcripciones propias", value=True)
+        informes_ia = st.checkbox("Generar informes con IA", value=True)
+        administrar = st.checkbox("Administrar otros usuarios", value=False)
+        st.markdown(
+            f'<div class="users-invite-info"><img src="{icono_data_uri("informacion", "#2563EB")}" alt=""><span>El usuario recibirá un enlace de invitación válido por 7 días.</span></div>',
+            unsafe_allow_html=True,
         )
+        cancelar_col, enviar_col = st.columns([1, 1.35])
+        with cancelar_col:
+            cancelar = st.form_submit_button("Cancelar", use_container_width=True)
+        with enviar_col:
+            enviar = st.form_submit_button("Enviar invitación", type="primary", use_container_width=True)
+    if cancelar:
+        st.session_state["users_invite_dialog_open"] = False
+        st.rerun()
+    if not enviar:
+        return
+    correo = correo.strip().lower()
+    nombre = nombre.strip()
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", correo):
+        st.error("Introduce un correo electrónico válido.")
+        return
+    if rol == "Administrador" and not administrar:
+        st.warning("El rol Administrador requiere el permiso para administrar otros usuarios.")
+        return
+    if rol == "Administrador" and correo not in ADMIN_EMAILS:
+        st.error("Este correo no está autorizado como administrador en ADMIN_EMAILS.")
+        return
+    if not any([crear_reuniones, transcripciones, informes_ia, administrar]):
+        st.warning("Selecciona al menos un permiso inicial.")
+        return
+    existentes = sb_select("usuarios", {"select": "id,correo,estado_suscripcion", "correo": f"eq.{correo}"})
+    if existentes:
+        st.error("Ya existe un usuario o una invitación para este correo.")
+        return
+    token = secrets.token_urlsafe(32)
+    nivel = "enterprise" if administrar or rol == "Administrador" else ("pro" if informes_ia else "basico")
+    sb_insert(
+        "usuarios",
+        [{
+            "nombre": nombre or correo,
+            "correo": correo,
+            "password_hash": hash_pw(token),
+            "nivel_suscripcion": nivel,
+            "estado_suscripcion": "pendiente",
+        }],
+    )
+    base_publica = os.getenv(
+        "FRONTEND_PUBLIC_URL",
+        "http://127.0.0.1:8501" if DEMO_MODE else "https://reuniones-ia-frontend.onrender.com",
+    ).rstrip("/")
+    enlace = f"{base_publica}/?aceptar_invitacion={quote(token, safe='')}&correo={quote(correo, safe='')}"
+    st.success("Invitación creada correctamente.")
+    st.markdown('<div class="users-invite-link-label">Enlace de invitación</div>', unsafe_allow_html=True)
+    st.code(enlace, language=None, wrap_lines=True)
 
-        confirm_text = st.text_input("Escribe ELIMINAR para confirmar", key="confirmar_eliminacion")
-        eliminar_clicked = st.button("Eliminar seleccionados", type="primary")
 
-        if eliminar_clicked:
-            if not seleccion_labels:
-                st.warning("No has seleccionado usuarios.")
-            elif confirm_text.strip().upper() != "ELIMINAR":
-                st.warning("Debes escribir ELIMINAR para confirmar.")
-            else:
-                errores = []
-                for label in seleccion_labels:
-                    user_id = opciones[label]
-                    try:
-                        requests.delete(
-                            f"{SUPABASE_URL}/rest/v1/usuarios",
-                            headers=HEADERS,
-                            params={"id": f"eq.{user_id}"}
-                        )
-                    except Exception as e:
-                        errores.append(f"ID {user_id}: {e}")
-                if errores:
-                    st.error("\n".join(["Errores al eliminar:"] + errores))
-                else:
-                    st.success("Usuario(s) eliminado(s)")
-                    st.rerun()
+@st.dialog("Gestionar usuario")
+def _dialogo_gestionar_usuario(usuario: dict) -> None:
+    st.markdown('<div class="users-dialog-marker"></div>', unsafe_allow_html=True)
+    user_id = str(usuario.get("id") or "")
+    with st.form(f"users_manage_form_{user_id}"):
+        nombre = st.text_input("Nombre", value=str(usuario.get("nombre") or ""))
+        st.text_input("Correo electrónico", value=str(usuario.get("correo") or ""), disabled=True)
+        niveles = ["basico", "pro", "enterprise"]
+        nivel_actual = str(usuario.get("nivel_suscripcion") or "basico")
+        nivel = st.selectbox("Nivel de suscripción", niveles, index=niveles.index(nivel_actual) if nivel_actual in niveles else 0)
+        estados = ["activo", "pendiente", "suspendido", "cancelado"]
+        estado_actual = str(usuario.get("estado_suscripcion") or "activo")
+        estado = st.selectbox("Estado", estados, index=estados.index(estado_actual) if estado_actual in estados else 0)
+        cancelar_col, guardar_col = st.columns(2)
+        with cancelar_col:
+            cancelar = st.form_submit_button("Cancelar", use_container_width=True)
+        with guardar_col:
+            guardar = st.form_submit_button("Guardar cambios", type="primary", use_container_width=True)
+    if cancelar:
+        st.rerun()
+    if guardar:
+        respuesta = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/usuarios",
+            headers={**HEADERS, "Prefer": "return=representation"},
+            params={"id": f"eq.{user_id}"},
+            data=json.dumps({"nombre": nombre.strip(), "nivel_suscripcion": nivel, "estado_suscripcion": estado}),
+            timeout=30,
+        )
+        respuesta.raise_for_status()
+        st.toast("Usuario actualizado")
+        st.rerun()
+    es_actual = user_id == str((st.session_state.session or {}).get("id") or "")
+    with st.expander("Eliminar usuario"):
+        confirmar = st.checkbox("Confirmo que deseo eliminar este usuario", key=f"users_delete_confirm_{user_id}")
+        if st.button("Eliminar usuario", key=f"users_delete_{user_id}", disabled=not confirmar or es_actual):
+            respuesta = requests.delete(
+                f"{SUPABASE_URL}/rest/v1/usuarios", headers=HEADERS,
+                params={"id": f"eq.{user_id}"}, timeout=30,
+            )
+            respuesta.raise_for_status()
+            st.toast("Usuario eliminado")
+            st.rerun()
 
-    # -------- CREAR NUEVO --------
-    st.divider()
-    if admin:
-        subtitulo_pagina("agregar", "Registrar usuario nuevo")
 
-    if admin:
-        with st.form("nuevo_usuario"):
-            nombre = st.text_input("Nombre")
-            correo = st.text_input("Correo")
-            pw = st.text_input("Contraseña", type="password")
-            nivel = st.selectbox("Nivel", ["basico", "pro", "enterprise"])
-            estado = st.selectbox("Estado", ["activo", "suspendido", "cancelado"])
-            submit = st.form_submit_button("Crear usuario")
-
-            if submit:
-                if not (nombre and correo and pw):
-                    st.warning("Completa todos los campos.")
-                else:
-                    sb_insert("usuarios", [{
-                        "nombre": nombre,
-                        "correo": correo,
-                        "password_hash": hash_pw(pw),
-                        "nivel_suscripcion": nivel,
-                        "estado_suscripcion": estado
-                    }])
-                    st.success("Usuario creado")
-                    st.rerun()
+def view_usuarios():
+    st.markdown('<div class="users-page-marker"></div>', unsafe_allow_html=True)
+    if not is_admin():
+        st.error("Solo los administradores pueden gestionar usuarios y permisos.")
+        return
+    try:
+        users = sb_select(
+            "usuarios",
+            {"select": "id,nombre,correo,nivel_suscripcion,estado_suscripcion,fecha_creacion", "order": "fecha_creacion.desc"},
+        )
+        reuniones = sb_select("reuniones", {"select": "id,creador_id"})
+    except Exception as exc:
+        st.error(f"Error cargando usuarios: {exc}")
+        return
+    reuniones_por_usuario: dict[str, int] = {}
+    for reunion in reuniones:
+        creador_id = str(reunion.get("creador_id") or "")
+        reuniones_por_usuario[creador_id] = reuniones_por_usuario.get(creador_id, 0) + 1
+    encabezado, accion = st.columns([4, 1])
+    with encabezado:
+        st.markdown(
+            f'<div class="users-heading"><img src="{ICONOS_AZULES["usuarios"]}" alt=""><h1>Usuarios y permisos</h1></div><div class="users-subtitle">Administra el acceso de tu organización a VINCORA Meet.</div>',
+            unsafe_allow_html=True,
+        )
+    with accion:
+        abrir_invitacion = st.button("Invitar usuario", key="users_invite_open", use_container_width=True)
+        if abrir_invitacion:
+            st.session_state["users_invite_dialog_open"] = True
+    total = len(users)
+    activos = sum(1 for u in users if str(u.get("estado_suscripcion") or "").lower() == "activo")
+    pendientes = sum(1 for u in users if str(u.get("estado_suscripcion") or "").lower() == "pendiente")
+    suspendidos = sum(1 for u in users if str(u.get("estado_suscripcion") or "").lower() in {"suspendido", "cancelado"})
+    st.markdown(
+        f"""
+        <div class="users-metrics">
+          <div class="users-metric"><span class="users-metric-icon total"><img src="{icono_data_uri('usuario', '#6D28D9')}" alt=""></span><span><div class="users-metric-value">{total}</div><div class="users-metric-label">usuarios</div></span></div>
+          <div class="users-metric"><span class="users-metric-icon active"><img src="{icono_data_uri('usuario_configuracion', '#07999B')}" alt=""></span><span><div class="users-metric-value">{activos}</div><div class="users-metric-label">activos</div></span></div>
+          <div class="users-metric"><span class="users-metric-icon pending"><img src="{icono_data_uri('tiempo', '#D97706')}" alt=""></span><span><div class="users-metric-value">{pendientes}</div><div class="users-metric-label">invitaciones pendientes</div></span></div>
+          <div class="users-metric"><span class="users-metric-icon suspended"><img src="{icono_data_uri('usuario_suspendido', '#C12B38')}" alt=""></span><span><div class="users-metric-value">{suspendidos}</div><div class="users-metric-label">suspendidos</div></span></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    with st.container(border=True, key="users_filters"):
+        st.markdown('<div class="users-filter-marker"></div>', unsafe_allow_html=True)
+        buscar_col, rol_col, estado_col, aplicar_col = st.columns([3.6, 1.15, 1.15, .42])
+        with buscar_col:
+            filtro_texto = st.text_input(
+                "Buscar por nombre o correo", placeholder="Buscar por nombre o correo...",
+                label_visibility="collapsed", key="users_search",
+            )
+        with rol_col:
+            filtro_rol = st.selectbox("Rol", ["Todos", "Miembro", "Administrador"], key="users_role_filter")
+        with estado_col:
+            filtro_estado = st.selectbox(
+                "Estado", ["Todos", "Activo", "Invitación pendiente", "Suspendido"],
+                key="users_status_filter",
+            )
+        with aplicar_col:
+            aplicar = st.button("Aplicar filtros", key="users_apply_filter", help="Aplicar filtros", use_container_width=True)
+    if aplicar:
+        st.session_state["users_page"] = 1
+    usuarios_filtrados = list(users)
+    texto = filtro_texto.strip().lower()
+    if texto:
+        usuarios_filtrados = [
+            u for u in usuarios_filtrados
+            if texto in str(u.get("nombre") or "").lower() or texto in str(u.get("correo") or "").lower()
+        ]
+    if filtro_rol != "Todos":
+        usuarios_filtrados = [u for u in usuarios_filtrados if _rol_usuario(u)[0] == filtro_rol]
+    if filtro_estado != "Todos":
+        usuarios_filtrados = [u for u in usuarios_filtrados if _estado_usuario(u.get("estado_suscripcion"))[0] == filtro_estado]
+    por_pagina = int(st.session_state.get("users_per_page", 10))
+    total_filtrado = len(usuarios_filtrados)
+    total_paginas = max(1, (total_filtrado + por_pagina - 1) // por_pagina)
+    pagina = min(max(1, int(st.session_state.get("users_page", 1))), total_paginas)
+    st.session_state["users_page"] = pagina
+    inicio = (pagina - 1) * por_pagina
+    fin = min(inicio + por_pagina, total_filtrado)
+    pagina_usuarios = usuarios_filtrados[inicio:fin]
+    celdas = [
+        '<div class="users-th">Usuario</div>', '<div class="users-th">Rol</div>',
+        '<div class="users-th">Reuniones</div>', '<div class="users-th">Último acceso</div>',
+        '<div class="users-th">Estado</div>', '<div class="users-th">Acciones</div>',
+    ]
+    correo_actual = str((st.session_state.session or {}).get("correo") or "").strip().lower()
+    for usuario in pagina_usuarios:
+        nombre = str(usuario.get("nombre") or usuario.get("correo") or "Usuario")
+        correo = str(usuario.get("correo") or "")
+        rol_texto, rol_clase = _rol_usuario(usuario)
+        estado_texto, estado_clase = _estado_usuario(usuario.get("estado_suscripcion"))
+        ultimo_acceso = "Ahora" if correo.lower() == correo_actual else (
+            _fecha_invitacion_usuario(usuario.get("fecha_creacion")) if estado_clase == "pending" else "—"
+        )
+        user_id = str(usuario.get("id") or "")
+        celdas.extend([
+            f'<div><div class="users-person"><span class="users-avatar">{escape(_iniciales_usuario(nombre, correo))}</span><span class="users-person-copy"><div class="users-person-name">{escape(nombre)}</div><div class="users-person-email">{escape(correo)}</div></span></div></div>',
+            f'<div><span class="users-role-pill {rol_clase}">{escape(rol_texto)}</span></div>',
+            f'<div>{reuniones_por_usuario.get(user_id, 0)}</div>', f'<div>{escape(ultimo_acceso)}</div>',
+            f'<div><span class="users-status-pill {estado_clase}">{escape(estado_texto)}</span></div>',
+            f'<div><a class="users-action-link" href="?pagina=Usuarios&amp;gestionar_usuario={quote(user_id, safe="")}" target="_self" aria-label="Gestionar {escape(nombre)}">⋮</a></div>',
+        ])
+    if not pagina_usuarios:
+        celdas.append('<div class="users-empty">No hay usuarios que coincidan con los filtros.</div>')
+    st.markdown(f'<div class="users-table">{"".join(celdas)}</div>', unsafe_allow_html=True)
+    with st.container(key="users_footer"):
+        resumen_col, anterior_col, numero_col, siguiente_col, cantidad_col = st.columns([4, .45, .45, .45, 1.15])
+        with resumen_col:
+            st.caption(f"Mostrando {inicio + 1} a {fin} de {total_filtrado} usuarios" if total_filtrado else "Mostrando 0 usuarios")
+        with anterior_col:
+            if st.button("‹", key="users_prev", disabled=pagina <= 1, use_container_width=True):
+                st.session_state["users_page"] = pagina - 1
+                st.rerun()
+        with numero_col:
+            st.markdown(f'<span class="users-page-number">{pagina}</span>', unsafe_allow_html=True)
+        with siguiente_col:
+            if st.button("›", key="users_next", disabled=pagina >= total_paginas, use_container_width=True):
+                st.session_state["users_page"] = pagina + 1
+                st.rerun()
+        with cantidad_col:
+            st.selectbox(
+                "Usuarios por página", [10, 25, 50], key="users_per_page",
+                format_func=lambda valor: f"{valor} por página", label_visibility="collapsed",
+            )
+    if st.session_state.get("users_invite_dialog_open", False):
+        _dialogo_invitar_usuario()
+    gestionar_id = str(st.query_params.get("gestionar_usuario", "") or "")
+    if gestionar_id:
+        if "gestionar_usuario" in st.query_params:
+            del st.query_params["gestionar_usuario"]
+        seleccionado = next((u for u in users if str(u.get("id")) == gestionar_id), None)
+        if seleccionado:
+            _dialogo_gestionar_usuario(seleccionado)
 
 # -------- Reuniones --------            
 def view_reuniones():
@@ -4850,7 +5249,12 @@ def view_inteligencia_artificial():
             st.download_button(f"Descargar {report.name}", data=report.read_bytes(), file_name=report.name, mime=mime)
 
 # -------- Router --------
-if st.session_state.session is None:
+token_invitacion = str(st.query_params.get("aceptar_invitacion", "") or "")
+correo_invitacion = str(st.query_params.get("correo", "") or "").strip().lower()
+
+if st.session_state.session is None and token_invitacion and correo_invitacion:
+    view_aceptar_invitacion(correo_invitacion, token_invitacion)
+elif st.session_state.session is None:
     st.markdown('<div class="auth-page-marker"></div>', unsafe_allow_html=True)
     panel_visual, panel_acceso = st.columns([1.66, 1], gap=None)
     with panel_visual:
