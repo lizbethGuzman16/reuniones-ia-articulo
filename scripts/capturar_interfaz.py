@@ -42,7 +42,10 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
     page.wait_for_timeout(300)
 
     if opcion == "Usuarios":
-        page.get_by_role("button", name="Invitar usuario", exact=True).click()
+        # El signo "+" se dibuja con CSS y algunos navegadores lo incorporan
+        # al nombre accesible del botón. Localizar por el texto estable evita
+        # que la captura dependa de esa diferencia del motor de accesibilidad.
+        page.get_by_role("button", name=re.compile(r"Invitar usuario$")).click()
         page.get_by_role(
             "heading", name="Invitar nuevo usuario", exact=True
         ).wait_for(state="visible", timeout=30_000)
