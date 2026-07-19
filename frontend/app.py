@@ -4126,6 +4126,8 @@ def finalizar_videollamada(reunion_id: str) -> None:
     generar_informe = str(st.query_params.get("generar_informe", "0")) == "1"
     st.query_params.clear()
     st.query_params["pagina"] = "Resumen de reuniones" if generar_informe else "Reuniones"
+    if generar_informe:
+        st.query_params["resumen_reunion"] = reunion_id
     st.rerun()
 
 
@@ -4569,6 +4571,132 @@ def view_resumen_reuniones():
     render_columna(col_v, df_v, "Virtual", "virtual")
     render_columna(col_p, df_p, "Presencial", "presencial")
     render_columna(col_m, df_m, "Mixta", "mixta")
+
+# Nueva vista de procesamiento: reemplaza la interfaz heredada anterior sin
+# fabricar estados, porcentajes ni detecciones que no existan en Supabase.
+def view_resumen_reuniones():
+    reunion_solicitada = str(st.query_params.get("resumen_reunion", "") or "")
+    try:
+        reuniones = sb_select(
+            "reuniones",
+            {"select": "id,tema,fecha_inicio,estado,duracion_minutos,creador_id", "order": "fecha_inicio.desc"},
+        )
+    except Exception as exc:
+        st.error(f"Error cargando reuniones: {exc}")
+        return
+    elegibles = [
+        reunion for reunion in reuniones
+        if str(reunion.get("estado") or "").lower() in {"finalizada", "completada"}
+    ]
+    reunion = next((r for r in elegibles if str(r.get("id")) == reunion_solicitada), None)
+    if reunion is None:
+        reunion = elegibles[0] if elegibles else None
+    if reunion is None:
+        st.info("No hay reuniones finalizadas disponibles para procesar.")
+        return
+
+    reunion_id = str(reunion.get("id") or "")
+    try:
+        participantes = sb_select(
+            "participantes", {"select": "id,correo,rol", "reunion_id": f"eq.{reunion_id}"},
+        )
+    except Exception:
+        participantes = []
+    try:
+        tareas = sb_select(
+            "tareas", {"select": "id,descripcion,estado", "reunion_id": f"eq.{reunion_id}"},
+        )
+    except Exception:
+        tareas = []
+    try:
+        resumenes = sb_select(
+            "resumenes",
+            {"select": "id,resumen,fecha_creacion", "reunion_id": f"eq.{reunion_id}", "order": "fecha_creacion.desc"},
+        )
+    except Exception:
+        resumenes = []
+
+    resumen = resumenes[0] if resumenes else None
+    informe_listo = bool(resumen and str(resumen.get("resumen") or "").strip())
+    fecha = _fecha_hora_reunion(reunion.get("fecha_inicio"))
+    fecha_texto = (
+        f"{fecha.day} {MESES_ES[fecha.month - 1]} {fecha.year} · {_hora_es(fecha)}" if fecha else "No especificada"
+    )
+    duracion = reunion.get("duracion_minutos")
+    duracion_texto = f"{int(duracion)} minutos" if duracion not in (None, "") else "No especificada"
+    titulo = escape(str(reunion.get("tema") or "Reunión sin título"))
+    total_participantes = len(participantes)
+    total_tareas = len(tareas)
+    estado_informe = "Completado" if informe_listo else "Pendiente"
+    clase_informe = "complete" if informe_listo else "pending"
+    abrir_informe = str(st.query_params.get("abrir_informe", "") or "") == reunion_id
+    informe_html = ""
+    if abrir_informe and informe_listo:
+        informe_html = (
+            '<section class="report-card report-existing">'
+            '<h3>Informe disponible</h3>'
+            f'<p>{escape(str(resumen.get("resumen") or ""))}</p>'
+            '</section>'
+        )
+
+    st.markdown(
+        f"""
+        <style>
+        .report-process-page *{{font-family:"Segoe UI",Arial,sans-serif}}
+        .report-breadcrumb{{margin:0 0 24px;color:#64718b;font-size:14px}}.report-breadcrumb a{{color:#1765ed;text-decoration:none}}
+        .report-title{{display:flex;align-items:center;gap:16px;margin-bottom:2px}}.report-title i{{width:41px;height:41px;border:3px solid #11bfae;border-radius:50%;display:grid;place-items:center;color:#11bfae;font-style:normal;font-size:25px}}
+        .report-title h1{{margin:0;color:#071644!important;font:800 39px/1.1 "Segoe UI",Arial,sans-serif!important;letter-spacing:-1px}}
+        .report-subtitle{{margin:10px 0 25px;color:#67748f;font-size:18px}}
+        .report-grid{{display:grid;grid-template-columns:minmax(0,2.05fr) minmax(280px,1fr);gap:24px}}
+        .report-card{{background:#fff;border:1px solid #dfe5ef;border-radius:14px;box-shadow:0 8px 25px rgba(26,47,82,.06)}}
+        .report-main{{padding:30px 38px 24px;text-align:center}}.report-orbit{{position:relative;width:190px;height:190px;margin:0 auto 4px;display:grid;place-items:center;border:1px dashed #a99cff;border-radius:50%}}.report-orbit:after{{content:"";position:absolute;width:125px;height:125px;border:1px solid #d6d0ff;border-radius:50%}}
+        .report-orbit img{{position:relative;z-index:2;width:94px;height:94px;object-fit:contain}}.report-main h2{{margin:5px 0 8px;color:#071644!important;font:800 25px "Segoe UI",Arial,sans-serif!important}}.report-main-lead{{margin:0 auto 26px;max-width:600px;color:#667693;line-height:1.5}}
+        .process-list{{position:relative;display:grid;gap:9px;text-align:left}}.process-row{{display:grid;grid-template-columns:48px 1fr auto;align-items:center;min-height:56px;padding:0 17px 0 0;border:1px solid #dfe5ee;border-radius:9px;background:#fff}}.process-num{{width:43px;height:43px;margin-left:-22px;display:grid;place-items:center;border:1.5px solid #10bea9;border-radius:50%;background:#fff;color:#0bb9a6;font-size:20px}}.process-label{{color:#162545;font-size:13px}}.process-state{{color:#72809a;font-size:12px}}.process-state.complete{{color:#04a98f}}.process-state.pending{{color:#7653f4}}
+        .report-side{{display:grid;gap:22px}}.side-card{{padding:22px 20px}}.side-card h3{{margin:0 0 22px;color:#0b193c!important;font:800 17px "Segoe UI",Arial,sans-serif!important}}.summary-item{{display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:center;margin:18px 0}}.summary-icon{{color:#1765ed;font-size:27px}}.summary-item b{{display:block;color:#172645;font-size:14px}}.summary-item small{{color:#6d7a93}}
+        .detection{{display:grid;grid-template-columns:44px 1fr auto;align-items:center;min-height:66px;margin:9px 0;padding:8px 12px;border:1px solid #dfe5ee;border-radius:8px}}.detection-icon{{font-size:27px;color:#0bb9a6}}.detection.purple .detection-icon{{color:#773cf1}}.detection.blue .detection-icon{{color:#1765ed}}.detection b{{display:block;font-size:13px}}.detection small{{color:#6d7a93}}
+        .report-info{{margin-top:20px;padding:15px 20px;border:1px solid #79a3ff;border-radius:8px;color:#1765ed;background:#fbfdff;font-size:12px}}.report-actions{{display:flex;justify-content:center;gap:25px;margin-top:24px}}.report-action{{min-width:270px;padding:15px 25px;border:1px solid #1765ed;border-radius:8px;color:#1765ed;text-align:center;text-decoration:none;font-weight:700}}.report-action.disabled{{color:#8995aa;border-color:#ccd4df;background:#eef1f5;pointer-events:none}}
+        .report-existing{{margin-top:20px;padding:24px;text-align:left}}.report-existing h3{{margin-top:0;color:#0b193c!important;font-family:"Segoe UI",Arial,sans-serif!important}}.report-existing p{{white-space:pre-wrap;color:#33425f;line-height:1.6}}
+        @media(max-width:950px){{.report-grid{{grid-template-columns:1fr}}.report-title h1{{font-size:32px}}}}@media(max-width:600px){{.report-main{{padding:24px}}.report-actions{{flex-direction:column}}.report-action{{min-width:0}}}}
+        </style>
+        <div class="report-process-page">
+          <div class="report-breadcrumb"><a href="?pagina=Reuniones" target="_self">Reuniones</a>　/　{titulo}</div>
+          <div class="report-title"><i>✓</i><h1>Reunión finalizada</h1></div>
+          <div class="report-subtitle">El procesamiento usa únicamente la información disponible de la reunión.</div>
+          <div class="report-grid">
+            <section class="report-card report-main">
+              <div class="report-orbit"><img src="{LOGO_DATA_URI}" alt="VINCORA"></div>
+              <h2>Preparando tu informe inteligente</h2>
+              <p class="report-main-lead">VINCORA organizará los datos disponibles sin completar información ausente ni crear detecciones no verificadas.</p>
+              <div class="process-list">
+                <div class="process-row"><span class="process-num">1</span><span class="process-label">Grabación guardada</span><span class="process-state">No disponible</span></div>
+                <div class="process-row"><span class="process-num">2</span><span class="process-label">Transcripción por participante</span><span class="process-state">Pendiente</span></div>
+                <div class="process-row"><span class="process-num">3</span><span class="process-label">Identificando acuerdos y tareas</span><span class="process-state">Pendiente</span></div>
+                <div class="process-row"><span class="process-num">4</span><span class="process-label">Generando informe final</span><span class="process-state {clase_informe}">{estado_informe}</span></div>
+              </div>
+            </section>
+            <aside class="report-side">
+              <section class="report-card side-card"><h3>Resumen de la reunión</h3>
+                <div class="summary-item"><span class="summary-icon">◷</span><div><b>{duracion_texto}</b><small>Duración programada</small></div></div>
+                <div class="summary-item"><span class="summary-icon">♧</span><div><b>{total_participantes} participantes</b><small>Participantes registrados</small></div></div>
+                <div class="summary-item"><span class="summary-icon">≋</span><div><b>No disponible</b><small>Total transcrito</small></div></div>
+                <div class="summary-item"><span class="summary-icon">□</span><div><b>{fecha_texto}</b><small>Fecha y hora</small></div></div>
+              </section>
+              <section class="report-card side-card"><h3>Detecciones preliminares</h3>
+                <div class="detection"><span class="detection-icon">♢</span><div><b>No disponible</b><small>Acuerdos sin fuente configurada</small></div><span>›</span></div>
+                <div class="detection purple"><span class="detection-icon">☑</span><div><b>{total_tareas} tareas</b><small>Tareas vinculadas a la reunión</small></div><span>›</span></div>
+                <div class="detection blue"><span class="detection-icon">⚖</span><div><b>No disponible</b><small>Decisiones sin fuente configurada</small></div><span>›</span></div>
+              </section>
+            </aside>
+          </div>
+          <div class="report-info">ⓘ　Puedes cerrar esta pantalla. El informe solo se habilita cuando existe un resumen guardado.</div>
+          <div class="report-actions"><span class="report-action disabled">Ver transcripción preliminar</span>
+            <a class="report-action{' disabled' if not informe_listo else ''}" href="?pagina=Resumen%20de%20reuniones&amp;resumen_reunion={quote(reunion_id)}&amp;abrir_informe={quote(reunion_id)}" target="_self">Abrir informe</a></div>
+          {informe_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 # -------- Participantes --------
 def view_participantes():

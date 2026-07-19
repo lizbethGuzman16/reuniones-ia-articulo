@@ -15,7 +15,7 @@ PANTALLAS = [
     ("Usuarios", "Usuarios y permisos", "03-usuarios.png"),
     ("Reuniones", "Reuniones", "04-reuniones.png"),
     ("Tareas", "Gestión de Tareas", "05-tareas.png"),
-    ("Resumen de reuniones", "Resumen de reuniones", "06-resumenes.png"),
+    ("Resumen de reuniones", "Reunión finalizada", "06-resumenes.png"),
     ("Participantes", "Participantes de Reuniones", "07-participantes.png"),
     ("Métricas", "Métricas y Estadísticas", "08-metricas.png"),
 ]
@@ -89,6 +89,11 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
         expect(page.get_by_text("Asistente inteligente", exact=True)).to_be_visible()
         expect(page.get_by_role("button", name="Programar reunión", exact=True)).to_be_visible()
         page.keyboard.press("Escape")
+    elif opcion == "Resumen de reuniones":
+        expect(page.get_by_text("Preparando tu informe inteligente", exact=True)).to_be_visible()
+        expect(page.get_by_text("Grabación guardada", exact=True)).to_be_visible()
+        expect(page.get_by_text("No disponible", exact=True).first).to_be_visible()
+        expect(page.get_by_text("Ver transcripción preliminar", exact=True)).to_be_visible()
 
 
 def capturar_login(page: Page) -> None:
