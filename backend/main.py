@@ -59,6 +59,10 @@ class LiveKitTokenRequest(BaseModel):
     participant_name: str = Field(min_length=1, max_length=120)
 
 
+class LiveKitEndRoomRequest(BaseModel):
+    meeting_id: str = Field(min_length=1, max_length=100)
+
+
 @app.post("/livekit/token")
 def livekit_token(
     payload: LiveKitTokenRequest,
@@ -91,6 +95,28 @@ def livekit_token(
         .to_jwt()
     )
     return {"server_url": livekit_url, "participant_token": token, "room_name": room_name}
+
+
+@app.post("/livekit/end-room")
+async def livekit_end_room(
+    payload: LiveKitEndRoomRequest,
+    x_vincora_internal_key: str = Header(default=""),
+) -> dict[str, str]:
+    livekit_url = os.getenv("LIVEKIT_URL", "").strip()
+    api_key = os.getenv("LIVEKIT_API_KEY", "").strip()
+    api_secret = os.getenv("LIVEKIT_API_SECRET", "").strip()
+    internal_key = os.getenv("VINCORA_INTERNAL_API_KEY", "").strip()
+    if not all((livekit_url, api_key, api_secret, internal_key)):
+        raise HTTPException(status_code=503, detail="LiveKit no está configurado completamente.")
+    if not secrets.compare_digest(x_vincora_internal_key, internal_key):
+        raise HTTPException(status_code=401, detail="Solicitud no autorizada.")
+    room_name = f"vincora-{payload.meeting_id}"[:128]
+    livekit = livekit_api.LiveKitAPI(livekit_url, api_key, api_secret)
+    try:
+        await livekit.room.delete_room(livekit_api.DeleteRoomRequest(room=room_name))
+    finally:
+        await livekit.aclose()
+    return {"status": "ended", "room_name": room_name}
 
 
 @app.get("/health")

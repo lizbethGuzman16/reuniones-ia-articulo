@@ -4088,10 +4088,45 @@ def view_videollamada(reunion_id: str) -> None:
         logo=LOGO_DATA_URI,
         meeting=reunion,
         connection=conexion,
-        user=sesion,
+        user={
+            **sesion,
+            "is_organizer": DEMO_MODE or str(reunion.get("creador_id") or "") == str(sesion.get("id") or ""),
+        },
         demo=DEMO_MODE,
     )
     components.html(html, height=1000, scrolling=False)
+
+
+def finalizar_videollamada(reunion_id: str) -> None:
+    """Valida al organizador, cierra LiveKit y marca la reunión como finalizada."""
+    sesion = st.session_state.session or {}
+    reuniones = sb_select(
+        "reuniones",
+        {"select": "id,creador_id", "id": f"eq.{reunion_id}", "limit": "1"},
+    )
+    reunion = reuniones[0] if reuniones else None
+    if not reunion or str(reunion.get("creador_id") or "") != str(sesion.get("id") or ""):
+        st.error("Solo el organizador puede finalizar la reunión para todos.")
+        return
+    if not DEMO_MODE:
+        respuesta = requests.post(
+            f"{FASTAPI_URL}/livekit/end-room",
+            headers={"X-Vincora-Internal-Key": VINCORA_INTERNAL_API_KEY},
+            json={"meeting_id": reunion_id},
+            timeout=30,
+        )
+        respuesta.raise_for_status()
+    requests.patch(
+        f"{SUPABASE_URL}/rest/v1/reuniones",
+        headers={**HEADERS, "Prefer": "return=minimal"},
+        params={"id": f"eq.{reunion_id}"},
+        data=json.dumps({"estado": "finalizada"}),
+        timeout=30,
+    ).raise_for_status()
+    generar_informe = str(st.query_params.get("generar_informe", "0")) == "1"
+    st.query_params.clear()
+    st.query_params["pagina"] = "Resumen de reuniones" if generar_informe else "Reuniones"
+    st.rerun()
 
 
 def view_reuniones():
@@ -5627,6 +5662,8 @@ elif st.session_state.session is None:
                 '<div class="auth-register-prompt">¿No tienes una cuenta? <a href="?auth=register" target="_self">Regístrate</a></div>',
                 unsafe_allow_html=True,
             )
+elif str(st.query_params.get("finalizar_reunion", "") or ""):
+    finalizar_videollamada(str(st.query_params.get("finalizar_reunion", "") or ""))
 elif str(st.query_params.get("videollamada", "") or ""):
     view_videollamada(str(st.query_params.get("videollamada", "") or ""))
 elif str(st.query_params.get("sala_previa", "") or ""):

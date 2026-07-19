@@ -79,3 +79,12 @@ def test_livekit_token_is_signed_and_protected(monkeypatch):
     assert body["server_url"] == "wss://vincora.example.livekit.cloud"
     assert body["room_name"] == "vincora-meeting-1"
     assert body["participant_token"].count(".") == 2
+
+
+def test_livekit_end_room_is_protected(monkeypatch):
+    monkeypatch.setenv("LIVEKIT_URL", "wss://vincora.example.livekit.cloud")
+    monkeypatch.setenv("LIVEKIT_API_KEY", "test-api-key")
+    monkeypatch.setenv("LIVEKIT_API_SECRET", "test-api-secret-with-enough-entropy")
+    monkeypatch.setenv("VINCORA_INTERNAL_API_KEY", "internal-test-key")
+    response = client.post("/livekit/end-room", json={"meeting_id": "meeting-1"})
+    assert response.status_code == 401

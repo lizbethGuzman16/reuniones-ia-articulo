@@ -132,6 +132,11 @@ def capturar_videollamada(page: Page) -> None:
     frame.get_by_text("VINCORA IA activa", exact=False).wait_for(state="visible", timeout=90_000)
     expect(frame.get_by_role("button", name=re.compile(r"Finalizar"))).to_be_visible()
     expect(frame.locator(".name").filter(has_text="Ana García")).to_be_visible()
+    frame.get_by_role("button", name=re.compile(r"Finalizar")).click()
+    frame.get_by_role("heading", name="¿Finalizar la reunión?", exact=True).wait_for(
+        state="visible", timeout=30_000
+    )
+    expect(frame.get_by_role("button", name="Finalizar para todos", exact=True)).to_be_visible()
     page.wait_for_timeout(800)
     page.screenshot(
         path=str(OUTPUT_DIR / "10-videollamada-activa.png"),
