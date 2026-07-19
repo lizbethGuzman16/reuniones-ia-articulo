@@ -1726,7 +1726,8 @@ div[role="dialog"]:has(.meeting-dialog-marker) [data-testid="stFormSubmitButton"
 }
 .prejoin-page-marker { height: 0; overflow: hidden; }
 [data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stHeader"],
-[data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stSidebar"] { display: none !important; }
+[data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stSidebar"],
+[data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stAlert"] { display: none !important; }
 [data-testid="stAppViewContainer"]:has(.prejoin-page-marker) .block-container {
     max-width: none !important; padding: 0 !important;
 }
