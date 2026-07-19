@@ -21,6 +21,7 @@ from passlib.hash import bcrypt
 import streamlit as st
 from dotenv import load_dotenv
 import altair as alt
+from frontend.prejoin_room import build_prejoin_html
 
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -1720,6 +1721,15 @@ div[role="dialog"]:has(.meeting-dialog-marker) [data-testid="stFormSubmitButton"
     color: #FFF !important; border: 0 !important;
     background: linear-gradient(100deg, #1765ED 0%, #3D64F5 55%, #9346F4 100%) !important;
 }
+.prejoin-page-marker { height: 0; overflow: hidden; }
+[data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stHeader"],
+[data-testid="stAppViewContainer"]:has(.prejoin-page-marker) [data-testid="stSidebar"] { display: none !important; }
+[data-testid="stAppViewContainer"]:has(.prejoin-page-marker) .block-container {
+    max-width: none !important; padding: 0 !important;
+}
+[data-testid="stAppViewContainer"]:has(.prejoin-page-marker) iframe {
+    display: block; width: 100%; border: 0;
+}
 @media (max-width: 980px) {
     .meetings-layout { grid-template-columns: 1fr; }
     .meetings-calendar { border-right: 0; }
@@ -2859,7 +2869,10 @@ def _dialogo_unirse_inicio() -> None:
             st.markdown(f"**{escape(str(reunion.get('tema') or 'Reunión'))}**")
             enlace = _url_inicio(reunion.get("join_url") or reunion.get("start_url"))
             if enlace:
-                st.link_button("Unirme ahora", enlace, type="primary", use_container_width=True)
+                st.link_button(
+                    "Continuar a sala previa", f"?sala_previa={quote(str(reunion.get('id') or ''))}",
+                    type="primary", use_container_width=True,
+                )
             else:
                 st.write(f"Reunión {reunion.get('tipo') or ''}. Dirección: {reunion.get('direccion') or 'por confirmar'}")
 
@@ -3018,7 +3031,7 @@ def view_inicio():
         part = participantes_reunion.get(str(reunion.get("id")), [])
         enlace = _url_inicio(reunion.get("start_url") or reunion.get("join_url"))
         boton_inicio = (
-            f'<a class="home-start-button" href="{escape(enlace, quote=True)}" target="_blank" rel="noopener">Iniciar</a>'
+            f'<a class="home-start-button" href="?sala_previa={quote(str(reunion.get("id") or ""))}" target="_self">Iniciar</a>'
             if enlace else ""
         )
         filas_reuniones.append(
@@ -3970,13 +3983,55 @@ def _tarjetas_reuniones(reuniones: list[dict], participantes_por_reunion: dict[s
         correos = [str(p.get("correo") or "") for p in participantes_por_reunion.get(str(reunion.get("id")), [])]
         nombres = [usuarios_correo.get(c.lower(), c) for c in correos if c]
         enlace = _url_inicio(reunion.get("start_url") or reunion.get("join_url"))
-        accion = f' · <a href="{escape(enlace)}" target="_blank">Abrir reunión</a>' if enlace else ""
+        accion = f' · <a href="?sala_previa={quote(str(reunion.get("id") or ""))}" target="_self">Abrir reunión</a>' if enlace else ""
         tarjetas.append(
             f'<div class="meetings-list-card"><h3>{escape(str(reunion.get("tema") or "Reunión"))}</h3>'
             f'<p>{fecha.day} de {MESES_ES[fecha.month - 1]} de {fecha.year} · {_hora_es(fecha)} · {int(reunion.get("duracion_minutos") or 0)} minutos{accion}</p>'
             f'<p>{escape(", ".join(nombres))}</p></div>'
         )
     return '<div class="meetings-list">' + ("".join(tarjetas) or '<div class="meetings-list-card"><p>No hay reuniones en esta vista.</p></div>') + "</div>"
+
+
+def view_sala_previa(reunion_id: str) -> None:
+    """Comprueba dispositivos y consentimiento antes de abrir la reunión real."""
+    import streamlit.components.v1 as components
+
+    st.markdown('<div class="prejoin-page-marker"></div>', unsafe_allow_html=True)
+    try:
+        reuniones = sb_select(
+            "reuniones",
+            {
+                "select": "id,tema,join_url,start_url,creador_id",
+                "id": f"eq.{reunion_id}",
+                "limit": "1",
+            },
+        )
+        reunion = reuniones[0] if reuniones else None
+    except Exception:
+        reunion = None
+    if not reunion:
+        st.error("No encontramos la reunión solicitada.")
+        if st.button("Volver a Reuniones"):
+            st.query_params.clear()
+            st.query_params["pagina"] = "Reuniones"
+            st.rerun()
+        return
+    sesion = st.session_state.session or {}
+    es_creador = str(reunion.get("creador_id") or "") == str(sesion.get("id") or "")
+    enlace = reunion.get("start_url") if es_creador else reunion.get("join_url")
+    enlace = _url_inicio(enlace) or _url_inicio(reunion.get("join_url")) or _url_inicio(reunion.get("start_url"))
+    reunion_render = {**reunion, "join_url": enlace, "start_url": None}
+    try:
+        participantes = sb_select("participantes", {"select": "id", "reunion_id": f"eq.{reunion_id}"})
+    except Exception:
+        participantes = []
+    html = build_prejoin_html(
+        logo=LOGO_DATA_URI,
+        meeting=reunion_render,
+        participant_name=str(sesion.get("nombre") or "Usuario"),
+        participant_count=len(participantes),
+    )
+    components.html(html, height=1000, scrolling=True)
 
 
 def view_reuniones():
@@ -4058,7 +4113,7 @@ def view_reuniones():
                 etiqueta = f'{_hora_es(reunion["_fecha"])} {reunion.get("tema") or "Reunión"}'
                 clase = "meetings-event external" if externa else "meetings-event"
                 if enlace:
-                    eventos.append(f'<a class="{clase}" href="{escape(enlace)}" target="_blank">{escape(etiqueta)}</a>')
+                    eventos.append(f'<a class="{clase}" href="?sala_previa={quote(str(reunion.get("id") or ""))}" target="_self">{escape(etiqueta)}</a>')
                 else:
                     eventos.append(f'<span class="{clase}">{escape(etiqueta)}</span>')
             celdas.append(f'<div class="{" ".join(clases)}"><span class="meetings-day-number">{fecha_dia.day}</span>{"".join(eventos)}</div>')
@@ -5512,6 +5567,8 @@ elif st.session_state.session is None:
                 '<div class="auth-register-prompt">¿No tienes una cuenta? <a href="?auth=register" target="_self">Regístrate</a></div>',
                 unsafe_allow_html=True,
             )
+elif str(st.query_params.get("sala_previa", "") or ""):
+    view_sala_previa(str(st.query_params.get("sala_previa", "") or ""))
 else:
     admin = is_admin()
     nombre_usuario = st.session_state.session["nombre"]
