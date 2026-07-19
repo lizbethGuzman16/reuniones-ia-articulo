@@ -1681,6 +1681,10 @@ div[role="dialog"]:has(.meeting-dialog-marker) {
     color: #071644 !important; font-family: "Segoe UI", Arial, sans-serif !important;
     font-size: 23px !important; font-weight: 800 !important; letter-spacing: -.4px !important;
 }
+[role="dialog"] h2 {
+    color: #071644 !important; font-family: "Segoe UI", Arial, sans-serif !important;
+    font-size: 23px !important; font-weight: 800 !important; letter-spacing: -.4px !important;
+}
 [data-baseweb="modal"]:has(.meeting-dialog-marker) [data-testid="stForm"] {
     padding: 0 !important; background: transparent !important; border: 0 !important; box-shadow: none !important;
 }
@@ -3896,7 +3900,7 @@ def _dialogo_programar_reunion(correos_disponibles: list[str]) -> None:
             '<div class="meeting-dialog-note">ⓘ　Los participantes deberán aceptar la grabación y transcripción al ingresar.</div>',
             unsafe_allow_html=True,
         )
-        cancelar_col, espacio_col, crear_col = st.columns([1.05, 1.7, 1.8])
+        cancelar_col, espacio_col, crear_col = st.columns([1.5, .35, 2.4])
         with cancelar_col:
             cancelar = st.form_submit_button("Cancelar", use_container_width=True)
         with espacio_col:
