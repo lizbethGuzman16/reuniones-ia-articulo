@@ -111,6 +111,18 @@ def capturar_sala_previa(page: Page) -> None:
     frame.get_by_role("heading", name="¿Preparado para unirte?", exact=True).wait_for(
         state="visible", timeout=90_000
     )
+    frame.get_by_role("button", name="Permitir dispositivos", exact=True).click()
+    frame.get_by_text("Grabación y transcripción con IA", exact=True).wait_for(
+        state="visible", timeout=30_000
+    )
+    frame.get_by_label("Acepto la grabación y el procesamiento del audio.").check()
+    expect(frame.get_by_role("button", name=re.compile(r"Unirse ahora"))).to_be_enabled()
+    page.wait_for_timeout(1_000)
+    page.screenshot(
+        path=str(OUTPUT_DIR / "09-sala-previa.png"),
+        full_page=False,
+        animations="disabled",
+    )
 
 
 def capturar_videollamada(page: Page) -> None:
@@ -123,18 +135,6 @@ def capturar_videollamada(page: Page) -> None:
     page.wait_for_timeout(800)
     page.screenshot(
         path=str(OUTPUT_DIR / "10-videollamada-activa.png"),
-        full_page=False,
-        animations="disabled",
-    )
-    frame.get_by_role("button", name="Permitir dispositivos", exact=True).click()
-    frame.get_by_text("Grabación y transcripción con IA", exact=True).wait_for(
-        state="visible", timeout=30_000
-    )
-    frame.get_by_label("Acepto la grabación y el procesamiento del audio.").check()
-    expect(frame.get_by_role("button", name=re.compile(r"Unirse ahora"))).to_be_enabled()
-    page.wait_for_timeout(1_000)
-    page.screenshot(
-        path=str(OUTPUT_DIR / "09-sala-previa.png"),
         full_page=False,
         animations="disabled",
     )
