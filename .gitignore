@@ -18,6 +18,7 @@ Thumbs.db
 models/*.pt
 models/cnn_1d.h5
 models/lstm.h5
+models/bilstm.h5
 models/cnn_bilstm.h5
 models/bilstm_atencion.h5
 models/mlp_tfidf.h5

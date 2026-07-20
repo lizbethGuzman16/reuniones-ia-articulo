@@ -15,8 +15,8 @@ pytest -q
 Resultado:
 
 ```text
-......                                                                   [100%]
-6 passed
+................                                                         [100%]
+16 passed
 ```
 
 Las pruebas cubren:
@@ -24,7 +24,7 @@ Las pruebas cubren:
 1. Estado de salud de FastAPI.
 2. Disponibilidad y carga directa de `models/best_model.h5`.
 3. Predicción real y probabilidades para las cinco clases.
-4. Exposición de resultados de los cinco modelos.
+4. Exposición de resultados de los seis modelos.
 5. Listado de los reportes Word, PDF y Excel.
 6. Descarga válida del reporte Excel.
 
@@ -37,7 +37,7 @@ Las pruebas cubren:
 
 ## Verificación del Excel
 
-- 15 hojas: dashboard, EDA, comparación, validación cruzada, tuning, pruebas estadísticas, reportes por modelo y fuentes.
+- 16 hojas: dashboard, EDA, comparación, validación cruzada, tuning, pruebas estadísticas, seis reportes por modelo y fuentes.
 - Dashboard revisado con los resultados principales.
 - Búsqueda de errores `#REF!`, `#DIV/0!`, `#VALUE!`, `#NAME?` y `#N/A`: cero coincidencias.
 

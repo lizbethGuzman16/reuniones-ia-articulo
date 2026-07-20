@@ -8,8 +8,8 @@ Proyecto completo para clasificar actos de diálogo en transcripciones de reunio
 - Registros procesados: **109 228**.
 - Reuniones: **73**.
 - Hablantes: **52**.
-- Modelos clásicos: **MLP-TFIDF, CNN-1D y LSTM**.
-- Modelos híbridos: **CNN-BiLSTM y BiLSTM con atención**.
+- Modelos base: **CNN-1D, LSTM y BiLSTM**.
+- Modelos híbridos: **MLP-TFIDF, CNN-BiLSTM y BiLSTM con atención**.
 - Mejor modelo en el test oficial: **MLP-TFIDF**.
 - Accuracy: **0,6427**.
 - F1 macro: **0,6219**.

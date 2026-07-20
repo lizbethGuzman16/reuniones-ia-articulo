@@ -270,6 +270,8 @@ def run_training() -> pd.DataFrame:
             **base_metadata,
             "vectorizer_library": "scikit-learn TfidfVectorizer serializado con joblib",
             "input_dim": int(joblib.load(MODELS_DIR / "tfidf_vectorizer.joblib").transform(["test"]).shape[1]),
+            "vocab_size": None,
+            "seq_len": CFG.seq_len,
             "labels": LABEL_ORDER,
         }
     else:

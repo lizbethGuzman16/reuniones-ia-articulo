@@ -32,12 +32,16 @@ def test_prediction_uses_h5():
     assert len(payload['probabilities']) == 5
 
 
-def test_metrics_contains_five_models():
+def test_metrics_contains_six_models():
     response = client.get('/metrics')
     assert response.status_code == 200
     payload = response.json()
     assert payload['best_model']['modelo'] == 'MLP-TFIDF'
-    assert len(payload['models']) == 5
+    names = {row['modelo'] for row in payload['models']}
+    assert names == {
+        'CNN-1D', 'LSTM', 'BiLSTM',
+        'MLP-TFIDF', 'CNN-BiLSTM', 'BiLSTM-Atencion',
+    }
 
 
 def test_reports_list_final_formats():

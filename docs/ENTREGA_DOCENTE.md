@@ -21,7 +21,7 @@
 ## Guion mínimo de demostración
 
 1. Mostrar el manifiesto del dataset y el EDA.
-2. Mostrar la comparación de cinco modelos.
+2. Mostrar la comparación de seis modelos: tres base y tres híbridos.
 3. Explicar por qué se seleccionó F1 macro.
 4. Mostrar validación cruzada, tuning y Friedman/Wilcoxon-Holm.
 5. Ejecutar `/health` y `/model/status`.
