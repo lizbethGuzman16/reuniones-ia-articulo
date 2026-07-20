@@ -467,6 +467,38 @@ class OpenAIREST:
             raise VincoraServiceError("OpenAI devolvió un acta que no es JSON válido") from exc
         return validate_minutes(result, segments)
 
+    def answer_assistant(self, messages: Sequence[Mapping[str, str]], *, language: str = "es") -> str:
+        """Responde al asistente general sin exponer la clave al frontend."""
+        clean = [
+            {"role": str(item.get("role") or "user"), "content": str(item.get("content") or "")[:6000]}
+            for item in messages[-12:]
+            if str(item.get("content") or "").strip()
+        ]
+        body = {
+            "model": self.generation_model,
+            "instructions": (
+                "Eres el asistente de VINCORA Meet. Ayuda a redactar, organizar reuniones, "
+                "tareas y resúmenes. No afirmes haber consultado reuniones o usuarios si esa "
+                "información no está en la conversación. Responde de forma breve en "
+                + ("inglés." if language == "en" else "español.")
+            ),
+            "input": clean,
+        }
+        try:
+            response = self.session.post(
+                f"{self.base_url}/responses",
+                headers=self.headers | {"Content-Type": "application/json"},
+                json=body,
+                timeout=self.timeout,
+            )
+        except requests.RequestException as exc:
+            raise VincoraServiceError("No fue posible consultar el asistente") from exc
+        payload = self._checked(response, "responder con el asistente").json()
+        text = payload.get("output_text") or self._find_output_text(payload)
+        if not text:
+            raise VincoraServiceError("OpenAI no devolvió una respuesta")
+        return str(text).strip()
+
     @staticmethod
     def _find_output_text(payload: Mapping[str, Any]) -> str:
         for output in payload.get("output", []):

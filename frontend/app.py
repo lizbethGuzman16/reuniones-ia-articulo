@@ -5953,6 +5953,70 @@ def view_ia_vincora():
     from frontend.vincora_dashboards import ia_config
     ia_config(st, view_inteligencia_artificial)
 
+
+UI_TEXT = {
+    "es": {"settings": "Apariencia e idioma", "theme": "Tema", "language": "Idioma", "light": "Claro", "dark": "Oscuro", "assistant": "Asistente VINCORA", "write": "Escribe tu mensaje", "send": "Enviar", "voice": "Mensaje de voz", "transcribe": "Transcribir y enviar", "back": "Volver al panel"},
+    "en": {"settings": "Appearance and language", "theme": "Theme", "language": "Language", "light": "Light", "dark": "Dark", "assistant": "VINCORA Assistant", "write": "Write your message", "send": "Send", "voice": "Voice message", "transcribe": "Transcribe and send", "back": "Back to dashboard"},
+}
+NAV_EN = {"Inicio": "Home", "Chat": "Chat", "Usuarios": "Users", "Reuniones": "Meetings", "Tareas": "Tasks", "Resumen de reuniones": "Meeting summaries", "Participantes": "Participants", "Inteligencia artificial": "Artificial intelligence", "Métricas": "Metrics", "Cerrar sesión": "Sign out"}
+
+
+def _assistant_send(text: str) -> None:
+    text = text.strip()
+    if not text:
+        return
+    messages = st.session_state.setdefault("global_assistant_messages", [])
+    messages.append({"role": "user", "content": text})
+    response = requests.post(
+        f"{FASTAPI_URL}/vincora/assistant",
+        headers={"X-Vincora-Internal-Key": VINCORA_INTERNAL_API_KEY},
+        json={"messages": messages[-12:], "language": st.session_state.get("vx_language", "es")},
+        timeout=90,
+    )
+    response.raise_for_status()
+    messages.append({"role": "assistant", "content": str(response.json().get("answer") or "")})
+
+
+def render_global_controls(*, room_mode: bool = False) -> None:
+    language = st.session_state.setdefault("vx_language", "es")
+    labels = UI_TEXT.get(language, UI_TEXT["es"])
+    with st.sidebar.expander("⚙ " + labels["settings"], expanded=False):
+        st.selectbox(labels["language"], ["es", "en"], format_func=lambda value: "Español" if value == "es" else "English", key="vx_language")
+        st.radio(labels["theme"], ["light", "dark"], format_func=lambda value: labels["light"] if value == "light" else labels["dark"], horizontal=True, key="vx_theme")
+    if st.session_state.get("vx_theme", "light") == "dark":
+        st.markdown("""<style>:root{--canvas:#07111e;--surface:#101b2a;--surface-soft:#152235;--line:#2a3a50;--ink:#f4f7fb;--muted:#aeb9c8;--blue-soft:#172a4b} [data-testid="stAppViewContainer"],[data-testid="stSidebar"]{background:#07111e!important;color:#f4f7fb!important} [data-testid="stSidebar"] *{color:#e8eef7} .stMarkdown,.stTextInput,.stSelectbox,.stTextArea{color:#f4f7fb!important} .vx-kpi,.vx-board,.vx-col,.vx-task,.vx-person,.vx-ai-card,[data-testid="stForm"],[data-testid="stExpander"]{background:#101b2a!important;border-color:#2a3a50!important;color:#f4f7fb!important} h1,h2,h3,p,label{color:#f4f7fb!important}</style>""", unsafe_allow_html=True)
+    with st.sidebar.expander("✦ " + labels["assistant"], expanded=False):
+        for item in st.session_state.get("global_assistant_messages", [])[-6:]:
+            prefix = "Tú" if item["role"] == "user" and language == "es" else ("You" if item["role"] == "user" else "VINCORA")
+            st.markdown(f"**{prefix}:** {escape(item['content'])}")
+        message = st.text_area(labels["write"], key="global_assistant_input", height=85)
+        if st.button(labels["send"], key="global_assistant_send", type="primary", use_container_width=True):
+            try:
+                _assistant_send(message); st.rerun()
+            except Exception as exc:
+                st.error(f"Asistente no disponible: {exc}")
+        audio = st.audio_input(labels["voice"], key="global_assistant_audio")
+        if audio is not None and st.button(labels["transcribe"], key="global_assistant_voice_send", use_container_width=True):
+            try:
+                response = requests.post(
+                    f"{FASTAPI_URL}/vincora/assistant/transcribe",
+                    headers={"X-Vincora-Internal-Key": VINCORA_INTERNAL_API_KEY},
+                    data={"language": language},
+                    files={"audio": (audio.name, audio.getvalue(), audio.type)}, timeout=90,
+                )
+                response.raise_for_status(); _assistant_send(str(response.json().get("text") or "")); st.rerun()
+            except Exception as exc:
+                st.error(f"No se pudo procesar la voz: {exc}")
+    if room_mode:
+        if st.sidebar.button("← " + labels["back"], use_container_width=True):
+            st.query_params.clear(); st.query_params["pagina"] = "Reuniones"; st.rerun()
+
+
+def render_room_sidebar() -> None:
+    session = st.session_state.session or {}
+    st.sidebar.markdown(f'<div class="brand-box"><div class="brand-logo"><img src="{LOGO_DATA_URI}"></div><div><div class="brand-name">VINCORA Meet</div><div class="brand-sub">Conecta. Reúnete. Avanza.</div></div></div><div class="user-chip"><div class="user-avatar">{escape(str(session.get("nombre") or "U")[:2].upper())}</div><div><div class="user-name">{escape(str(session.get("nombre") or "Usuario"))}</div></div></div>', unsafe_allow_html=True)
+    render_global_controls(room_mode=True)
+
 # -------- Router --------
 token_invitacion = str(st.query_params.get("aceptar_invitacion", "") or "")
 correo_invitacion = str(st.query_params.get("correo", "") or "").strip().lower()
@@ -6015,10 +6079,13 @@ elif st.session_state.session is None:
                 unsafe_allow_html=True,
             )
 elif str(st.query_params.get("finalizar_reunion", "") or ""):
+    render_room_sidebar()
     finalizar_videollamada(str(st.query_params.get("finalizar_reunion", "") or ""))
 elif str(st.query_params.get("videollamada", "") or ""):
+    render_room_sidebar()
     view_videollamada(str(st.query_params.get("videollamada", "") or ""))
 elif str(st.query_params.get("sala_previa", "") or ""):
+    render_room_sidebar()
     view_sala_previa(str(st.query_params.get("sala_previa", "") or ""))
 else:
     admin = is_admin()
@@ -6057,7 +6124,9 @@ else:
     if st.session_state.get("main_navigation") not in opciones_menu:
         st.session_state["main_navigation"] = "Inicio"
 
-    page = st.sidebar.radio("Navegación", opciones_menu, key="main_navigation")
+    language = st.session_state.setdefault("vx_language", "es")
+    page = st.sidebar.radio("Navegación" if language == "es" else "Navigation", opciones_menu, format_func=lambda item: NAV_EN.get(item, item) if st.session_state.get("vx_language") == "en" else item, key="main_navigation")
+    render_global_controls()
     if page == "Inicio":
         view_inicio()
     elif page == "Chat":

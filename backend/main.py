@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
@@ -27,6 +27,7 @@ from backend.model_service import load_artifacts, predict_texts
 from backend.vincora_services import (
     AudioSource,
     ProcessingService,
+    OpenAIREST,
     SupabaseREST,
     VincoraServiceError,
     integration_status,
@@ -82,10 +83,49 @@ class LiveKitEndRoomRequest(BaseModel):
     notify_when_ready: bool = True
 
 
+class AssistantRequest(BaseModel):
+    messages: list[dict[str, str]] = Field(min_length=1, max_length=20)
+    language: str = Field(default="es", pattern="^(es|en)$")
+
+
 def _require_internal_key(value: str) -> None:
     expected = os.getenv("VINCORA_INTERNAL_API_KEY", "").strip()
     if not expected or not secrets.compare_digest(value, expected):
         raise HTTPException(status_code=401, detail="Solicitud no autorizada")
+
+
+@app.post("/vincora/assistant")
+def vincora_assistant(
+    payload: AssistantRequest,
+    x_vincora_internal_key: str = Header(default=""),
+) -> dict[str, str]:
+    _require_internal_key(x_vincora_internal_key)
+    try:
+        return {"answer": OpenAIREST().answer_assistant(payload.messages, language=payload.language)}
+    except VincoraServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/vincora/assistant/transcribe")
+async def vincora_assistant_transcribe(
+    audio: UploadFile = File(...),
+    language: str = Form(default="es"),
+    x_vincora_internal_key: str = Header(default=""),
+) -> dict[str, str]:
+    _require_internal_key(x_vincora_internal_key)
+    content = await audio.read()
+    if not content or len(content) > 25 * 1024 * 1024:
+        raise HTTPException(status_code=422, detail="Audio vacío o demasiado grande")
+    try:
+        segments = OpenAIREST().transcribe_bytes(
+            content,
+            filename=audio.filename or "audio.wav",
+            content_type=audio.content_type,
+            language=language if language in {"es", "en"} else "es",
+        )
+        return {"text": " ".join(str(item.get("text") or "").strip() for item in segments).strip()}
+    except VincoraServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 def _run_meeting_process(meeting_id: str) -> dict[str, Any]:

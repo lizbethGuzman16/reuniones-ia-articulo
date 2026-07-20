@@ -4,6 +4,7 @@ import pytest
 
 from backend.vincora_services import (
     EvidenceValidationError,
+    OpenAIREST,
     SupabaseREST,
     validate_minutes,
 )
@@ -94,3 +95,31 @@ def test_private_recording_download_uses_authenticated_storage_route() -> None:
     )
     assert client.download_bytes("reuniones/1/audio.ogg") == b"audio"
     assert "/storage/v1/object/authenticated/grabaciones-reuniones/" in session.url
+
+
+class _OpenAIResponse:
+    ok = True
+    status_code = 200
+    text = ""
+
+    def json(self) -> dict:
+        return {"output_text": "Respuesta comprobada"}
+
+
+class _OpenAISession:
+    def __init__(self) -> None:
+        self.body = None
+
+    def post(self, url: str, **kwargs: object) -> _OpenAIResponse:
+        assert url.endswith("/responses")
+        self.body = kwargs.get("json")
+        return _OpenAIResponse()
+
+
+def test_global_assistant_uses_responses_api_and_requested_language() -> None:
+    session = _OpenAISession()
+    client = OpenAIREST("test-key", session=session)
+    answer = client.answer_assistant([{"role": "user", "content": "Hello"}], language="en")
+    assert answer == "Respuesta comprobada"
+    assert session.body["input"][-1]["content"] == "Hello"
+    assert "inglés" in session.body["instructions"]
