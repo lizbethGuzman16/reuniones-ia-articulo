@@ -93,7 +93,7 @@ def abrir_pantalla(page: Page, opcion: str, titulo: str, archivo: str) -> None:
     elif opcion == "Resumen de reuniones":
         expect(page.get_by_text("Preparando tu informe inteligente", exact=True)).to_be_visible()
         expect(page.get_by_text("Grabación guardada", exact=True)).to_be_visible()
-        expect(page.get_by_text("No disponible", exact=True).first).to_be_visible()
+        expect(page.get_by_text("0 palabras", exact=True)).to_be_visible()
         expect(page.get_by_text("Ver transcripción preliminar", exact=True)).to_be_visible()
 
 
