@@ -10,7 +10,8 @@ def test_prejoin_join_uses_iframe_safe_navigation() -> None:
     )
 
     assert "function navigateApp(query)" in html
-    assert "window.parent.location.href" not in html
     assert "window.parent.history" not in html
+    assert "window.location.ancestorOrigins" in html
+    assert "document.referrer||window.location.href" not in html
     assert "navigateApp('?videollamada=" in html
-    assert "window.open(base.toString(),'_blank','noopener')" in html
+    assert "window.open(url,'_blank','noopener')" in html
