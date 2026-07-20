@@ -7,7 +7,10 @@ client = TestClient(app)
 def test_health():
     response = client.get('/health')
     assert response.status_code == 200
-    assert response.json()['status'] == 'ok'
+    payload = response.json()
+    assert payload['status'] == 'ok'
+    assert set(payload['components']) == {'supabase', 'openai', 'livekit', 'storage'}
+    assert 'key' not in response.text.lower()
 
 
 def test_model_status():
@@ -79,6 +82,7 @@ def test_livekit_token_is_signed_and_protected(monkeypatch):
     assert body["server_url"] == "wss://vincora.example.livekit.cloud"
     assert body["room_name"] == "vincora-meeting-1"
     assert body["participant_token"].count(".") == 2
+    assert body["recording_state"] == "not_configured"
 
 
 def test_livekit_end_room_is_protected(monkeypatch):
@@ -88,3 +92,10 @@ def test_livekit_end_room_is_protected(monkeypatch):
     monkeypatch.setenv("VINCORA_INTERNAL_API_KEY", "internal-test-key")
     response = client.post("/livekit/end-room", json={"meeting_id": "meeting-1"})
     assert response.status_code == 401
+
+
+def test_meeting_processing_routes_are_protected(monkeypatch):
+    monkeypatch.setenv("VINCORA_INTERNAL_API_KEY", "internal-test-key")
+    assert client.get("/vincora/meetings/meeting-1/status").status_code == 401
+    assert client.get("/vincora/meetings/meeting-1/transcript").status_code == 401
+    assert client.post("/vincora/meetings/meeting-1/process").status_code == 401

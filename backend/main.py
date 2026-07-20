@@ -1,19 +1,36 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
 import secrets
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from livekit import api as livekit_api
 
+from backend.livekit_workflow import (
+    components_ready,
+    finish_egress,
+    meeting_id_from_room,
+    room_name_for,
+    start_participant_recording,
+    start_room_recording,
+)
 from backend.model_service import load_artifacts, predict_texts
+from backend.vincora_services import (
+    AudioSource,
+    ProcessingService,
+    SupabaseREST,
+    VincoraServiceError,
+    integration_status,
+)
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 MODEL_H5_PATH = ROOT_DIR / "models" / "best_model.h5"
@@ -61,10 +78,69 @@ class LiveKitTokenRequest(BaseModel):
 
 class LiveKitEndRoomRequest(BaseModel):
     meeting_id: str = Field(min_length=1, max_length=100)
+    generate_report: bool = True
+    notify_when_ready: bool = True
+
+
+def _require_internal_key(value: str) -> None:
+    expected = os.getenv("VINCORA_INTERNAL_API_KEY", "").strip()
+    if not expected or not secrets.compare_digest(value, expected):
+        raise HTTPException(status_code=401, detail="Solicitud no autorizada")
+
+
+def _run_meeting_process(meeting_id: str) -> dict[str, Any]:
+    store = SupabaseREST()
+    recordings = store.select(
+        "grabaciones",
+        columns=(
+            "tipo,participante_identity,participante_nombre,ruta_objeto,estado"
+        ),
+        filters={"reunion_id": meeting_id, "estado": "completada"},
+        order="creado_en.asc",
+    )
+    participant_recordings = [
+        item for item in recordings if item.get("tipo") == "participante"
+    ]
+    selected = participant_recordings or [
+        item for item in recordings if item.get("tipo") == "reunion"
+    ]
+    if not selected:
+        raise VincoraServiceError(
+            "La grabación todavía no terminó de transferirse"
+        )
+    sources = [
+        AudioSource(
+            item["ruta_objeto"],
+            speaker_hint=(
+                item.get("participante_nombre")
+                or item.get("participante_identity")
+                or "No especificado"
+            ),
+            stored=True,
+        )
+        for item in selected
+    ]
+    return ProcessingService(supabase=store).run(meeting_id, sources)
+
+
+async def _process_when_recording_is_ready(meeting_id: str) -> None:
+    for _ in range(30):
+        try:
+            await asyncio.to_thread(_run_meeting_process, meeting_id)
+            return
+        except VincoraServiceError as exc:
+            if "todavía no terminó" not in str(exc):
+                logger.exception("meeting_process_failed", extra={"meeting_id": meeting_id})
+                return
+        except Exception:
+            logger.exception("meeting_process_failed", extra={"meeting_id": meeting_id})
+            return
+        await asyncio.sleep(4)
+    logger.error("meeting_recording_timeout", extra={"meeting_id": meeting_id})
 
 
 @app.post("/livekit/token")
-def livekit_token(
+async def livekit_token(
     payload: LiveKitTokenRequest,
     x_vincora_internal_key: str = Header(default=""),
 ) -> dict[str, str]:
@@ -77,7 +153,7 @@ def livekit_token(
         raise HTTPException(status_code=503, detail="LiveKit no está configurado completamente.")
     if not secrets.compare_digest(x_vincora_internal_key, internal_key):
         raise HTTPException(status_code=401, detail="Solicitud no autorizada.")
-    room_name = f"vincora-{payload.meeting_id}"[:128]
+    room_name = room_name_for(payload.meeting_id)
     identity = f"{payload.participant_id}-{secrets.token_hex(4)}"[:128]
     token = (
         livekit_api.AccessToken(api_key, api_secret)
@@ -94,14 +170,31 @@ def livekit_token(
         )
         .to_jwt()
     )
-    return {"server_url": livekit_url, "participant_token": token, "room_name": room_name}
+    recording_state = "not_configured"
+    ready = components_ready()
+    if ready["livekit"] and ready["storage"]:
+        try:
+            recording = await start_room_recording(payload.meeting_id)
+            recording_state = str(recording.get("estado") or "iniciada")
+        except Exception:
+            recording_state = "error"
+            logger.exception(
+                "room_egress_start_failed", extra={"meeting_id": payload.meeting_id}
+            )
+    return {
+        "server_url": livekit_url,
+        "participant_token": token,
+        "room_name": room_name,
+        "recording_state": recording_state,
+    }
 
 
 @app.post("/livekit/end-room")
 async def livekit_end_room(
     payload: LiveKitEndRoomRequest,
+    background_tasks: BackgroundTasks,
     x_vincora_internal_key: str = Header(default=""),
-) -> dict[str, str]:
+) -> dict[str, Any]:
     livekit_url = os.getenv("LIVEKIT_URL", "").strip()
     api_key = os.getenv("LIVEKIT_API_KEY", "").strip()
     api_secret = os.getenv("LIVEKIT_API_SECRET", "").strip()
@@ -110,18 +203,169 @@ async def livekit_end_room(
         raise HTTPException(status_code=503, detail="LiveKit no está configurado completamente.")
     if not secrets.compare_digest(x_vincora_internal_key, internal_key):
         raise HTTPException(status_code=401, detail="Solicitud no autorizada.")
-    room_name = f"vincora-{payload.meeting_id}"[:128]
+    room_name = room_name_for(payload.meeting_id)
     livekit = livekit_api.LiveKitAPI(livekit_url, api_key, api_secret)
     try:
         await livekit.room.delete_room(livekit_api.DeleteRoomRequest(room=room_name))
     finally:
         await livekit.aclose()
-    return {"status": "ended", "room_name": room_name}
+    processing_state = "not_requested"
+    if payload.generate_report:
+        background_tasks.add_task(
+            _process_when_recording_is_ready, payload.meeting_id
+        )
+        processing_state = "queued"
+    return {
+        "status": "ended",
+        "room_name": room_name,
+        "processing_state": processing_state,
+        "notify_when_ready": payload.notify_when_ready,
+    }
+
+
+@app.post("/livekit/webhook")
+async def livekit_webhook(
+    request: Request,
+    background_tasks: BackgroundTasks,
+) -> dict[str, Any]:
+    api_key = os.getenv("LIVEKIT_API_KEY", "").strip()
+    api_secret = os.getenv("LIVEKIT_API_SECRET", "").strip()
+    if not api_key or not api_secret:
+        raise HTTPException(status_code=503, detail="LiveKit no configurado.")
+    try:
+        body = (await request.body()).decode("utf-8")
+        event = livekit_api.WebhookReceiver(
+            livekit_api.TokenVerifier(api_key, api_secret)
+        ).receive(body, request.headers.get("Authorization", ""))
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail="Webhook no válido.") from exc
+    if event.event == "participant_joined" and event.room and event.participant:
+        meeting_id = meeting_id_from_room(event.room.name)
+        if meeting_id:
+            try:
+                await start_participant_recording(
+                    meeting_id,
+                    event.participant.identity,
+                    event.participant.name or event.participant.identity,
+                )
+            except Exception:
+                logger.exception(
+                    "participant_egress_failed", extra={"meeting_id": meeting_id}
+                )
+    elif event.event == "egress_ended" and event.egress_info:
+        try:
+            result = finish_egress(event.egress_info)
+            if result and result["estado"] == "completada":
+                meeting_id = result.get("reunion_id")
+                record = result.get("registro") or {}
+                if meeting_id and record.get("tipo") == "reunion":
+                    background_tasks.add_task(
+                        _process_when_recording_is_ready, meeting_id
+                    )
+        except Exception:
+            logger.exception("egress_end_failed")
+    return {"accepted": True, "event": event.event}
+
+
+@app.post("/vincora/meetings/{meeting_id}/process")
+async def start_meeting_process(
+    meeting_id: str,
+    background_tasks: BackgroundTasks,
+    x_vincora_internal_key: str = Header(default=""),
+) -> dict[str, str]:
+    _require_internal_key(x_vincora_internal_key)
+    background_tasks.add_task(_process_when_recording_is_ready, meeting_id)
+    return {"reunion_id": meeting_id, "estado": "encolado"}
+
+
+@app.get("/vincora/meetings/{meeting_id}/status")
+def meeting_process_status(
+    meeting_id: str,
+    x_vincora_internal_key: str = Header(default=""),
+) -> dict[str, Any]:
+    _require_internal_key(x_vincora_internal_key)
+    try:
+        store = SupabaseREST()
+        processes = store.select(
+            "procesamientos_reunion",
+            filters={"reunion_id": meeting_id},
+            order="actualizado_en.desc",
+            limit=1,
+        )
+        reports = store.select(
+            "informes_reunion",
+            filters={"reunion_id": meeting_id},
+            order="actualizado_en.desc",
+            limit=1,
+        )
+        recordings = store.select(
+            "grabaciones",
+            columns="tipo,participante_nombre,estado,ruta_objeto",
+            filters={"reunion_id": meeting_id},
+            order="creado_en.asc",
+        )
+        segments = store.select(
+            "segmentos_reunion",
+            columns="texto",
+            filters={"reunion_id": meeting_id},
+        )
+        counts = {"temas": 0, "acuerdos": 0, "tareas": 0, "decisiones": 0}
+        if reports:
+            report_id = reports[0]["id"]
+            for key, table in (
+                ("temas", "temas_tratados"),
+                ("acuerdos", "acuerdos"),
+                ("tareas", "tareas_detectadas"),
+                ("decisiones", "decisiones"),
+            ):
+                counts[key] = len(
+                    store.select(
+                        table, columns="id", filters={"informe_id": report_id}
+                    )
+                )
+        return {
+            "reunion_id": meeting_id,
+            "procesamiento": processes[0] if processes else None,
+            "informe": reports[0] if reports else None,
+            "conteos": counts,
+            "grabaciones": recordings,
+            "segmentos": len(segments),
+            "palabras": sum(len(str(row.get("texto") or "").split()) for row in segments),
+        }
+    except VincoraServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/vincora/meetings/{meeting_id}/transcript")
+def meeting_transcript(
+    meeting_id: str,
+    x_vincora_internal_key: str = Header(default=""),
+) -> dict[str, Any]:
+    _require_internal_key(x_vincora_internal_key)
+    try:
+        rows = SupabaseREST().select(
+            "segmentos_reunion",
+            columns=(
+                "id,hablante,texto,inicio_segundos,fin_segundos,origen"
+            ),
+            filters={"reunion_id": meeting_id},
+            order="inicio_segundos.asc",
+        )
+        return {"reunion_id": meeting_id, "segmentos": rows}
+    except VincoraServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "service": "reuniones-ia-api", "version": "1.0.0"}
+def health() -> dict[str, Any]:
+    service_status = integration_status()
+    service_status.update(components_ready())
+    return {
+        "status": "ok",
+        "service": "reuniones-ia-api",
+        "version": "1.1.0",
+        "components": service_status,
+    }
 
 
 @app.get("/model/status")

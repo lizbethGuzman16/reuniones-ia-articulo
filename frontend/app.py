@@ -4166,11 +4166,17 @@ def finalizar_videollamada(reunion_id: str) -> None:
     if not reunion or str(reunion.get("creador_id") or "") != str(sesion.get("id") or ""):
         st.error("Solo el organizador puede finalizar la reunión para todos.")
         return
+    generar_informe = str(st.query_params.get("generar_informe", "0")) == "1"
+    notificar = str(st.query_params.get("notificar", "0")) == "1"
     if not DEMO_MODE:
         respuesta = requests.post(
             f"{FASTAPI_URL}/livekit/end-room",
             headers={"X-Vincora-Internal-Key": VINCORA_INTERNAL_API_KEY},
-            json={"meeting_id": reunion_id},
+            json={
+                "meeting_id": reunion_id,
+                "generate_report": generar_informe,
+                "notify_when_ready": notificar,
+            },
             timeout=30,
         )
         respuesta.raise_for_status()
@@ -4181,7 +4187,6 @@ def finalizar_videollamada(reunion_id: str) -> None:
         data=json.dumps({"estado": "finalizada"}),
         timeout=30,
     ).raise_for_status()
-    generar_informe = str(st.query_params.get("generar_informe", "0")) == "1"
     st.query_params.clear()
     st.query_params["pagina"] = "Resumen de reuniones" if generar_informe else "Reuniones"
     if generar_informe:
@@ -4690,7 +4695,27 @@ def view_resumen_reuniones():
     except Exception:
         resumenes = []
 
-    resumen = resumenes[0] if resumenes else None
+    estado_api: dict = {}
+    if not DEMO_MODE:
+        try:
+            respuesta_estado = requests.get(
+                f"{FASTAPI_URL}/vincora/meetings/{reunion_id}/status",
+                headers={"X-Vincora-Internal-Key": VINCORA_INTERNAL_API_KEY},
+                timeout=30,
+            )
+            if respuesta_estado.status_code == 200:
+                estado_api = respuesta_estado.json()
+        except Exception:
+            estado_api = {}
+    proceso_api = estado_api.get("procesamiento") or {}
+    informe_api = estado_api.get("informe") or {}
+    conteos_api = estado_api.get("conteos") or {}
+    grabaciones_api = estado_api.get("grabaciones") or []
+    resumen = (
+        {"resumen": informe_api.get("resumen"), "fecha_creacion": informe_api.get("actualizado_en")}
+        if informe_api.get("resumen")
+        else (resumenes[0] if resumenes else None)
+    )
     informe_listo = bool(resumen and str(resumen.get("resumen") or "").strip())
     fecha = _fecha_hora_reunion(reunion.get("fecha_inicio"))
     fecha_texto = (
@@ -4700,8 +4725,24 @@ def view_resumen_reuniones():
     duracion_texto = f"{int(duracion)} minutos" if duracion not in (None, "") else "No especificada"
     titulo = escape(str(reunion.get("tema") or "Reunión sin título"))
     total_participantes = len(participantes)
-    total_tareas = len(tareas)
-    estado_informe = "Completado" if informe_listo else "Pendiente"
+    total_tareas = int(conteos_api.get("tareas") or len(tareas))
+    estado_proceso = str(proceso_api.get("estado") or "pendiente").lower()
+    progreso_proceso = int(proceso_api.get("progreso") or 0)
+    grabacion_lista = any(str(item.get("estado") or "") == "completada" for item in grabaciones_api)
+    estado_grabacion = "Completado" if grabacion_lista else (
+        "En curso" if grabaciones_api else "Pendiente"
+    )
+    estado_transcripcion = (
+        "Completado" if estado_proceso in {"analizando", "completado"}
+        else (f"Procesando {progreso_proceso}%" if estado_proceso == "transcribiendo" else "Pendiente")
+    )
+    estado_deteccion = (
+        "Completado" if estado_proceso == "completado"
+        else (f"Procesando {progreso_proceso}%" if estado_proceso == "analizando" else "Pendiente")
+    )
+    estado_informe = "Borrador" if informe_listo else (
+        "Error" if estado_proceso == "error" else "Pendiente"
+    )
     clase_informe = "complete" if informe_listo else "pending"
     abrir_informe = str(st.query_params.get("abrir_informe", "") or "") == reunion_id
     informe_html = ""
@@ -4712,6 +4753,31 @@ def view_resumen_reuniones():
             f'<p>{escape(str(resumen.get("resumen") or ""))}</p>'
             '</section>'
         )
+    transcripcion_html = ""
+    ver_transcripcion = str(st.query_params.get("ver_transcripcion", "") or "") == reunion_id
+    if ver_transcripcion and not DEMO_MODE:
+        try:
+            respuesta_transcripcion = requests.get(
+                f"{FASTAPI_URL}/vincora/meetings/{reunion_id}/transcript",
+                headers={"X-Vincora-Internal-Key": VINCORA_INTERNAL_API_KEY},
+                timeout=30,
+            )
+            if respuesta_transcripcion.status_code == 200:
+                filas = respuesta_transcripcion.json().get("segmentos") or []
+                contenido = "".join(
+                    "<div class='transcript-row'>"
+                    f"<b>{escape(str(fila.get('hablante') or 'No especificado'))}</b> "
+                    f"<small>{float(fila.get('inicio_segundos') or 0):.1f}s</small>"
+                    f"<p>{escape(str(fila.get('texto') or ''))}</p></div>"
+                    for fila in filas
+                )
+                transcripcion_html = (
+                    "<section class='report-card report-existing'><h3>Transcripción</h3>"
+                    + (contenido or "<p>No hay segmentos disponibles.</p>")
+                    + "</section>"
+                )
+        except Exception:
+            transcripcion_html = ""
 
     st.markdown(
         f"""
@@ -4742,9 +4808,9 @@ def view_resumen_reuniones():
               <h2>Preparando tu informe inteligente</h2>
               <p class="report-main-lead">VINCORA organizará los datos disponibles sin completar información ausente ni crear detecciones no verificadas.</p>
               <div class="process-list">
-                <div class="process-row"><span class="process-num">1</span><span class="process-label">Grabación guardada</span><span class="process-state">No disponible</span></div>
-                <div class="process-row"><span class="process-num">2</span><span class="process-label">Transcripción por participante</span><span class="process-state">Pendiente</span></div>
-                <div class="process-row"><span class="process-num">3</span><span class="process-label">Identificando acuerdos y tareas</span><span class="process-state">Pendiente</span></div>
+                <div class="process-row"><span class="process-num">1</span><span class="process-label">Grabación guardada</span><span class="process-state">{estado_grabacion}</span></div>
+                <div class="process-row"><span class="process-num">2</span><span class="process-label">Transcripción por participante</span><span class="process-state">{estado_transcripcion}</span></div>
+                <div class="process-row"><span class="process-num">3</span><span class="process-label">Identificando acuerdos y tareas</span><span class="process-state">{estado_deteccion}</span></div>
                 <div class="process-row"><span class="process-num">4</span><span class="process-label">Generando informe final</span><span class="process-state {clase_informe}">{estado_informe}</span></div>
               </div>
             </section>
@@ -4752,20 +4818,21 @@ def view_resumen_reuniones():
               <section class="report-card side-card"><h3>Resumen de la reunión</h3>
                 <div class="summary-item"><span class="summary-icon">◷</span><div><b>{duracion_texto}</b><small>Duración programada</small></div></div>
                 <div class="summary-item"><span class="summary-icon">♧</span><div><b>{total_participantes} participantes</b><small>Participantes registrados</small></div></div>
-                <div class="summary-item"><span class="summary-icon">≋</span><div><b>No disponible</b><small>Total transcrito</small></div></div>
+                <div class="summary-item"><span class="summary-icon">≋</span><div><b>{int(estado_api.get("palabras") or 0):,} palabras</b><small>Total transcrito</small></div></div>
                 <div class="summary-item"><span class="summary-icon">□</span><div><b>{fecha_texto}</b><small>Fecha y hora</small></div></div>
               </section>
               <section class="report-card side-card"><h3>Detecciones preliminares</h3>
-                <div class="detection"><span class="detection-icon">♢</span><div><b>No disponible</b><small>Acuerdos sin fuente configurada</small></div><span>›</span></div>
-                <div class="detection purple"><span class="detection-icon">☑</span><div><b>{total_tareas} tareas</b><small>Tareas vinculadas a la reunión</small></div><span>›</span></div>
-                <div class="detection blue"><span class="detection-icon">⚖</span><div><b>No disponible</b><small>Decisiones sin fuente configurada</small></div><span>›</span></div>
+                <div class="detection"><span class="detection-icon">♢</span><div><b>{int(conteos_api.get("acuerdos") or 0)} acuerdos</b><small>Acuerdos con evidencia</small></div><span>›</span></div>
+                <div class="detection purple"><span class="detection-icon">☑</span><div><b>{total_tareas} tareas</b><small>Acciones identificadas</small></div><span>›</span></div>
+                <div class="detection blue"><span class="detection-icon">⚖</span><div><b>{int(conteos_api.get("decisiones") or 0)} decisiones</b><small>Decisiones con evidencia</small></div><span>›</span></div>
               </section>
             </aside>
           </div>
-          <div class="report-info">ⓘ　Puedes cerrar esta pantalla. El informe solo se habilita cuando existe un resumen guardado.</div>
-          <div class="report-actions"><span class="report-action disabled">Ver transcripción preliminar</span>
+          <div class="report-info">ⓘ　Puedes cerrar esta pantalla. El informe se habilita cuando el procesamiento termina.</div>
+          <div class="report-actions"><a class="report-action{' disabled' if not estado_api.get('segmentos') else ''}" href="?pagina=Resumen%20de%20reuniones&amp;resumen_reunion={quote(reunion_id)}&amp;ver_transcripcion={quote(reunion_id)}" target="_self">Ver transcripción preliminar</a>
             <a class="report-action{' disabled' if not informe_listo else ''}" href="?pagina=Resumen%20de%20reuniones&amp;resumen_reunion={quote(reunion_id)}&amp;abrir_informe={quote(reunion_id)}" target="_self">Abrir informe</a></div>
           {informe_html}
+          {transcripcion_html}
         </div>
         """,
         unsafe_allow_html=True,

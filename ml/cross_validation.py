@@ -13,7 +13,7 @@ from torch import nn
 
 from ml.common import build_vocab, encode_texts, labels_to_ids, load_splits, set_seed
 from ml.config import CFG, DATA_RAW, LABEL_ORDER, TABLES_DIR
-from ml.models import TfidfMLP, create_sequence_model
+from ml.models import MODEL_NAMES, TfidfMLP, create_sequence_model
 
 
 def balanced_sample(df: pd.DataFrame, n: int) -> pd.DataFrame:
@@ -66,7 +66,7 @@ def train_sequence_fold(name: str, train_text: list[str], train_y: np.ndarray, v
     xtr = torch.tensor(encode_texts(train_text, vocab, seq_len=32), dtype=torch.long)
     xva = torch.tensor(encode_texts(val_text, vocab, seq_len=32), dtype=torch.long)
     ytr = torch.tensor(train_y, dtype=torch.long)
-    model = create_sequence_model(name, len(vocab), len(LABEL_ORDER), embedding_dim=32, hidden_dim=32) if name in {"LSTM", "BiLSTM-Atencion"} else create_sequence_model(name, len(vocab), len(LABEL_ORDER), embedding_dim=32)
+    model = create_sequence_model(name, len(vocab), len(LABEL_ORDER), embedding_dim=32, hidden_dim=32) if name in {"LSTM", "BiLSTM", "BiLSTM-Atencion"} else create_sequence_model(name, len(vocab), len(LABEL_ORDER), embedding_dim=32)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     weights = torch.tensor(compute_class_weight(class_weight="balanced", classes=np.arange(len(LABEL_ORDER)), y=train_y), dtype=torch.float32)
     criterion = nn.CrossEntropyLoss(weight=weights)
@@ -95,7 +95,7 @@ def run_cross_validation() -> pd.DataFrame:
     if output_path.exists():
         rows = pd.read_csv(output_path).to_dict("records")
     completed = {(int(r["fold"]), str(r["modelo"])) for r in rows}
-    models = ["MLP-TFIDF", "CNN-1D", "LSTM", "CNN-BiLSTM", "BiLSTM-Atencion"]
+    models = MODEL_NAMES
     texts = data["Utterance"].tolist()
     for fold, (train_idx, val_idx) in enumerate(splitter.split(texts, y, groups), start=1):
         train_text = [texts[i] for i in train_idx]

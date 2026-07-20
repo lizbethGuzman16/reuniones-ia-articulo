@@ -7,7 +7,7 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 from ml.common import build_vocab, encode_texts, labels_to_ids, load_splits, set_seed
 from ml.config import CFG, DATA_RAW, LABEL_ORDER, TABLES_DIR
-from ml.models import TfidfMLP, create_sequence_model
+from ml.models import SEQUENCE_MODEL_NAMES, TfidfMLP, create_sequence_model
 
 def sample_train(df):
     parts=[]
@@ -35,7 +35,7 @@ def main():
     rows.append({'modelo':'MLP-TFIDF','tiempo_entrenamiento_seg':time.perf_counter()-t})
     vocab=build_vocab(df.Utterance); Xseq=torch.tensor(encode_texts(df.Utterance,vocab)); Y=torch.tensor(y)
     loader=DataLoader(TensorDataset(Xseq,Y),batch_size=CFG.batch_size,shuffle=True)
-    for name in ['CNN-1D','LSTM','CNN-BiLSTM','BiLSTM-Atencion']:
+    for name in SEQUENCE_MODEL_NAMES:
         model=create_sequence_model(name,len(vocab),len(LABEL_ORDER)); opt=torch.optim.Adam(model.parameters(),lr=CFG.learning_rate); lossf=nn.CrossEntropyLoss(weight=weights)
         t=time.perf_counter()
         for _ in range(CFG.epochs):

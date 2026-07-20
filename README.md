@@ -88,6 +88,14 @@ streamlit run frontend/app.py
 
 Con Supabase real, copie `.env.example` como `.env`, coloque credenciales renovadas y mantenga `DEMO_MODE=false`.
 
+Para habilitar grabación, transcripción e informe automático:
+
+1. Ejecute `docs/06_procesamiento_vincora.sql` en el SQL Editor del proyecto Supabase.
+2. Cree el bucket privado `grabaciones-reuniones` y configure en la API las variables LiveKit, S3 de Supabase y OpenAI declaradas en `.env.example`.
+3. Registre en LiveKit el webhook `https://reuniones-ia-api.onrender.com/livekit/webhook` para los eventos de sala, participante y Egress.
+
+El webhook y las rutas internas no exponen credenciales. La `SUPABASE_SERVICE_ROLE_KEY` permanece exclusivamente en la API.
+
 ## Reproducir el experimento
 
 ```bash
@@ -118,6 +126,12 @@ Este perfil usa `TRAIN_SAMPLE_SIZE=full`, `CV_SAMPLE_SIZE=full` y `TUNING_SAMPLE
 - `GET /metrics`
 - `GET /reports`
 - `GET /reports/{filename}`
+- `POST /livekit/token`
+- `POST /livekit/end-room`
+- `POST /livekit/webhook`
+- `POST /vincora/meetings/{meeting_id}/process`
+- `GET /vincora/meetings/{meeting_id}/status`
+- `GET /vincora/meetings/{meeting_id}/transcript`
 
 Ejemplo:
 

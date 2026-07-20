@@ -9,7 +9,7 @@ import torch
 
 from ml.common import build_vocab, compute_metrics, encode_texts, labels_to_ids, load_splits, model_size_mb, timed_prediction, set_seed
 from ml.config import CFG, DATA_RAW, FIGURES_DIR, LABEL_ORDER, MODELS_DIR, TABLES_DIR
-from ml.models import TfidfMLP, create_sequence_model
+from ml.models import MODEL_NAMES, TfidfMLP, create_sequence_model
 from ml.train_all import train_sequence, slug
 
 
@@ -53,11 +53,8 @@ def main() -> pd.DataFrame:
     train_sample = pd.concat(parts, ignore_index=True).sample(frac=1, random_state=CFG.seed).reset_index(drop=True)
     vocab = json.loads((MODELS_DIR / "vocab.json").read_text(encoding="utf-8"))
     rows = [
-        evaluate_existing("MLP-TFIDF", test_df),
-        evaluate_existing("CNN-1D", test_df, vocab),
-        evaluate_existing("LSTM", test_df, vocab),
-        evaluate_existing("CNN-BiLSTM", test_df, vocab),
-        evaluate_existing("BiLSTM-Atencion", test_df, vocab),
+        evaluate_existing(name, test_df, None if name == "MLP-TFIDF" else vocab)
+        for name in MODEL_NAMES
     ]
     comparison = pd.DataFrame(rows).sort_values(["f1_macro", "accuracy"], ascending=False).reset_index(drop=True)
     comparison.to_csv(TABLES_DIR / "comparacion_modelos.csv", index=False)
@@ -82,7 +79,7 @@ def main() -> pd.DataFrame:
     ordered = comparison.sort_values("f1_macro")
     plt.barh(ordered["modelo"], ordered["f1_macro"])
     plt.xlabel("F1 macro")
-    plt.title("Comparación de desempeño de los cinco modelos")
+    plt.title("Comparación de desempeño de los seis modelos")
     plt.tight_layout()
     plt.savefig(FIGURES_DIR / "comparacion_f1_modelos.png", dpi=180)
     plt.close()

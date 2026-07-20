@@ -4,6 +4,16 @@ import torch
 from torch import nn
 
 
+MODEL_GROUPS: dict[str, tuple[str, ...]] = {
+    "base": ("CNN-1D", "LSTM", "BiLSTM"),
+    "hybrid": ("MLP-TFIDF", "CNN-BiLSTM", "BiLSTM-Atencion"),
+}
+MODEL_NAMES: tuple[str, ...] = MODEL_GROUPS["base"] + MODEL_GROUPS["hybrid"]
+SEQUENCE_MODEL_NAMES: tuple[str, ...] = tuple(
+    name for name in MODEL_NAMES if name != "MLP-TFIDF"
+)
+
+
 class CNN1DClassifier(nn.Module):
     def __init__(self, vocab_size: int, num_classes: int, embedding_dim: int = 48, channels: int = 64, kernel_size: int = 3, dropout: float = 0.25):
         super().__init__()
@@ -31,6 +41,21 @@ class LSTMClassifier(nn.Module):
         z = self.embedding(x)
         _, (h, _) = self.lstm(z)
         return self.classifier(self.dropout(h[-1]))
+
+
+class BiLSTMClassifier(nn.Module):
+    def __init__(self, vocab_size: int, num_classes: int, embedding_dim: int = 48, hidden_dim: int = 48, dropout: float = 0.25):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
+        self.bilstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True, bidirectional=True)
+        self.dropout = nn.Dropout(dropout)
+        self.classifier = nn.Linear(hidden_dim * 2, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        z = self.embedding(x)
+        _, (h, _) = self.bilstm(z)
+        joined = torch.cat((h[-2], h[-1]), dim=1)
+        return self.classifier(self.dropout(joined))
 
 
 class CNNBiLSTMClassifier(nn.Module):
@@ -92,6 +117,8 @@ def create_sequence_model(name: str, vocab_size: int, num_classes: int, **kwargs
         return CNN1DClassifier(vocab_size, num_classes, **kwargs)
     if name == "LSTM":
         return LSTMClassifier(vocab_size, num_classes, **kwargs)
+    if name == "BiLSTM":
+        return BiLSTMClassifier(vocab_size, num_classes, **kwargs)
     if name == "CNN-BiLSTM":
         return CNNBiLSTMClassifier(vocab_size, num_classes, **kwargs)
     if name == "BiLSTM-Atencion":

@@ -29,7 +29,7 @@ from ml.common import (
     timed_prediction,
 )
 from ml.config import CFG, DATA_RAW, FIGURES_DIR, LABEL_NAMES, LABEL_ORDER, MODELS_DIR, TABLES_DIR
-from ml.models import TfidfMLP, create_sequence_model
+from ml.models import SEQUENCE_MODEL_NAMES, TfidfMLP, create_sequence_model
 
 
 def class_weights_tensor(y: np.ndarray) -> torch.Tensor:
@@ -249,7 +249,7 @@ def run_training() -> pd.DataFrame:
     row, _, _ = train_mlp_tfidf(train_df, dev_df, test_df)
     rows.append(row)
     trained_models: dict[str, nn.Module] = {}
-    for name in ["CNN-1D", "LSTM", "CNN-BiLSTM", "BiLSTM-Atencion"]:
+    for name in SEQUENCE_MODEL_NAMES:
         row, model = train_sequence(name, train_df, dev_df, test_df, vocab)
         rows.append(row)
         trained_models[name] = model
@@ -291,7 +291,7 @@ def run_training() -> pd.DataFrame:
     ordered = comparison.sort_values("f1_macro")
     plt.barh(ordered["modelo"], ordered["f1_macro"])
     plt.xlabel("F1 macro")
-    plt.title("Comparación de desempeño de los cinco modelos")
+    plt.title("Comparación de desempeño de los seis modelos")
     plt.tight_layout()
     plt.savefig(FIGURES_DIR / "comparacion_f1_modelos.png", dpi=180)
     plt.close()
