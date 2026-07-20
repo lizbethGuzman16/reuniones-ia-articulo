@@ -25,3 +25,11 @@ def test_active_room_does_not_claim_recording_when_egress_is_unavailable() -> No
     html = _render("not_configured")
     assert '"recordingState": "not_configured"' in html
     assert "Grabación no configurada" in html
+
+
+def test_active_room_uses_iframe_safe_navigation() -> None:
+    html = _render("iniciada")
+    assert "function navigateApp(query)" in html
+    assert "window.parent.location.href" not in html
+    assert "window.parent.history" not in html
+    assert "navigateApp('?finalizar_reunion=" in html
