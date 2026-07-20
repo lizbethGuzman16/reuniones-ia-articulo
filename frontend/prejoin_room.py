@@ -3,7 +3,7 @@
 import json
 
 
-def build_prejoin_html(*, logo: str, meeting: dict, participant_name: str, participant_count: int) -> str:
+def build_prejoin_html(*, logo: str, meeting: dict, participant_name: str, participant_count: int, session_token: str = "") -> str:
     config = json.dumps(
         {
             "logo": logo,
@@ -12,6 +12,7 @@ def build_prejoin_html(*, logo: str, meeting: dict, participant_name: str, parti
             "name": participant_name,
             "participantCount": participant_count,
             "meetingId": str(meeting.get("id") or ""),
+            "sessionToken": session_token,
         },
         ensure_ascii=False,
     ).replace("</", "<\\/")
@@ -39,7 +40,7 @@ try{window.frameElement.setAttribute('allow','camera; microphone; autoplay')}cat
 const video=document.getElementById('video'),permission=document.getElementById('permission'),cameraSelect=document.getElementById('camera'),micSelect=document.getElementById('microphone'),speakerSelect=document.getElementById('speaker'),meter=document.getElementById('meter');let stream=null,audioContext=null,analyser=null,meterFrame=null;
 for(let i=0;i<30;i++){const bar=document.createElement('i');meter.appendChild(bar)}
 const toast=t=>{const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)};
-function appUrl(query){let base=null;try{const href=window.parent.location.href;if(/^https?:/i.test(href))base=new URL(href)}catch(e){}if(!base){const origins=window.location.ancestorOrigins;if(origins&&origins.length)base=new URL('/',origins[0])}if(!base&&/^https?:/i.test(document.referrer))base=new URL(document.referrer);if(!base){toast('No se pudo determinar la dirección de VINCORA');return null}base.search=query;base.hash='';return base.toString()}function navigateApp(query){const url=appUrl(query);if(!url)return;const opened=window.open(url,'_blank','noopener');if(!opened)toast('Permite ventanas emergentes para abrir la reunión')}
+function appUrl(query){let base=null;try{const href=window.parent.location.href;if(/^https?:/i.test(href))base=new URL(href)}catch(e){}if(!base){const origins=window.location.ancestorOrigins;if(origins&&origins.length)base=new URL('/',origins[0])}if(!base&&/^https?:/i.test(document.referrer))base=new URL(document.referrer);if(!base){toast('No se pudo determinar la dirección de VINCORA');return null}base.search=query;if(cfg.sessionToken)base.searchParams.set('session_token',cfg.sessionToken);base.hash='';return base.toString()}function navigateApp(query){const url=appUrl(query);if(!url)return;const opened=window.open(url,'_blank','noopener');if(!opened)toast('Permite ventanas emergentes para abrir la reunión')}
 async function devices(){const list=await navigator.mediaDevices.enumerateDevices();const fill=(select,kind,fallback)=>{const old=select.value;select.innerHTML='';list.filter(d=>d.kind===kind).forEach((d,i)=>{const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||fallback+' '+(i+1);select.appendChild(o)});if(old)select.value=old;if(!select.options.length){const o=document.createElement('option');o.textContent='No disponible';select.appendChild(o)}};fill(cameraSelect,'videoinput','Cámara');fill(micSelect,'audioinput','Micrófono');fill(speakerSelect,'audiooutput','Altavoces')}
 function stop(){if(stream)stream.getTracks().forEach(t=>t.stop());if(meterFrame)cancelAnimationFrame(meterFrame)}
 async function start(){stop();try{stream=await navigator.mediaDevices.getUserMedia({video:cameraSelect.value?{deviceId:{exact:cameraSelect.value}}:true,audio:micSelect.value?{deviceId:{exact:micSelect.value}}:true});video.srcObject=stream;permission.style.display='none';await devices();startMeter();remember()}catch(e){permission.style.display='grid';permission.querySelector('strong').textContent='No se pudo acceder a cámara o micrófono';toast('Revisa los permisos del navegador')}}

@@ -11,6 +11,7 @@ def _render(recording_state: str) -> str:
             "recording_state": recording_state,
         },
         user={"nombre": "Ana", "is_organizer": True},
+        session_token="signed-session",
     )
 
 
@@ -34,3 +35,5 @@ def test_active_room_uses_iframe_safe_navigation() -> None:
     assert "window.location.ancestorOrigins" in html
     assert "document.referrer||window.location.href" not in html
     assert "navigateApp('?finalizar_reunion=" in html
+    assert '"sessionToken": "signed-session"' in html
+    assert "base.searchParams.set('session_token',cfg.sessionToken)" in html

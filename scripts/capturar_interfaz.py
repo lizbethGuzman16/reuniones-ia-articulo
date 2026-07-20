@@ -14,10 +14,11 @@ PANTALLAS = [
     ("Chat", "Crear reunión por chat", "02-chat.png"),
     ("Usuarios", "Usuarios y permisos", "03-usuarios.png"),
     ("Reuniones", "Reuniones", "04-reuniones.png"),
-    ("Tareas", "Gestión de Tareas", "05-tareas.png"),
+    ("Tareas", "Tareas y seguimiento", "05-tareas.png"),
     ("Resumen de reuniones", "Reunión finalizada", "06-resumenes.png"),
-    ("Participantes", "Participantes de Reuniones", "07-participantes.png"),
-    ("Métricas", "Métricas y Estadísticas", "08-metricas.png"),
+    ("Participantes", "Participantes", "07-participantes.png"),
+    ("Inteligencia artificial", "Configuración de VINCORA IA", "08-inteligencia-artificial.png"),
+    ("Métricas", "Métricas de reuniones", "09-metricas.png"),
 ]
 
 
@@ -125,7 +126,7 @@ def capturar_sala_previa(page: Page) -> None:
     expect(frame.get_by_role("button", name=re.compile(r"Unirse ahora"))).to_be_enabled()
     page.wait_for_timeout(1_000)
     page.screenshot(
-        path=str(OUTPUT_DIR / "09-sala-previa.png"),
+        path=str(OUTPUT_DIR / "10-sala-previa.png"),
         full_page=False,
         animations="disabled",
     )
@@ -145,7 +146,7 @@ def capturar_videollamada(page: Page) -> None:
     expect(frame.get_by_role("button", name="Finalizar para todos", exact=True)).to_be_visible()
     page.wait_for_timeout(800)
     page.screenshot(
-        path=str(OUTPUT_DIR / "10-videollamada-activa.png"),
+        path=str(OUTPUT_DIR / "11-videollamada-activa.png"),
         full_page=False,
         animations="disabled",
     )

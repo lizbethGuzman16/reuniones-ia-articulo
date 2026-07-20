@@ -1,5 +1,7 @@
 import os, json, requests
 import base64
+import hashlib
+import hmac
 import calendar
 import secrets
 import time
@@ -42,6 +44,7 @@ ADMIN_EMAILS = {
     if email.strip()
 }
 VINCORA_INTERNAL_API_KEY = os.getenv("VINCORA_INTERNAL_API_KEY", "").strip()
+SESSION_SIGNING_KEY = os.getenv("SESSION_SIGNING_KEY", VINCORA_INTERNAL_API_KEY).strip()
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ICON_DIR = PROJECT_ROOT / "frontend" / "assets" / "icons"
 BRAND_DIR = PROJECT_ROOT / "frontend" / "assets" / "branding"
@@ -118,6 +121,36 @@ def icono_data_uri(nombre: str, color: str = "#2563EB") -> str:
 ICONOS_AZULES = {nombre: icono_data_uri(nombre) for nombre in ICON_FILES}
 LOGO_DATA_URI = "data:image/png;base64," + base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
 LOGIN_REFERENCE_DATA_URI = "data:image/jpeg;base64," + base64.b64encode(LOGIN_REFERENCE_PATH.read_bytes()).decode("ascii")
+
+
+def _session_token(session: dict) -> str:
+    """Firma una sesión breve para conservarla al cruzar un iframe de Streamlit."""
+    if not SESSION_SIGNING_KEY or not session:
+        return ""
+    payload = {key: session.get(key) for key in ("id", "correo", "nombre", "nivel", "estado")}
+    payload["exp"] = int(time.time()) + 8 * 60 * 60
+    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()
+    body = base64.urlsafe_b64encode(raw).decode().rstrip("=")
+    signature = hmac.new(SESSION_SIGNING_KEY.encode(), body.encode(), hashlib.sha256).hexdigest()
+    return f"{body}.{signature}"
+
+
+def _session_from_token(token: str) -> dict | None:
+    if not SESSION_SIGNING_KEY or "." not in token:
+        return None
+    body, signature = token.rsplit(".", 1)
+    expected = hmac.new(SESSION_SIGNING_KEY.encode(), body.encode(), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        return None
+    try:
+        raw = base64.urlsafe_b64decode(body + "=" * (-len(body) % 4))
+        payload = json.loads(raw)
+        if int(payload.pop("exp", 0)) < int(time.time()):
+            return None
+        required = {"id", "correo", "nombre", "nivel", "estado"}
+        return payload if required.issubset(payload) else None
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return None
 GOOGLE_ICON_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(GOOGLE_ICON_PATH.read_bytes()).decode("ascii")
 
 if DEMO_MODE:
@@ -2397,6 +2430,10 @@ def tareas_to_pdf_bytes(title: str, df: pd.DataFrame) -> bytes:
 
 if "session" not in st.session_state:
     st.session_state.session = None
+if st.session_state.session is None:
+    restored_session = _session_from_token(str(st.query_params.get("session_token", "") or ""))
+    if restored_session:
+        st.session_state.session = restored_session
 if "chat" not in st.session_state:
     st.session_state.chat = []
 
@@ -4100,6 +4137,7 @@ def view_sala_previa(reunion_id: str) -> None:
         meeting=reunion_render,
         participant_name=str(sesion.get("nombre") or "Usuario"),
         participant_count=len(participantes),
+        session_token=_session_token(sesion),
     )
     components.html(html, height=1000, scrolling=True)
 
@@ -4151,6 +4189,7 @@ def view_videollamada(reunion_id: str) -> None:
             "is_organizer": DEMO_MODE or str(reunion.get("creador_id") or "") == str(sesion.get("id") or ""),
         },
         demo=DEMO_MODE,
+        session_token=_session_token(sesion),
     )
     components.html(html, height=1000, scrolling=False)
 
@@ -5870,6 +5909,50 @@ def view_inteligencia_artificial():
             mime = {".pdf": "application/pdf", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}[report.suffix.lower()]
             st.download_button(f"Descargar {report.name}", data=report.read_bytes(), file_name=report.name, mime=mime)
 
+
+def view_tareas_vincora():
+    from frontend.vincora_dashboards import tareas as render_tareas
+    rows = sb_select("tareas", {"select": "id,reunion_id,descripcion,asignado_a_correo,estado,fecha_vencimiento,fecha_creacion"})
+    meetings = sb_select("reuniones", {"select": "id,tema,fecha_inicio", "order": "fecha_inicio.desc"})
+    names = {str(row.get("id")): str(row.get("tema") or "Reunión sin título") for row in meetings}
+    def patch_task(task_id: str, state: str) -> None:
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/tareas", headers={**HEADERS, "Prefer": "return=minimal"},
+            params={"id": f"eq.{task_id}"}, data=json.dumps({"estado": state}), timeout=30,
+        )
+        response.raise_for_status()
+    def create_task(meeting_id: str, description: str, owner: str, due: str) -> None:
+        if not description.strip():
+            raise ValueError("La descripción es obligatoria")
+        sb_insert("tareas", [{"reunion_id": meeting_id, "descripcion": description.strip(), "asignado_a_correo": owner.strip() or None, "estado": "pendiente", "fecha_vencimiento": due}])
+    render_tareas(st, rows, names, patch_task, create_task, meetings, is_admin())
+
+
+def view_participantes_vincora():
+    from frontend.vincora_dashboards import participantes as render_participantes
+    rows = sb_select("participantes", {"select": "id,reunion_id,usuario_id,correo,rol,estado_invitacion,fecha_creacion"})
+    user_rows = sb_select("usuarios", {"select": "id,nombre,correo,estado_suscripcion"})
+    meeting_rows = sb_select("reuniones", {"select": "id,tema"})
+    task_rows = sb_select("tareas", {"select": "id,reunion_id,asignado_a_correo,estado"})
+    users = {str(row.get("correo") or "").lower(): row for row in user_rows}
+    meetings = {str(row.get("id")): str(row.get("tema") or "Reunión") for row in meeting_rows}
+    render_participantes(st, rows, users, meetings, task_rows)
+
+
+def view_metricas_vincora():
+    from frontend.vincora_dashboards import metricas as render_metricas
+    meetings = sb_select("reuniones", {"select": "id,tema,estado,fecha_inicio,duracion_minutos"})
+    tasks = sb_select("tareas", {"select": "id,reunion_id,estado,fecha_creacion"})
+    participants = sb_select("participantes", {"select": "id,reunion_id,correo,estado_invitacion"})
+    reports = sb_select("resumenes", {"select": "id,reunion_id,fecha_creacion"})
+    n8n = sb_select("metricas_n8n", {"select": "endpoint,estado,fecha,tiempo_respuesta", "order": "fecha.desc", "limit": "1000"})
+    render_metricas(st, meetings, tasks, participants, reports, n8n)
+
+
+def view_ia_vincora():
+    from frontend.vincora_dashboards import ia_config
+    ia_config(st, view_inteligencia_artificial)
+
 # -------- Router --------
 token_invitacion = str(st.query_params.get("aceptar_invitacion", "") or "")
 correo_invitacion = str(st.query_params.get("correo", "") or "").strip().lower()
@@ -5984,15 +6067,15 @@ else:
     elif page == "Reuniones":
         view_reuniones()
     elif page == "Tareas":
-        view_tareas()
+        view_tareas_vincora()
     elif page == "Resumen de reuniones":
         view_resumen_reuniones()
     elif page == "Participantes":
-        view_participantes()
+        view_participantes_vincora()
     elif page == "Inteligencia artificial":
-        view_inteligencia_artificial()
+        view_ia_vincora()
     elif page == "Métricas":
-        view_metricas()
+        view_metricas_vincora()
     elif page == "Cerrar sesión":
         st.session_state.clear()
         st.rerun()
